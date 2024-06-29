@@ -1,4 +1,6 @@
 # Project-specific ignores
+.python-version
+.env
 data/
 
 # Python
