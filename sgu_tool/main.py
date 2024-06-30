@@ -40,18 +40,18 @@ MINIMUM_SPEAKERS = 3  # Always at least the intro voice, Steven, and 1 Rogue.
 DATA_FOLDER = Path("data")
 EPISODE_FOLDER = DATA_FOLDER / "episodes"
 TRANSCRIPTION_FOLDER = DATA_FOLDER / "transcriptions"
-DIARIZATION_FOLDER = DATA_FOLDER / "diarization"
-DIARIZED_TRANSCRIPT_FOLDER = DATA_FOLDER / "diaried_transcripts"
+DIARIZATION_FOLDER = DATA_FOLDER / "diarizations"
+DIARIZED_TRANSCRIPT_FOLDER = DATA_FOLDER / "diarized_transcripts"
 
 RSS_FILE = DATA_FOLDER / "rss.xml"
 SIX_DAYS = 60 * 60 * 24 * 6
 FILE_SIZE_CUTOFF = 100_000
 
 # Debug settings
-ENABLE_PODCAST_DOWNLOADING = False
-ENABLE_TRANSCRIPTION = False
-ENABLE_DIARIZATION = False
-ENABLE_DIARIZED_TRANSCRIPT = False
+DISABLE_PODCAST_DOWNLOADING = True
+DISABLE_TRANSCRIPTION = True
+DISABLE_DIARIZATION = False
+DISABLE_DIARIZED_TRANSCRIPT = True
 
 
 # endregion
@@ -103,20 +103,25 @@ def ensure_directories() -> None:
     EPISODE_FOLDER.mkdir(parents=True, exist_ok=True)
     TRANSCRIPTION_FOLDER.mkdir(parents=True, exist_ok=True)
     DIARIZATION_FOLDER.mkdir(parents=True, exist_ok=True)
+    DIARIZED_TRANSCRIPT_FOLDER.mkdir(parents=True, exist_ok=True)
 
 
 def load_models() -> tuple[Whisper, SpeakerDiarization, Language]:
     print("Loading models..")
     gpu = torch.device("cuda")
 
+    print("Loading whisper...")
     whisper_model = whisper.load_model(TRANSCRIPTION_MODEL, device=gpu)
 
+    print("Loading pyannote...")
     pipeline = SpeakerDiarization.from_pretrained(
         "pyannote/speaker-diarization-3.1", use_auth_token=os.getenv("HUGGING_FACE_KEY")
     )
     pipeline.to(gpu)
 
+    print("Loading spacy...")
     nlp = en_core_web_trf.load()
+
     print("Models loaded.")
     return whisper_model, cast(SpeakerDiarization, pipeline), nlp
 
@@ -236,7 +241,11 @@ class PodcastEpisode:
     download_url: str
 
     @property
-    def _audio_file(self) -> Path:
+    def has_diarized_transcript(self) -> bool:
+        return self.diarized_transcript_file.exists()
+
+    @property
+    def audio_file(self) -> Path:
         return EPISODE_FOLDER / f"{self.episode_number:04}.mp3"
 
     @property
@@ -252,23 +261,23 @@ class PodcastEpisode:
         return DIARIZED_TRANSCRIPT_FOLDER / f"{self.episode_number:04}.json"
 
     async def get_audio_file(self, client: AsyncClient) -> Path:
-        if self._audio_file.exists():
-            return self._audio_file
+        if self.audio_file.exists():
+            return self.audio_file
 
         await self.download_audio_file(client)
-        return self._audio_file
+        return self.audio_file
 
     async def download_audio_file(self, client: AsyncClient) -> None:
         print(f"Downloading episode: {self.episode_number}..")
 
         resp = await client.get(self.download_url, timeout=3600)
         resp.raise_for_status()
-        self._audio_file.write_bytes(resp.content)
+        self.audio_file.write_bytes(resp.content)
 
-        if self._audio_file.stat().st_size < FILE_SIZE_CUTOFF:
+        if self.audio_file.stat().st_size < FILE_SIZE_CUTOFF:
             raise RuntimeError(f"Size too small for episode {self.episode_number} (file contains an error message)")
 
-        self.sanitize_mp3_tag(self._audio_file)
+        self.sanitize_mp3_tag(self.audio_file)
 
         print(f"Downloaded episode: {self.episode_number}.")
 
@@ -334,11 +343,23 @@ async def main() -> None:
         episodes = get_podcast_episodes(feed_entries)
 
         for episode in episodes:
+            if episode.has_diarized_transcript:
+                continue
+
+            if not episode.audio_file.exists() and DISABLE_PODCAST_DOWNLOADING:
+                continue
+
             audio_file = await episode.get_audio_file(client)
+
+            if not episode.transcription_file.exists() and DISABLE_TRANSCRIPTION:
+                continue
 
             transcription = episode.get_transcription(audio_file, whisper_model)
             episode.transcription_file.write_text(json.dumps(transcription))
             print("Transcription saved.")
+
+            if not episode.diarization_file.exists() and DISABLE_DIARIZATION:
+                continue
 
             rogues = extract_rogue_names_from_transcription(nlp, transcription)
             max_speakers = len(rogues) + 1  # Add 1 for the intro + Sci or Fict voice
@@ -347,11 +368,13 @@ async def main() -> None:
             episode.diarization_file.write_text(json.dumps(diarization))
             print("Diarization saved.")
 
+            if not episode.diarized_transcript_file.exists() and DISABLE_DIARIZED_TRANSCRIPT:
+                continue
+
             diarized_transcript_segments = merge_transcript_and_diarization(transcription, diarization)
 
             diarized_transcript = DiarizedTranscript(rogues=rogues, segments=diarized_transcript_segments)
             episode.diarized_transcript_file.write_text(json.dumps(diarized_transcript))
-
             print("Diarized transcript saved.")
 
             # Next up, trying to tag the speakers with the rogues' names
