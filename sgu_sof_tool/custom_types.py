@@ -14,3 +14,14 @@ class PodcastFeedEntry(TypedDict):
     title: str
     link: str
     links: list[PodcastFeedEntryLink]
+
+
+class TranscriptionSegment(TypedDict):
+    start_time: float
+    end_time: float
+    text: str
+
+
+class Transcription(TypedDict):
+    text: str
+    segments: list[TranscriptionSegment]
