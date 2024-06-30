@@ -38,20 +38,22 @@ TRANSCRIPTION_MODEL = "medium.en"
 MINIMUM_SPEAKERS = 3  # Always at least the intro voice, Steven, and 1 Rogue.
 
 DATA_FOLDER = Path("/datasets") if Path("/datasets").exists() else Path("data")
+TEMP_FOLDER = DATA_FOLDER / "temp"
 EPISODE_FOLDER = DATA_FOLDER / "episodes"
 TRANSCRIPTION_FOLDER = DATA_FOLDER / "transcriptions"
 DIARIZATION_FOLDER = DATA_FOLDER / "diarizations"
 DIARIZED_TRANSCRIPT_FOLDER = DATA_FOLDER / "diarized_transcripts"
 
-RSS_FILE = DATA_FOLDER / "rss.xml"
+RSS_FILE = TEMP_FOLDER / "rss.xml"
 SIX_DAYS = 60 * 60 * 24 * 6
 FILE_SIZE_CUTOFF = 100_000
 
+
 # Debug settings
-DISABLE_PODCAST_DOWNLOADING = True
-DISABLE_TRANSCRIPTION = True
+DISABLE_PODCAST_DOWNLOADING = False
+DISABLE_TRANSCRIPTION = False
 DISABLE_DIARIZATION = False
-DISABLE_DIARIZED_TRANSCRIPT = True
+DISABLE_DIARIZED_TRANSCRIPT = False
 
 
 # endregion
@@ -104,6 +106,7 @@ def ensure_directories() -> None:
     TRANSCRIPTION_FOLDER.mkdir(parents=True, exist_ok=True)
     DIARIZATION_FOLDER.mkdir(parents=True, exist_ok=True)
     DIARIZED_TRANSCRIPT_FOLDER.mkdir(parents=True, exist_ok=True)
+    TEMP_FOLDER.mkdir(parents=True, exist_ok=True)
 
 
 def load_models() -> tuple[Whisper, SpeakerDiarization, Language]:
