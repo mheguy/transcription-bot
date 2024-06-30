@@ -8,15 +8,15 @@ from mutagen.easyid3 import EasyID3
 from pyannote.core import Annotation, Segment
 from pyannote.core.utils.types import Label, TrackName
 
-from sgu_sof_tool.config import DATA_FOLDER, DIARIZATION_FOLDER, EPISODE_FOLDER, RSS_URL, TRANSCRIPTION_FOLDER
-from sgu_sof_tool.podcast_episode import RSS_FILE, SIX_DAYS, Episode
+from sgu_tool.config import DATA_FOLDER, DIARIZATION_FOLDER, EPISODE_FOLDER, RSS_URL, TRANSCRIPTION_FOLDER
+from sgu_tool.podcast_episode import RSS_FILE, SIX_DAYS, Episode
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from httpx import AsyncClient
 
-    from sgu_sof_tool.custom_types import PodcastFeedEntry, Transcription
+    from sgu_tool.custom_types import PodcastFeedEntry, Transcription
 
 
 def ensure_directories() -> None:

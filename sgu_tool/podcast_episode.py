@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from pyannote.audio.pipelines.utils.hook import ProgressHook
 
-from sgu_sof_tool.config import DATA_FOLDER, DIARIZATION_FOLDER, EPISODE_FOLDER, TRANSCRIPTION_FOLDER
+from sgu_tool.config import DATA_FOLDER, DIARIZATION_FOLDER, EPISODE_FOLDER, TRANSCRIPTION_FOLDER
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from pyannote.core import Annotation
     from whisper import Whisper
 
-    from sgu_sof_tool.custom_types import Transcription
+    from sgu_tool.custom_types import Transcription
 
 RSS_FILE = DATA_FOLDER / "rss.xml"
 SIX_DAYS = 60 * 60 * 24 * 6

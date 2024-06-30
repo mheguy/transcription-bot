@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "SGU-SoF-Tool"
+name = "SGU-Tool"
 version = "0.0.1"
 package-mode = true
 description = "Tool for calculating 'Science or Fiction' stats."
 authors = []
 license = "CC0"
 readme = "README.md"
-packages = [{ include = "sgu_sof_tool" }]
+packages = [{ include = "sgu_tool" }]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"

@@ -7,8 +7,8 @@ import torch
 import whisper
 from pyannote.audio import Pipeline
 
-from sgu_sof_tool.config import TRANSCRIPTION_MODEL
-from sgu_sof_tool.helpers import (
+from sgu_tool.config import TRANSCRIPTION_MODEL
+from sgu_tool.helpers import (
     ensure_directories,
     get_podcast_episodes,
     get_rss_feed_entries,
