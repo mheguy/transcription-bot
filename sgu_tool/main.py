@@ -16,6 +16,7 @@ import feedparser
 import httpx
 import torch
 import whisper
+from dotenv import load_dotenv
 from mutagen.easyid3 import EasyID3
 from pyannote.audio.pipelines import SpeakerDiarization
 from pyannote.audio.pipelines.utils.hook import ProgressHook
@@ -28,6 +29,7 @@ if TYPE_CHECKING:
     from spacy.language import Language
     from whisper import Whisper
 
+load_dotenv()
 # endregion
 # region Config + Constants
 RSS_URL = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
