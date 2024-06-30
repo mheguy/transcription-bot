@@ -20,6 +20,9 @@ numpy = "<2"
 matplotlib = "<3.9"
 httpx = "^0.27.0"
 mutagen = "^1.47.0"
+spacy = "^3.7.5"
+en-core-web-trf = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.7.0/en_core_web_trf-3.7.0-py3-none-any.whl"}
+spacy-transformers = "^1.3.5"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"
@@ -155,7 +158,7 @@ known-first-party = ["sgu_sof_tool"]
 
 [tool.ruff.lint.per-file-ignores]
 # Rules for notebooks:
-"*.ipynb" = ["PLR2004", "S101", "S311"]
+"*.ipynb" = ["PLE1142", "PLR2004", "S101", "S311"]
 # Rules for tests:
 "test_*.py" = ["ANN001", "ANN401", "D10", "PGH", "PLR2004", "S101", "SLF"]
 # Rules for init files:
