@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import tempfile
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -37,20 +38,18 @@ RSS_URL = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
 TRANSCRIPTION_MODEL = "medium.en"
 MINIMUM_SPEAKERS = 3  # Always at least the intro voice, Steven, and 1 Rogue.
 
-DATA_FOLDER = Path("/datasets") if Path("/datasets").exists() else Path("data")
-TEMP_FOLDER = DATA_FOLDER / "temp"
-EPISODE_FOLDER = DATA_FOLDER / "episodes"
-TRANSCRIPTION_FOLDER = DATA_FOLDER / "transcriptions"
-DIARIZATION_FOLDER = DATA_FOLDER / "diarizations"
-DIARIZED_TRANSCRIPT_FOLDER = DATA_FOLDER / "diarized_transcripts"
+_TEMP = tempfile.TemporaryDirectory()
+TEMP_FOLDER = Path(tempfile.TemporaryDirectory().name)
+OUTPUT_FOLDER = Path("/storage") if os.getenv("PAPERSPACE_CLUSTER_ID") else Path("data")
+TRANSCRIPTION_FOLDER = OUTPUT_FOLDER / "transcriptions"
+DIARIZATION_FOLDER = OUTPUT_FOLDER / "diarizations"
+DIARIZED_TRANSCRIPT_FOLDER = OUTPUT_FOLDER / "diarized_transcripts"
 
-RSS_FILE = TEMP_FOLDER / "rss.xml"
 SIX_DAYS = 60 * 60 * 24 * 6
 FILE_SIZE_CUTOFF = 100_000
 
 
 # Debug settings
-DISABLE_PODCAST_DOWNLOADING = False
 DISABLE_TRANSCRIPTION = False
 DISABLE_DIARIZATION = False
 DISABLE_DIARIZED_TRANSCRIPT = False
@@ -101,8 +100,7 @@ class DiarizedTranscript(TypedDict):
 def ensure_directories() -> None:
     """Perform any initial setup."""
 
-    DATA_FOLDER.mkdir(parents=True, exist_ok=True)
-    EPISODE_FOLDER.mkdir(parents=True, exist_ok=True)
+    OUTPUT_FOLDER.mkdir(parents=True, exist_ok=True)
     TRANSCRIPTION_FOLDER.mkdir(parents=True, exist_ok=True)
     DIARIZATION_FOLDER.mkdir(parents=True, exist_ok=True)
     DIARIZED_TRANSCRIPT_FOLDER.mkdir(parents=True, exist_ok=True)
@@ -151,14 +149,9 @@ def get_podcast_episodes(feed_entries: list[PodcastFeedEntry]) -> list[PodcastEp
 
 async def get_rss_feed_entries(client: AsyncClient) -> list[PodcastFeedEntry]:
     print("Getting RSS feed entries...")
-    if RSS_FILE.exists() and time.time() - SIX_DAYS < RSS_FILE.stat().st_mtime:
-        rss_content = RSS_FILE.read_text()
-    else:
-        response = await client.get(RSS_URL, timeout=10)
-        response.raise_for_status()
-        rss_content = response.text
-        RSS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        RSS_FILE.write_text(rss_content)
+    response = await client.get(RSS_URL, timeout=10)
+    response.raise_for_status()
+    rss_content = response.text
 
     return feedparser.parse(rss_content)["entries"]
 
@@ -249,7 +242,7 @@ class PodcastEpisode:
 
     @property
     def audio_file(self) -> Path:
-        return EPISODE_FOLDER / f"{self.episode_number:04}.mp3"
+        return TEMP_FOLDER / f"{self.episode_number:04}.mp3"
 
     @property
     def transcription_file(self) -> Path:
@@ -349,9 +342,6 @@ async def main() -> None:
             if episode.has_diarized_transcript:
                 continue
 
-            if not episode.audio_file.exists() and DISABLE_PODCAST_DOWNLOADING:
-                continue
-
             audio_file = await episode.get_audio_file(client)
 
             if not episode.transcription_file.exists() and DISABLE_TRANSCRIPTION:
@@ -385,3 +375,4 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
+    _TEMP.cleanup()
