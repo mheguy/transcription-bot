@@ -49,12 +49,6 @@ SIX_DAYS = 60 * 60 * 24 * 6
 FILE_SIZE_CUTOFF = 100_000
 
 
-# Debug settings
-DISABLE_TRANSCRIPTION = False
-DISABLE_DIARIZATION = False
-DISABLE_DIARIZED_TRANSCRIPT = False
-
-
 # endregion
 # region Custom Types
 class PodcastFeedEntryLink(TypedDict):
@@ -344,15 +338,9 @@ async def main() -> None:
 
             audio_file = await episode.get_audio_file(client)
 
-            if not episode.transcription_file.exists() and DISABLE_TRANSCRIPTION:
-                continue
-
             transcription = episode.get_transcription(audio_file, whisper_model)
             episode.transcription_file.write_text(json.dumps(transcription))
             print("Transcription saved.")
-
-            if not episode.diarization_file.exists() and DISABLE_DIARIZATION:
-                continue
 
             rogues = extract_rogue_names_from_transcription(nlp, transcription)
             max_speakers = len(rogues) + 1  # Add 1 for the intro + Sci or Fict voice
@@ -360,9 +348,6 @@ async def main() -> None:
             diarization = episode.get_diarization(audio_file, pipeline, max_speakers)
             episode.diarization_file.write_text(json.dumps(diarization))
             print("Diarization saved.")
-
-            if not episode.diarized_transcript_file.exists() and DISABLE_DIARIZED_TRANSCRIPT:
-                continue
 
             diarized_transcript_segments = merge_transcript_and_diarization(transcription, diarization)
 
