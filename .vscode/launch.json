@@ -12,7 +12,7 @@
             "name": "main",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/sgu_sof_tool/main.py",
+            "program": "${workspaceFolder}/sgu/main.py",
             "console": "integratedTerminal"
         }
     ]
