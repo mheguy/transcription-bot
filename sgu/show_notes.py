@@ -1,4 +1,3 @@
-import pickle
 from typing import TYPE_CHECKING, cast
 
 from bs4 import BeautifulSoup, ResultSet, Tag
@@ -16,11 +15,17 @@ PODCAST_MAIN_TAG_TYPE = "main"
 PODCAST_MAIN_CLASS_NAME = "podcast-main"
 
 
-def get_show_notes(client: "Session", url: str) -> BeautifulSoup:
+def get_show_notes(client: "Session", url: str):
     resp = client.get(url)
     resp.raise_for_status()
 
-    return BeautifulSoup(resp.content, "html.parser")
+    soup = BeautifulSoup(resp.content, "html.parser")
+
+    header = extract_element(soup, PODCAST_HEADER_TAG_TYPE, PODCAST_HEADER_CLASS_NAME)
+    header_data = process_header(header)
+
+    post = extract_element(soup, PODCAST_MAIN_TAG_TYPE, PODCAST_MAIN_CLASS_NAME)
+    post_data = process_post(post)
 
 
 def extract_element(soup: BeautifulSoup | Tag, name: str, class_name: str) -> Tag:
@@ -71,15 +76,3 @@ def process_post(post_element: Tag) -> list[list["Tag"]]:
         raise ValueError("Could not find any segments")
 
     return raw_segments
-
-
-html: bytes = pickle.load(open("show_notes.pkl", "rb")).content  # noqa: S301, SIM115
-soup = BeautifulSoup(html, "html.parser")
-
-header = extract_element(soup, PODCAST_HEADER_TAG_TYPE, PODCAST_HEADER_CLASS_NAME)
-header_data = process_header(header)
-
-post = extract_element(soup, PODCAST_MAIN_TAG_TYPE, PODCAST_MAIN_CLASS_NAME)
-post_data = process_post(post)
-
-print()

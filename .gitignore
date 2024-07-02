@@ -2,6 +2,7 @@
 .python-version
 .env
 data/
+*.http
 
 # Python
 .venv/
