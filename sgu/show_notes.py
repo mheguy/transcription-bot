@@ -1,12 +1,19 @@
 import pickle
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
-from bs4 import BeautifulSoup, Comment, Tag
+from bs4 import BeautifulSoup, ResultSet, Tag
 
-from sgu.config import END_HEADER_COMMENT, END_POST_COMMENT, START_HEADER_COMMENT, START_POST_COMMENT
+from sgu.custom_types import HeaderData
 
 if TYPE_CHECKING:
     from requests import Session
+
+
+PODCAST_HEADER_TAG_TYPE = "section"
+PODCAST_HEADER_CLASS_NAME = "podcast-head"
+
+PODCAST_MAIN_TAG_TYPE = "main"
+PODCAST_MAIN_CLASS_NAME = "podcast-main"
 
 
 def get_show_notes(client: "Session", url: str) -> BeautifulSoup:
@@ -16,37 +23,63 @@ def get_show_notes(client: "Session", url: str) -> BeautifulSoup:
     return BeautifulSoup(resp.content, "html.parser")
 
 
-def extract_content_between_two_comments(soup: BeautifulSoup, top_comment: str, bottom_comment: str) -> Tag:
-    start_comment = soup.find(string=lambda text: isinstance(text, Comment) and top_comment in text)
-    end_comment = soup.find(string=lambda text: isinstance(text, Comment) and bottom_comment in text)
+def extract_element(soup: BeautifulSoup | Tag, name: str, class_name: str) -> Tag:
+    results = soup.find_all(name, class_=class_name)
 
-    if not start_comment or not end_comment:
-        raise ValueError("Could not find start or end comment")
+    if len(results) != 1:
+        raise ValueError("Unexpected number of description elements extracted, expected 1, got %s", len(results))
 
-    content: list[Tag] = []
-    for sibling in start_comment.next_siblings:
-        if sibling == end_comment:
-            break
-        if isinstance(sibling, Tag):
-            content.append(sibling)
-
-    if len(content) != 1:
-        raise ValueError("Unexpected number of content elements extracted")
-
-    return content[0]
+    return results[0]
 
 
-def process_header(header_element: Tag) -> None: ...
+def process_header(header: Tag) -> HeaderData:
+    description = extract_element(header, "p", "podcast__description")
+    thumbnail_div = extract_element(header, "div", "thumbnail")
+    thumbnail = thumbnail_div.findChild("img")
+    if not isinstance(thumbnail, Tag):
+        raise TypeError("Got an unexpected type in thumbnail")
+
+    return HeaderData(summary=description.text, image=thumbnail.attrs["src"])
 
 
-def process_post(post_element: Tag) -> None: ...
+def process_post(post_element: Tag) -> list[list["Tag"]]:
+    h3_tags = post_element.find_all("h3")
+
+    if any(not isinstance(h3_tag, Tag) for h3_tag in h3_tags):
+        raise TypeError("Got an unexpected type in h3 tags")
+
+    h3_tags = cast(ResultSet[Tag], h3_tags)
+
+    raw_segments: list[list[Tag]] = []
+    for h3_tag in h3_tags:
+        if not h3_tag.text:
+            continue
+
+        raw_segment: list[Tag] = [h3_tag]
+        for sibling in h3_tag.next_siblings:
+            if not isinstance(sibling, Tag):
+                continue
+
+            if sibling.name == "h3":
+                break
+
+            raw_segment.append(sibling)
+
+        raw_segments.append(raw_segment)
+
+    if len(raw_segments) == 0:
+        raise ValueError("Could not find any segments")
+
+    return raw_segments
 
 
 html: bytes = pickle.load(open("show_notes.pkl", "rb")).content  # noqa: S301, SIM115
 soup = BeautifulSoup(html, "html.parser")
 
-header_element = extract_content_between_two_comments(soup, START_HEADER_COMMENT, END_HEADER_COMMENT)
-post_element = extract_content_between_two_comments(soup, START_POST_COMMENT, END_POST_COMMENT)
+header = extract_element(soup, PODCAST_HEADER_TAG_TYPE, PODCAST_HEADER_CLASS_NAME)
+header_data = process_header(header)
 
-process_header(header_element)
-process_post(post_element)
+post = extract_element(soup, PODCAST_MAIN_TAG_TYPE, PODCAST_MAIN_CLASS_NAME)
+post_data = process_post(post)
+
+print()
