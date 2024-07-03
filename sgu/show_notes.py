@@ -1,8 +1,7 @@
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
 from bs4 import BeautifulSoup, ResultSet, Tag
-
-from sgu.custom_types import HeaderData
 
 if TYPE_CHECKING:
     from requests import Session
@@ -14,18 +13,32 @@ PODCAST_HEADER_CLASS_NAME = "podcast-head"
 PODCAST_MAIN_TAG_TYPE = "main"
 PODCAST_MAIN_CLASS_NAME = "podcast-main"
 
+RawSegmentData = list[list["Tag"]]
 
-def get_show_notes(client: "Session", url: str):
+
+@dataclass
+class ShowNotesData:
+    image_url: str
+    segment_data: "RawSegmentData"
+
+
+def get_data_from_show_notes(client: "Session", url: str) -> ShowNotesData:
+    soup = get_show_notes(client, url)
+
+    header = extract_element(soup, PODCAST_HEADER_TAG_TYPE, PODCAST_HEADER_CLASS_NAME)
+    image_url = extract_image_url(header)
+
+    post = extract_element(soup, PODCAST_MAIN_TAG_TYPE, PODCAST_MAIN_CLASS_NAME)
+    segment_data = extract_segment_data(post)
+
+    return ShowNotesData(image_url=image_url, segment_data=segment_data)
+
+
+def get_show_notes(client: "Session", url: str) -> BeautifulSoup:
     resp = client.get(url)
     resp.raise_for_status()
 
-    soup = BeautifulSoup(resp.content, "html.parser")
-
-    header = extract_element(soup, PODCAST_HEADER_TAG_TYPE, PODCAST_HEADER_CLASS_NAME)
-    header_data = process_header(header)
-
-    post = extract_element(soup, PODCAST_MAIN_TAG_TYPE, PODCAST_MAIN_CLASS_NAME)
-    post_data = process_post(post)
+    return BeautifulSoup(resp.content, "html.parser")
 
 
 def extract_element(soup: BeautifulSoup | Tag, name: str, class_name: str) -> Tag:
@@ -37,17 +50,16 @@ def extract_element(soup: BeautifulSoup | Tag, name: str, class_name: str) -> Ta
     return results[0]
 
 
-def process_header(header: Tag) -> HeaderData:
-    description = extract_element(header, "p", "podcast__description")
+def extract_image_url(header: Tag) -> str:
     thumbnail_div = extract_element(header, "div", "thumbnail")
     thumbnail = thumbnail_div.findChild("img")
     if not isinstance(thumbnail, Tag):
         raise TypeError("Got an unexpected type in thumbnail")
 
-    return HeaderData(summary=description.text, image=thumbnail.attrs["src"])
+    return thumbnail.attrs["src"]
 
 
-def process_post(post_element: Tag) -> list[list["Tag"]]:
+def extract_segment_data(post_element: Tag) -> RawSegmentData:
     h3_tags = post_element.find_all("h3")
 
     if any(not isinstance(h3_tag, Tag) for h3_tag in h3_tags):
