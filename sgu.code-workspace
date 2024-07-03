@@ -4,5 +4,7 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"remote.autoForwardPortsFallback": 0
+	}
 }
