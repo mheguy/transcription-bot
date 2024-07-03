@@ -29,7 +29,7 @@ def get_rss_feed_entries(client: "requests.Session") -> list[PodcastFeedEntry]:
 
 
 def get_raw_rss_feed_entries(client: "requests.Session") -> list[dict[str, Any]]:
-    response = client.get(RSS_URL, timeout=10, verify=False)  # TODO: Fix SSL verification
+    response = client.get(RSS_URL, timeout=10)
     response.raise_for_status()
 
     return feedparser.parse(response.text)["entries"]
