@@ -2,7 +2,6 @@ import itertools
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Literal, TypedDict
 
 from bs4 import Tag
@@ -11,7 +10,6 @@ if TYPE_CHECKING:
     from sgu.rss_feed import PodcastFeedEntry
     from sgu.show_notes import ShowNotesData
 
-EPISODE_NUMBER = {"value": 0}  # TODO Debug code
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
