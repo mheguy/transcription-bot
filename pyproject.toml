@@ -14,6 +14,10 @@ feedparser = "^6.0.11"
 requests = "^2.32.3"
 python-dotenv = "^1.0.1"
 beautifulsoup4 = "^4.12.3"
+numpy = "<2.0.0"
+whisperx = { git = "https://github.com/m-bain/whisperx.git", rev = "f2da2f858e99e4211fe4f64b5f2938b007827e17" }
+torchvision = "^0.18.1"
+codetiming = "^1.4.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"
