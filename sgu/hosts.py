@@ -7,5 +7,6 @@ class Host(Enum):
     Bob = "Bob"
     Cara = "Cara"
     Evan = "Evan"
+    Rebecca = "Rebecca"
     Perry = "Perry"
     Guest = "Guest"
