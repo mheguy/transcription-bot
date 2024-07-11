@@ -2176,6 +2176,25 @@ extra = ["lxml (>=4.6)", "pydot (>=2.0)", "pygraphviz (>=1.12)", "sympy (>=1.10)
 test = ["pytest (>=7.2)", "pytest-cov (>=4.0)"]
 
 [[package]]
+name = "ngrok"
+version = "1.3.0"
+description = "The ngrok Agent SDK for Python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "ngrok-1.3.0-cp37-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:31444653a75ffe14b061d5c80233066e85bb46b81fdb9ac6392024e1a1994be2"},
+    {file = "ngrok-1.3.0-cp37-abi3-macosx_10_12_x86_64.whl", hash = "sha256:dfc12d38737ac0eb1b45a9958f5a7540eb29a1c652202ad2dab408233c93221f"},
+    {file = "ngrok-1.3.0-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:45797afb011511bd4a2f7d8bfad120b84631939e7572bfa3dd695df301589c14"},
+    {file = "ngrok-1.3.0-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:38c2bfb50b5bf5d11bdb4edbe8fdeff2c2ec378d9914b05778f9e08c2d22fac7"},
+    {file = "ngrok-1.3.0-cp37-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:58b0a0570fa4059f7c7665315c3085d609c2fefc76cdb30b2913d2571b714294"},
+    {file = "ngrok-1.3.0-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0670314cdc36cb9985a3dae8841638eb1f8e63afdbf6a35b6cb0a3ae5fbe84ca"},
+    {file = "ngrok-1.3.0-cp37-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:4253dd51b6da21ea0e6dca35d4865fd5774348250d6dece9d41a327bd3d1364a"},
+    {file = "ngrok-1.3.0-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:6e4c7f60d36ef6bd41a64538fb5ae68d83b66015406f2e140d8222ac8f4f1653"},
+    {file = "ngrok-1.3.0-cp37-abi3-win32.whl", hash = "sha256:db2f71be982bee271f3f11ce7d99c65b28a311bd46f11c432e3471dfc9b2ec19"},
+    {file = "ngrok-1.3.0-cp37-abi3-win_amd64.whl", hash = "sha256:72e90e6f353cf421f6f31d9835e6253b1aa09bec2621809dd116a529d42014dc"},
+]
+
+[[package]]
 name = "nltk"
 version = "3.8.1"
 description = "Natural Language Toolkit"
@@ -4921,4 +4940,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "f7362fd5b3c608ec51f25579e97a56a327e85401ba7ae1779ea7196c9d835b83"
+content-hash = "1a2ad2d77324e4a4025e291304031dc30c1821a97337dd4946b41b9f99d6fd41"
