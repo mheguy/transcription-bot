@@ -18,6 +18,7 @@ codetiming = "^1.4.0"
 tqdm = "^4.66.4"
 httpx = "^0.27.0"
 ngrok = "^1.3.0"
+mutagen = "^1.47.0"
 
 [tool.poetry.group.ml.dependencies]
 whisperx = { git = "https://github.com/m-bain/whisperx.git", markers = "sys_platform == 'linux'", rev = "f2da2f858e99e4211fe4f64b5f2938b007827e17" }
