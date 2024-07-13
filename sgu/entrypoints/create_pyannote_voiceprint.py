@@ -1,5 +1,7 @@
 import json
+import logging
 import os
+import threading
 from pathlib import Path
 
 import ngrok
@@ -9,51 +11,64 @@ from flask import Flask, Response, request, send_file
 
 from sgu.config import SERVER_PORT
 
-load_dotenv()
+# This determines who is being processed!
+ROGUE_TO_PROCESS = "Steven"
 
+AUDIO_FILE = Path(f"data/voiceprints/{ROGUE_TO_PROCESS}.mp3").resolve()
+if not AUDIO_FILE.exists():
+    raise ValueError("No audio file found.")
+
+OUTPUT_FILE = AUDIO_FILE.with_name(AUDIO_FILE.stem + ".json")
+
+load_dotenv()
 PYANNOTE_TOKEN = os.environ["PYANNOTE_TOKEN"]
 NGROK_TOKEN = os.environ["NGROK_TOKEN"]
-VOICEPRINTS_FOLDER = Path("data/voiceprins")
-
 HEADERS = {"Authorization": f"Bearer {PYANNOTE_TOKEN}", "Content-Type": "application/json"}
 PYANNOTE_ENDPOINT = "https://api.pyannote.ai/v1/voiceprint"
 
 
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(funcName)s - %(message)s")
+logger = logging.getLogger("voiceprint")
 
 
-@app.route("/{<str:filename>}", methods=["GET"])
+@app.route("/files/<string:filename>", methods=["GET"])
 def get_audio_file(filename: str) -> Response:
-    return send_file(VOICEPRINTS_FOLDER / filename, mimetype="audio/mpeg")
+    logger.info("Got request for %s", filename)
+    return send_file(AUDIO_FILE, mimetype="audio/mpeg")
 
 
 @app.route("/webhook", methods=["POST"])
 def handle_webhook() -> Response:
+    logger.info("Got webhook: %s", request.data)
+
     data = request.json
     if data is None:
         return Response(status=400)
 
-    job_id = data["jobId"]
-    file = VOICEPRINTS_FOLDER / f"{job_id}.json"
-    file.write_text(json.dumps(data))
+    OUTPUT_FILE.write_text(json.dumps(data))
 
     return Response(status=200)
 
 
-def send_voiceprints(url: str) -> None:
-    webhook_url = f"{url}/webhook"
-    for file in VOICEPRINTS_FOLDER.glob("*.mp3"):
-        file_url = f"{webhook_url}/{file.name}"
-        data = {"webhook": webhook_url, "url": file_url}
-        response = requests.post(url, headers=HEADERS, json=data, timeout=10)
+def send_voiceprint(base_url: str) -> None:
+    webhook_url = f"{base_url}/webhook"
+    file_url = f"{base_url}/files/{AUDIO_FILE.name}"
+    data = {"webhook": webhook_url, "url": file_url}
 
-        print(response.json())
+    print(f"{data=}")
+
+    response = requests.post(PYANNOTE_ENDPOINT, headers=HEADERS, json=data, timeout=10)
+    response.raise_for_status()
+
+    logger.info("Voiceprint sent. Response: %s", response.content)
 
 
 if __name__ == "__main__":
     listener = ngrok.forward(SERVER_PORT, authtoken=NGROK_TOKEN)
     url = listener.url()
+    logger.info("Listening on %s", url)
 
-    # Start app and start main
+    threading.Thread(target=send_voiceprint, args=(url,), daemon=True).start()
+
     app.run(port=SERVER_PORT)
-    send_voiceprints(url)
