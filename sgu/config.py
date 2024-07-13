@@ -1,4 +1,6 @@
 # The URL for the podcast RSS feed.
+from pathlib import Path
+
 RSS_URL = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
 WIKI_EPISODE_URL_BASE = "https://www.sgutranscripts.org/w/rest.php/v1/page/SGU_Episode_"
 
@@ -10,3 +12,5 @@ SERVER_PORT = 23500
 
 TRANSCRIPTION_MODEL = "medium.en"
 TRANSCRIPTION_LANGUAGE = "en"
+
+VOICEPRINT_FILE = Path("sgu/data/voiceprint_map.json").resolve()

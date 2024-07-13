@@ -1,7 +1,7 @@
 # Project-specific ignores
 .python-version
 .env
-data/
+/data/
 *.http
 
 # Python
