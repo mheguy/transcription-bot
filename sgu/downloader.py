@@ -2,7 +2,7 @@ from httpx import AsyncClient, Client
 from requests import Session
 
 
-class Mp3Downloader:
+class FileDownloader:
     def __init__(self, client: "AsyncClient | Client | Session") -> None:
         self.client = client
 

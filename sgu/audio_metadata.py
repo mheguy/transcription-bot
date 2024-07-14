@@ -13,13 +13,14 @@ class LyricsData:
     raw_text: str
 
 
-def process_mp3(raw_bytes: bytes) -> LyricsData:
-    raw_lyrics = get_mp3_lyrics(raw_bytes)
+def get_lyrics_from_mp3(raw_bytes: bytes) -> LyricsData:
+    # TODO: Process the lyrics
+    raw_lyrics = extract_lyrics(raw_bytes)
 
     return LyricsData("")
 
 
-def get_mp3_lyrics(raw_bytes: bytes) -> str:
+def extract_lyrics(raw_bytes: bytes) -> str:
     audio = ID3(BytesIO(raw_bytes))
 
     uslt_frame: USLT = audio.getall("USLT::eng")[0]

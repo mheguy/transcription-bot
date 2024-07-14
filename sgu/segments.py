@@ -6,8 +6,10 @@ from typing import TYPE_CHECKING, ClassVar, Literal, TypedDict
 
 from bs4 import Tag
 
+from sgu.custom_logger import logger
+
 if TYPE_CHECKING:
-    from sgu.rss_feed import PodcastFeedEntry
+    from sgu.rss_feed import PodcastEpisode
     from sgu.show_notes import ShowNotesData
 
 
@@ -19,15 +21,16 @@ SPECIAL_SUMMARY_PATTERNS = [
 ]
 
 
-def create_segments(feed_data: "PodcastFeedEntry", notes_data: "ShowNotesData") -> "list[BaseSegment]":
-    print("Creating segments...")
+# TODO: Overhaul
+def create_segments(feed_data: "PodcastEpisode", notes_data: "ShowNotesData") -> "list[BaseSegment]":
+    logger.info("Creating segments...")
 
     notes_segments = [parse_show_notes_segment_data(seg_data) for seg_data in notes_data.segment_data]
 
     feed_segments = [create_segment_from_summary_text(line.strip()) for line in feed_data.summary.split(";")]
 
     segments = [seg for seg in itertools.chain(notes_segments, feed_segments) if seg is not None]
-    print(f"Created {len(segments)} segments.")
+    logger.info("Created %s segments.", len(segments))
 
     return segments
 

@@ -1,20 +1,18 @@
 import asyncio
-from pathlib import Path
 
 import httpx
 import requests
 
-from sgu.downloader import Mp3Downloader
-from sgu.rss_feed import get_rss_feed_entries
-
-EPISODES_FOLDER = Path("data/episodes").resolve()
+from sgu.config import AUDIO_FOLDER
+from sgu.downloader import FileDownloader
+from sgu.rss_feed import get_podcast_episodes
 
 
 async def main() -> None:
-    downloaded_episodes = {int(f.stem) for f in EPISODES_FOLDER.glob("*.mp3")}
+    downloaded_episodes = {int(f.stem) for f in AUDIO_FOLDER.glob("*.mp3")}
 
     with requests.Session() as sync_client:
-        rss_entries = get_rss_feed_entries(sync_client)
+        rss_entries = get_podcast_episodes(sync_client)
 
     missing_episodes = [e for e in rss_entries if e.episode_number not in downloaded_episodes]
 
@@ -24,7 +22,7 @@ async def main() -> None:
 
     limits = httpx.Limits(max_keepalive_connections=3, max_connections=5)
     async with httpx.AsyncClient(timeout=120, follow_redirects=True, limits=limits) as async_client:
-        downloader = Mp3Downloader(async_client)
+        downloader = FileDownloader(async_client)
 
         tasks = [asyncio.ensure_future(downloader.download_async(episode.download_url)) for episode in missing_episodes]
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -32,7 +30,7 @@ async def main() -> None:
         for episode, result in zip(missing_episodes, results, strict=False):
             if isinstance(result, bytes):
                 print(f"Downloaded episode #{episode.episode_number}")
-                (EPISODES_FOLDER / f"{episode.episode_number:04}.mp3").write_bytes(result)
+                (AUDIO_FOLDER / f"{episode.episode_number:04}.mp3").write_bytes(result)
                 continue
 
             print(f"Failed to download episode #{episode.episode_number}: {result}")

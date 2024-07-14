@@ -1,6 +1,6 @@
+import inspect
 import json
 import logging
-import os
 import threading
 from pathlib import Path
 
@@ -9,7 +9,7 @@ import requests
 from dotenv import load_dotenv
 from flask import Flask, Response, request, send_file
 
-from sgu.config import SERVER_PORT
+from sgu.config import NGROK_TOKEN, PYANNOTE_TOKEN, PYANNOTE_VOICEPRINT_ENDPOINT, SERVER_PORT
 
 # This determines who is being processed!
 ROGUE_TO_PROCESS = "Steven"
@@ -21,12 +21,7 @@ if not AUDIO_FILE.exists():
 OUTPUT_FILE = AUDIO_FILE.with_name(AUDIO_FILE.stem + ".json")
 
 load_dotenv()
-PYANNOTE_TOKEN = os.environ["PYANNOTE_TOKEN"]
-NGROK_TOKEN = os.environ["NGROK_TOKEN"]
 HEADERS = {"Authorization": f"Bearer {PYANNOTE_TOKEN}", "Content-Type": "application/json"}
-PYANNOTE_ENDPOINT = "https://api.pyannote.ai/v1/voiceprint"
-
-
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(funcName)s - %(message)s")
 logger = logging.getLogger("voiceprint")
@@ -56,9 +51,9 @@ def send_voiceprint(base_url: str) -> None:
     file_url = f"{base_url}/files/{AUDIO_FILE.name}"
     data = {"webhook": webhook_url, "url": file_url}
 
-    print(f"{data=}")
+    logger.info("data=%s", data)
 
-    response = requests.post(PYANNOTE_ENDPOINT, headers=HEADERS, json=data, timeout=10)
+    response = requests.post(PYANNOTE_VOICEPRINT_ENDPOINT, headers=HEADERS, json=data, timeout=10)
     response.raise_for_status()
 
     logger.info("Voiceprint sent. Response: %s", response.content)
@@ -66,6 +61,9 @@ def send_voiceprint(base_url: str) -> None:
 
 if __name__ == "__main__":
     listener = ngrok.forward(SERVER_PORT, authtoken=NGROK_TOKEN)
+    if inspect.isawaitable(listener):
+        raise ValueError("ngrok.forward() returned an _asyncio.Task")
+
     url = listener.url()
     logger.info("Listening on %s", url)
 

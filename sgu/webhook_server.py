@@ -1,30 +1,32 @@
 import http.server
-import os
 import socketserver
+from inspect import isawaitable
 from queue import Queue
 from threading import Thread
-from typing import Any
 
 import ngrok
 
-from sgu.config import SERVER_PORT
-
-NGROK_TOKEN = os.environ["NGROK_TOKEN"]
+from sgu.config import NGROK_TOKEN, SERVER_PORT
+from sgu.custom_logger import logger
 
 
 class WebhookServer:
     def __init__(self) -> None:
         self._queue = Queue(1)
-        self._server_thread = Thread(target=self._start_server, daemon=True)
+        self._server_thread = Thread(target=self._start_server, daemon=False)
         self._listener: ngrok.Listener | None = None
 
-    def start_server_thread(self) -> str:
+    async def start_server_thread(self) -> str:
         self._server_thread.start()
-        listener = ngrok.forward(SERVER_PORT, authtoken=NGROK_TOKEN)
+        listener = ngrok.forward(SERVER_PORT, authtoken=NGROK_TOKEN)  # BUG: An _asyncio.Task is being returned here
+
+        if isawaitable(listener):
+            listener = await listener
+
         self._listener = listener
         return listener.url()
 
-    def get_webhook_payload(self) -> dict[str, Any]:
+    async def get_webhook_payload_async(self) -> bytes:
         if self._listener is None:
             raise RuntimeError("Server not started")
 
@@ -37,10 +39,10 @@ class WebhookServer:
 
         class CustomHandler(http.server.SimpleHTTPRequestHandler):
             def do_POST(self) -> None:  # noqa: N802
-                print("Got callback...")
+                logger.info("Got callback...")
 
                 content_length = int(self.headers["Content-Length"])
-                post_data = self.rfile.read(content_length).decode("utf-8")
+                post_data = self.rfile.read(content_length)
 
                 server_instance._queue.put(post_data)  # noqa: SLF001
 
@@ -52,16 +54,6 @@ class WebhookServer:
     def _start_server(self) -> None:
         handler_class = self.create_handler_class()
         with socketserver.TCPServer(("", SERVER_PORT), handler_class) as httpd:
-            print(f"Serving on port {SERVER_PORT}")
+            logger.info("Serving on port %s", SERVER_PORT)
             httpd.handle_request()
-            print("Server has shut down")
-
-
-if __name__ == "__main__":
-    server = WebhookServer()
-    url = server.start_server_thread()
-    print(f"Listening on {url}")
-    print("Do lots of things in the main thread...")
-    print("Waiting for payload to be sent to webhook...")
-    payload = server.get_webhook_payload()
-    print(f"Received payload: {payload}")
+            logger.info("Server has shut down")

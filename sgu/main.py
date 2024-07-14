@@ -1,78 +1,67 @@
-from dataclasses import dataclass
-from typing import TYPE_CHECKING
+import asyncio
 
 import requests
 from dotenv import load_dotenv
 
-from sgu.audio_metadata import LyricsData, process_mp3
-from sgu.config import CUSTOM_HEADERS
-from sgu.downloader import Mp3Downloader
-from sgu.rss_feed import PodcastFeedEntry, get_rss_feed_entries
-from sgu.segments import BaseSegment, create_segments
-from sgu.show_notes import ShowNotesData, get_data_from_show_notes
+from sgu.audio_metadata import get_lyrics_from_mp3
+from sgu.config import AUDIO_FOLDER, CUSTOM_HEADERS
+from sgu.downloader import FileDownloader
+from sgu.rss_feed import PodcastEpisode, get_podcast_episodes
+from sgu.show_notes import get_data_from_show_notes
+from sgu.transcription import create_transcript
 from sgu.wiki import has_wiki_page
-
-if TYPE_CHECKING:
-    from sgu.segments import BaseSegment
 
 load_dotenv()
 
 
-@dataclass
-class PodcastEpisode:
-    episode_number: int
-    image_url: str
-    segments: list["BaseSegment"]
-
-    @staticmethod
-    def combine_data_streams(
-        rss_feed_data: "PodcastFeedEntry",
-        show_notes_data: ShowNotesData,
-        lyric_data: LyricsData,
-    ) -> "PodcastEpisode":
-        segments = create_segments(rss_feed_data, show_notes_data)
-
-        return PodcastEpisode(
-            episode_number=rss_feed_data.episode_number,
-            image_url=show_notes_data.image_url,
-            segments=segments,
-        )
-
-
-def main() -> None:
+async def main() -> None:
     print("Starting...")
 
     with requests.Session() as client:
         client.headers.update(CUSTOM_HEADERS)
 
         print("Getting episodes from RSS feed...")
-        rss_feed_entries = get_rss_feed_entries(client)
+        podcast_episoes = get_podcast_episodes(client)
 
-        for feed_entry in rss_feed_entries:
-            print(f"Processing episode #{feed_entry.episode_number}")
+        for podcast_episode in podcast_episoes:
+            print(f"Processing episode #{podcast_episode.episode_number}")
 
             print("Checking for wiki page...")
-            wiki_page = has_wiki_page(client, feed_entry.episode_number)
+            wiki_page_exists = has_wiki_page(client, podcast_episode.episode_number)
 
-            if wiki_page:
+            if wiki_page_exists:
                 print("Episode has a wiki page. Stopping.")
                 break
 
-            print("Getting show notes data...")
-            show_notes_data = get_data_from_show_notes(client, feed_entry.link)
+            wiki_page = await create_podcast_wiki_page(client, podcast_episode)
 
-            print("Downloading episode...")
-            downloader = Mp3Downloader(client)
-            audio = downloader.download(feed_entry.download_url)
+            del wiki_page  # TODO: Create this wiki page
 
-            lyrics_data = process_mp3(audio)
-
-            episode = PodcastEpisode.combine_data_streams(feed_entry, show_notes_data, lyrics_data)
-
-            print(f"Episode {episode.episode_number} complete.")
+            break  # TODO: Maybe remove this at some point. It's just making sure that we don't process multiple episodes
 
         print("Shutting down.")
 
 
+async def create_podcast_wiki_page(client: requests.Session, podcast: PodcastEpisode) -> None:
+    print("Getting show notes...")
+    show_notes = get_data_from_show_notes(client, podcast.link)
+
+    audio_file = AUDIO_FOLDER / f"{podcast.episode_number}.mp3"
+    if audio_file.exists():
+        audio = audio_file.read_bytes()
+    else:
+        print("Downloading episode...")
+        downloader = FileDownloader(client)
+        audio = downloader.download(podcast.download_url)
+        audio_file.write_bytes(audio)
+
+    lyrics = get_lyrics_from_mp3(audio)
+
+    transcript = await create_transcript(audio_file, podcast)
+
+    # TODO: Combine podcast info, show notes, lyrics data, and transcript
+    del podcast, show_notes, lyrics, transcript
+
+
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class PodcastFeedEntry:
+class PodcastEpisode:
     episode_number: int
     official_title: str
     summary: str
@@ -22,7 +22,7 @@ class PodcastFeedEntry:
     published_time: "struct_time"
 
 
-def get_rss_feed_entries(client: "requests.Session") -> list[PodcastFeedEntry]:
+def get_podcast_episodes(client: "requests.Session") -> list[PodcastEpisode]:
     raw_feed_entries = get_raw_rss_feed_entries(client)
     feed_entries = convert_raw_to_rss_feed_entries(raw_feed_entries)
     return sorted(feed_entries, key=lambda e: e.episode_number, reverse=True)
@@ -35,8 +35,8 @@ def get_raw_rss_feed_entries(client: "requests.Session") -> list[dict[str, Any]]
     return feedparser.parse(response.text)["entries"]
 
 
-def convert_raw_to_rss_feed_entries(feed_entries: list[dict[str, Any]]) -> list[PodcastFeedEntry]:
-    podcast_episodes: list[PodcastFeedEntry] = []
+def convert_raw_to_rss_feed_entries(feed_entries: list[dict[str, Any]]) -> list[PodcastEpisode]:
+    podcast_episodes: list[PodcastEpisode] = []
     for entry in feed_entries:
         episode_number = int(entry["link"].split("/")[-1])
 
@@ -46,7 +46,7 @@ def convert_raw_to_rss_feed_entries(feed_entries: list[dict[str, Any]]) -> list[
             continue
 
         podcast_episodes.append(
-            PodcastFeedEntry(
+            PodcastEpisode(
                 episode_number=int(entry["link"].split("/")[-1]),
                 official_title=entry["title"],
                 summary=entry["summary"],

@@ -1,8 +1,15 @@
-# The URL for the podcast RSS feed.
+import os
 from pathlib import Path
 
+# URLs
 RSS_URL = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
 WIKI_EPISODE_URL_BASE = "https://www.sgutranscripts.org/w/rest.php/v1/page/SGU_Episode_"
+PYANNOTE_IDENTIFY_ENDPOINT = "https://api.pyannote.ai/v1/identify"
+PYANNOTE_VOICEPRINT_ENDPOINT = "https://api.pyannote.ai/v1/voiceprint"
+
+# Tokens
+PYANNOTE_TOKEN = os.environ["PYANNOTE_TOKEN"]
+NGROK_TOKEN = os.environ["NGROK_TOKEN"]
 
 # Custom headers to identify ourselves to the SGU servers.
 CUSTOM_HEADERS = {"User-Agent": "SGU Wiki Tooling (matthew.heguy@gmail.com)"}
@@ -10,7 +17,23 @@ CUSTOM_HEADERS = {"User-Agent": "SGU Wiki Tooling (matthew.heguy@gmail.com)"}
 # Server for PyannoteAI callback
 SERVER_PORT = 23500
 
+# Transcription settings
 TRANSCRIPTION_MODEL = "medium.en"
 TRANSCRIPTION_LANGUAGE = "en"
 
+# Paths
 VOICEPRINT_FILE = Path("sgu/data/voiceprint_map.json").resolve()
+
+PROCESSED_DATA_FOLDER = Path("data/").resolve()
+
+AUDIO_FOLDER = PROCESSED_DATA_FOLDER / "audio"
+AUDIO_FOLDER.mkdir(exist_ok=True)
+
+DIARIZATION_FOLDER = PROCESSED_DATA_FOLDER / "diarizations"
+DIARIZATION_FOLDER.mkdir(exist_ok=True)
+
+TRANSCRIPTION_FOLDER = PROCESSED_DATA_FOLDER / "transcripts"
+TRANSCRIPTION_FOLDER.mkdir(exist_ok=True)
+
+DIARIZED_TRANSCRIPTION_FOLDER = PROCESSED_DATA_FOLDER / "diarized_transcripts"
+DIARIZED_TRANSCRIPTION_FOLDER.mkdir(exist_ok=True)

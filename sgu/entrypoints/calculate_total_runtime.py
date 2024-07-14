@@ -1,13 +1,14 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from mutagen.mp3 import MP3
 from pydub import AudioSegment
 from tqdm import tqdm
 
-DATA_FOLDER = Path("data").resolve()
-EPISODES_FOLDER = DATA_FOLDER / "episodes"
+from sgu.config import AUDIO_FOLDER
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 SECONDS_IN_MINUTE = 60
 SECONDS_IN_HOUR = 60 * SECONDS_IN_MINUTE
@@ -30,7 +31,7 @@ def format_duration(seconds: float) -> str:
     return f"{days}d {hours}h {minutes}m {seconds}s"
 
 
-def process_file(file_path: Path) -> float:
+def process_file(file_path: "Path") -> float:
     """Process a single MP3 file and return its duration."""
     try:
         audio = AudioSegment.from_file(file_path)
@@ -44,7 +45,7 @@ def process_file(file_path: Path) -> float:
 def main() -> None:
     total_runtime = 0.0
 
-    all_files = list(EPISODES_FOLDER.glob("*.mp3"))
+    all_files = list(AUDIO_FOLDER.glob("*.mp3"))
 
     remaining_files = []
     for file in tqdm(all_files):
