@@ -18,7 +18,7 @@ class WebhookServer:
 
     async def start_server_thread(self) -> str:
         self._server_thread.start()
-        listener = ngrok.forward(SERVER_PORT, authtoken=NGROK_TOKEN)  # BUG: An _asyncio.Task is being returned here
+        listener = ngrok.forward(SERVER_PORT, authtoken=NGROK_TOKEN)
 
         if isawaitable(listener):
             listener = await listener

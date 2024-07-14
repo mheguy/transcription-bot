@@ -12,14 +12,13 @@ from whisperx.types import AlignedTranscriptionResult, TranscriptionResult
 
 from sgu.config import (
     DIARIZATION_FOLDER,
-    DIARIZED_TRANSCRIPTION_FOLDER,
     PYANNOTE_IDENTIFY_ENDPOINT,
     PYANNOTE_TOKEN,
-    TRANSCRIPTION_FOLDER,
     TRANSCRIPTION_LANGUAGE,
     TRANSCRIPTION_MODEL,
 )
 from sgu.custom_logger import logger
+from sgu.file_cache import file_cache, file_cache_async
 from sgu.voiceprints import get_voiceprints
 from sgu.webhook_server import WebhookServer
 
@@ -44,52 +43,30 @@ class DiarizedTranscriptSegment(TypedDict):
 DiarizedTranscript = list[DiarizedTranscriptSegment]
 
 
+@file_cache_async
 async def create_transcript(audio_file: "Path", podcast: "PodcastEpisode") -> "DiarizedTranscript":
-    filename = f"{podcast.episode_number}.json"
-
-    transcript_file = TRANSCRIPTION_FOLDER / filename
-    diarization_file = DIARIZATION_FOLDER / filename
-    diarized_transcript_file = DIARIZED_TRANSCRIPTION_FOLDER / filename
-
     audio: AudioArray = whisperx.load_audio(str(audio_file))
 
-    if transcript_file.exists():
-        logger.info("Reading transcript from file")
-        transcription: AlignedTranscriptionResult = json.loads(transcript_file.read_text())
-    else:
-        logger.info("Creating transcript")
-        transcription = create_transcription(audio)
-        transcript_file.write_text(json.dumps(transcription))
+    logger.info("Creating transcript")
+    transcription = create_transcription(audio)
 
-    if diarization_file.exists():
-        logger.info("Reading diarization from file")
-        diarization = pd.read_feather(diarization_file)
-    else:
-        logger.info("Creating diarization")
-        diarization = await create_diarization(podcast)
-        diarization.to_feather(diarization_file)
+    logger.info("Creating diarization")
+    diarization = await create_diarization(podcast)
 
-    if diarized_transcript_file.exists():
-        logger.info("Reading diarized transcript from file")
-        diarized_transcript = json.loads(diarized_transcript_file.read_text())
-    else:
-        logger.info("Creating diarized transcript")
-        diarized_transcript = merge_transcript_and_diarization(transcription, diarization)
-        diarized_transcript_file.write_text(json.dumps(diarized_transcript))
-
-    return diarized_transcript
+    logger.info("Creating diarized transcript")
+    return merge_transcript_and_diarization(transcription, diarization)
 
 
-@Timer("transcription", "{name} took {:.1f} seconds", "{name} starting")
 def create_transcription(audio: AudioArray) -> "AlignedTranscriptionResult":
     device = torch.device("cuda")
 
-    raw_transcription: TranscriptionResult = perform_transcription(audio)
+    raw_transcription = perform_transcription(audio)
 
-    aligned_transcription: AlignedTranscriptionResult = perform_alignment(audio, device, raw_transcription)
+    return perform_alignment(audio, device, raw_transcription)
 
-    return aligned_transcription
 
+@file_cache
+@Timer("transcription", "{name} took {:.1f} seconds", "{name} starting")
 def perform_transcription(audio: AudioArray) -> "TranscriptionResult":
     transcription_model = whisperx.load_model(TRANSCRIPTION_MODEL, "cuda")
     result = transcription_model.transcribe(audio)
@@ -102,6 +79,8 @@ def perform_transcription(audio: AudioArray) -> "TranscriptionResult":
     return result
 
 
+@file_cache
+@Timer("transcription_alignment", "{name} took {:.1f} seconds", "{name} starting")
 def perform_alignment(
     audio: AudioArray, device: torch.device, transcription: "TranscriptionResult"
 ) -> "AlignedTranscriptionResult":
@@ -118,6 +97,7 @@ def perform_alignment(
     return aligned_transcription
 
 
+@file_cache_async
 async def create_diarization(podcast: "PodcastEpisode") -> "DataFrame":
     """Start a web server in a thread, then send a request to pyannote.ai to"""
     diarization_response_file = DIARIZATION_FOLDER / f"{podcast.episode_number}_raw.json"
@@ -159,22 +139,15 @@ def merge_transcript_and_diarization(
 ) -> DiarizedTranscript:
     raw_diarized_transcript: dict[str, list[dict[str, Any]]] = whisperx.assign_word_speakers(diarization, transcription)
 
-    # TODO: episode 992
-    # transcript at 2993.8 does not get assigned a speaker
-    # transcript segment starts at 2993.8 and ends at 2992.559 (time reversal?)
-
     segments: DiarizedTranscript = []
     for segment in raw_diarized_transcript["segments"]:
-        try:
-            segments.append(
-                DiarizedTranscriptSegment(
-                    start=segment["start"],
-                    end=segment["end"],
-                    text=segment["text"],
-                    speaker=segment["speaker"],
-                )
+        segments.append(
+            DiarizedTranscriptSegment(
+                start=segment["start"],
+                end=segment["end"],
+                text=segment["text"],
+                speaker=segment.get("speaker", "UNKNOWN"),
             )
-        except KeyError:
-            continue
+        )
 
     return segments

@@ -62,6 +62,8 @@ async def create_podcast_wiki_page(client: requests.Session, podcast: PodcastEpi
     # TODO: Combine podcast info, show notes, lyrics data, and transcript
     del podcast, show_notes, lyrics, transcript
 
+    # TODO: divide the transcript into segments / add the transcript text to the segments
+
 
 if __name__ == "__main__":
     asyncio.run(main())

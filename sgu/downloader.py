@@ -8,7 +8,7 @@ class FileDownloader:
 
     async def download_async(self, url: str) -> bytes:
         if not isinstance(self.client, AsyncClient):
-            raise TypeError("client provided was sync, you cannot use this method")
+            raise TypeError("client provided was sync, you must call `get`")
 
         response = await self.client.get(url)
         response.raise_for_status()
@@ -17,7 +17,7 @@ class FileDownloader:
 
     def download(self, url: str) -> bytes:
         if not isinstance(self.client, Client | Session):
-            raise TypeError("client provided was async, you cannot use this method")
+            raise TypeError("client provided was async, you must call `get_async`")
 
         response = self.client.get(url)
         response.raise_for_status()
