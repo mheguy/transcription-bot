@@ -10,6 +10,7 @@ from codetiming import Timer
 from numpy import dtype, floating, ndarray
 from whisperx.types import AlignedTranscriptionResult, TranscriptionResult
 
+from sgu.caching import file_cache, file_cache_async
 from sgu.config import (
     DIARIZATION_FOLDER,
     PYANNOTE_IDENTIFY_ENDPOINT,
@@ -18,7 +19,6 @@ from sgu.config import (
     TRANSCRIPTION_MODEL,
 )
 from sgu.custom_logger import logger
-from sgu.file_cache import file_cache, file_cache_async
 from sgu.voiceprints import get_voiceprints
 from sgu.webhook_server import WebhookServer
 
@@ -43,18 +43,8 @@ class DiarizedTranscriptSegment(TypedDict):
 DiarizedTranscript = list[DiarizedTranscriptSegment]
 
 
-@file_cache_async
-async def create_transcript(audio_file: "Path", podcast: "PodcastEpisode") -> "DiarizedTranscript":
-    audio: AudioArray = whisperx.load_audio(str(audio_file))
-
-    logger.info("Creating transcript")
-    transcription = create_transcription(audio)
-
-    logger.info("Creating diarization")
-    diarization = await create_diarization(podcast)
-
-    logger.info("Creating diarized transcript")
-    return merge_transcript_and_diarization(transcription, diarization)
+def load_audio(audio_file: "Path") -> AudioArray:
+    return whisperx.load_audio(str(audio_file))
 
 
 def create_transcription(audio: AudioArray) -> "AlignedTranscriptionResult":

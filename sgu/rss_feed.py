@@ -24,7 +24,7 @@ class PodcastEpisode:
 
 def get_podcast_episodes(client: "requests.Session") -> list[PodcastEpisode]:
     raw_feed_entries = get_raw_rss_feed_entries(client)
-    feed_entries = convert_raw_to_rss_feed_entries(raw_feed_entries)
+    feed_entries = convert_feed_entries_to_episodes(raw_feed_entries)
     return sorted(feed_entries, key=lambda e: e.episode_number, reverse=True)
 
 
@@ -35,7 +35,7 @@ def get_raw_rss_feed_entries(client: "requests.Session") -> list[dict[str, Any]]
     return feedparser.parse(response.text)["entries"]
 
 
-def convert_raw_to_rss_feed_entries(feed_entries: list[dict[str, Any]]) -> list[PodcastEpisode]:
+def convert_feed_entries_to_episodes(feed_entries: list[dict[str, Any]]) -> list[PodcastEpisode]:
     podcast_episodes: list[PodcastEpisode] = []
     for entry in feed_entries:
         episode_number = int(entry["link"].split("/")[-1])

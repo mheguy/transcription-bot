@@ -1,11 +1,7 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 from bs4 import BeautifulSoup, ResultSet, Tag
-
-if TYPE_CHECKING:
-    from requests import Session
-
 
 PODCAST_HEADER_TAG_TYPE = "section"
 PODCAST_HEADER_CLASS_NAME = "podcast-head"
@@ -22,8 +18,8 @@ class ShowNotesData:
     segment_data: "RawSegmentData"
 
 
-def get_data_from_show_notes(client: "Session", url: str) -> ShowNotesData:
-    soup = get_show_notes(client, url)
+def get_data_from_show_notes(raw_show_notes: bytes) -> ShowNotesData:
+    soup = BeautifulSoup(raw_show_notes, "html.parser")
 
     header = extract_element(soup, PODCAST_HEADER_TAG_TYPE, PODCAST_HEADER_CLASS_NAME)
     image_url = extract_image_url(header)
@@ -32,13 +28,6 @@ def get_data_from_show_notes(client: "Session", url: str) -> ShowNotesData:
     segment_data = extract_segment_data(post)
 
     return ShowNotesData(image_url=image_url, segment_data=segment_data)
-
-
-def get_show_notes(client: "Session", url: str) -> BeautifulSoup:
-    resp = client.get(url)
-    resp.raise_for_status()
-
-    return BeautifulSoup(resp.content, "html.parser")
 
 
 def extract_element(soup: BeautifulSoup | Tag, name: str, class_name: str) -> Tag:
