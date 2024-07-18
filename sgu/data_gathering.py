@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from mutagen.id3._frames import USLT
     from requests import Session
 
-    from sgu.rss_feed import PodcastEpisode
+    from sgu.parsers.rss_feed import PodcastEpisode
 
 
 @dataclass

@@ -5,6 +5,8 @@ from typing import ClassVar, Literal, TypedDict
 
 from bs4 import Tag
 
+from sgu.parsers.show_notes import get_url_from_tag
+
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
     "special guest",
@@ -13,65 +15,6 @@ SPECIAL_SUMMARY_PATTERNS = [
 ]
 
 
-# region parsers
-
-
-def parse_lyrics(lyrics: str):
-    lyrics = lyrics.replace("\r", "\n")
-    pattern = r"(Segment #\d.+?)(?=(?:Segment #\d+|$))"
-    lyric_chunks = re.findall(pattern, lyrics, re.DOTALL)
-
-    for lyric_chunk in lyric_chunks:
-        ...
-
-
-def parse_show_notes_segment_data(segment_data: list["Tag"]) -> "BaseSegment|None":
-    text = segment_data[0].text
-    lower_text = text.lower()
-
-    for segment_class in segment_mapping["from_notes"]:
-        if segment_class.match_string(lower_text):
-            return segment_class.from_show_notes(segment_data)
-
-    for segment_class in segment_mapping["from_summary"]:
-        if segment_class.match_string(lower_text):
-            return None
-
-    return UnknownSegment(text=text, source="notes")
-
-
-def create_segment_from_summary_text(text: str) -> "BaseSegment|None":
-    lower_text = text.lower()
-
-    for segment_class in segment_mapping["from_summary"]:
-        if segment_class.match_string(lower_text):
-            return segment_class.from_summary_text(text)
-
-    for segment_class in segment_mapping["from_notes"]:
-        if segment_class.match_string(lower_text):
-            return None
-
-    if is_special_summary_text(lower_text):
-        return None
-
-    return UnknownSegment(text, "summary")
-
-
-def is_special_summary_text(text: str) -> bool:
-    """Check if the text indicates something about the episode (guest, live, etc.)."""
-    return any(pattern in text for pattern in SPECIAL_SUMMARY_PATTERNS)
-
-
-def get_url_from_tag(item: Tag) -> str:
-    url = ""
-    if a_tag_with_href := item.select_one('div > a[href]:not([href=""])'):
-        href = a_tag_with_href["href"]
-        url = href if isinstance(href, str) else href[0]
-
-    return url
-
-
-# endregion
 # region components
 @dataclass
 class ScienceOrFictionItem:

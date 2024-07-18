@@ -17,9 +17,9 @@ from sgu.config import (
     PYANNOTE_TOKEN,
     TRANSCRIPTION_LANGUAGE,
     TRANSCRIPTION_MODEL,
+    VOICEPRINT_FILE,
 )
 from sgu.custom_logger import logger
-from sgu.voiceprints import get_voiceprints
 from sgu.webhook_server import WebhookServer
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from pandas import DataFrame
     from whisperx.types import AlignedTranscriptionResult, TranscriptionResult
 
-    from sgu.rss_feed import PodcastEpisode
+    from sgu.parsers.rss_feed import PodcastEpisode
 
 AudioArray = ndarray[Any, dtype[floating[Any]]]
 
@@ -109,6 +109,12 @@ async def create_diarization(podcast: "PodcastEpisode") -> "DataFrame":
 
     response_dict = json.loads(dia_response)
     return pd.DataFrame(response_dict["output"]["identification"])
+
+
+def get_voiceprints() -> list[dict[str, str]]:
+    voiceprint_map: dict[str, str] = json.loads(VOICEPRINT_FILE.read_text())
+
+    return [{"voiceprint": voiceprint, "label": name} for name, voiceprint in voiceprint_map.items()]
 
 
 def send_diarization_request(listener_url: str, audio_file_url: str) -> None:

@@ -5,7 +5,7 @@ import requests
 
 from sgu.config import AUDIO_FOLDER
 from sgu.downloader import FileDownloader
-from sgu.rss_feed import get_podcast_episodes
+from sgu.parsers.rss_feed import get_podcast_episodes
 
 
 async def main() -> None:

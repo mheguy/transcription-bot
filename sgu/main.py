@@ -1,12 +1,17 @@
 import asyncio
+from typing import TYPE_CHECKING
 
 import requests
 from dotenv import load_dotenv
 
 from sgu.config import CUSTOM_HEADERS
 from sgu.data_gathering import gather_data
-from sgu.rss_feed import PodcastEpisode, get_podcast_episodes
+from sgu.parsers.rss_feed import PodcastEpisode, get_podcast_episodes
 from sgu.wiki import has_wiki_page
+
+if TYPE_CHECKING:
+    from sgu.data_gathering import EpisodeData
+    from sgu.segments import BaseSegment
 
 load_dotenv()
 
@@ -44,9 +49,12 @@ async def create_podcast_wiki_page(client: requests.Session, podcast: PodcastEpi
     print("Gathering all data...")
     episode_data = await gather_data(client, podcast)
 
-    # convert episode data to segments
+    segments = convert_episode_data_to_segments(episode_data)
 
     # TODO: Convert the segments to a wiki page
+
+
+def convert_episode_data_to_segments(episode_data: "EpisodeData") -> "list[BaseSegment]": ...
 
 
 if __name__ == "__main__":
