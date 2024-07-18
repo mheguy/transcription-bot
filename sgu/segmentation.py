@@ -1,17 +1,9 @@
-import itertools
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar, Literal, TypedDict
+from typing import ClassVar, Literal, TypedDict
 
 from bs4 import Tag
-
-from sgu.custom_logger import logger
-
-if TYPE_CHECKING:
-    from sgu.rss_feed import PodcastEpisode
-    from sgu.show_notes import ShowNotesData
-
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
@@ -21,18 +13,48 @@ SPECIAL_SUMMARY_PATTERNS = [
 ]
 
 
-# TODO: Overhaul
-def create_segments(feed_data: "PodcastEpisode", notes_data: "ShowNotesData") -> "list[BaseSegment]":
-    logger.info("Creating segments...")
+# region parsers
 
-    notes_segments = [parse_show_notes_segment_data(seg_data) for seg_data in notes_data.segment_data]
 
-    feed_segments = [create_segment_from_summary_text(line.strip()) for line in feed_data.summary.split(";")]
+def parse_lyrics(lyrics: str):
+    lyrics = lyrics.replace("\r", "\n")
+    pattern = r"(Segment #\d.+?)(?=(?:Segment #\d+|$))"
+    lyric_chunks = re.findall(pattern, lyrics, re.DOTALL)
 
-    segments = [seg for seg in itertools.chain(notes_segments, feed_segments) if seg is not None]
-    logger.info("Created %s segments.", len(segments))
+    for lyric_chunk in lyric_chunks:
+        ...
 
-    return segments
+
+def parse_show_notes_segment_data(segment_data: list["Tag"]) -> "BaseSegment|None":
+    text = segment_data[0].text
+    lower_text = text.lower()
+
+    for segment_class in segment_mapping["from_notes"]:
+        if segment_class.match_string(lower_text):
+            return segment_class.from_show_notes(segment_data)
+
+    for segment_class in segment_mapping["from_summary"]:
+        if segment_class.match_string(lower_text):
+            return None
+
+    return UnknownSegment(text=text, source="notes")
+
+
+def create_segment_from_summary_text(text: str) -> "BaseSegment|None":
+    lower_text = text.lower()
+
+    for segment_class in segment_mapping["from_summary"]:
+        if segment_class.match_string(lower_text):
+            return segment_class.from_summary_text(text)
+
+    for segment_class in segment_mapping["from_notes"]:
+        if segment_class.match_string(lower_text):
+            return None
+
+    if is_special_summary_text(lower_text):
+        return None
+
+    return UnknownSegment(text, "summary")
 
 
 def is_special_summary_text(text: str) -> bool:
@@ -40,6 +62,27 @@ def is_special_summary_text(text: str) -> bool:
     return any(pattern in text for pattern in SPECIAL_SUMMARY_PATTERNS)
 
 
+def get_url_from_tag(item: Tag) -> str:
+    url = ""
+    if a_tag_with_href := item.select_one('div > a[href]:not([href=""])'):
+        href = a_tag_with_href["href"]
+        url = href if isinstance(href, str) else href[0]
+
+    return url
+
+
+# endregion
+# region components
+@dataclass
+class ScienceOrFictionItem:
+    item_number: str
+    answer: str
+    text: str
+    url: str
+
+
+# endregion
+# region base
 class BaseSegment(ABC):
     @staticmethod
     @abstractmethod
@@ -58,24 +101,6 @@ class UnknownSegment(BaseSegment):
         return True
 
 
-# region From Summary Text
-def create_segment_from_summary_text(text: str) -> "BaseSegment|None":
-    lower_text = text.lower()
-
-    for segment_class in segment_mapping["from_summary"]:
-        if segment_class.match_string(lower_text):
-            return segment_class.from_summary_text(text)
-
-    for segment_class in segment_mapping["from_notes"]:
-        if segment_class.match_string(lower_text):
-            return None
-
-    if is_special_summary_text(lower_text):
-        return None
-
-    return UnknownSegment(text, "summary")
-
-
 class FromSummaryTextSegment(BaseSegment, ABC):
     @staticmethod
     @abstractmethod
@@ -83,6 +108,22 @@ class FromSummaryTextSegment(BaseSegment, ABC):
         raise NotImplementedError
 
 
+class FromShowNotesSegment(BaseSegment, ABC):
+    @staticmethod
+    @abstractmethod
+    def from_show_notes(segment_data: list["Tag"]) -> "FromShowNotesSegment":
+        raise NotImplementedError
+
+
+class FromLyricsSegment(BaseSegment, ABC):
+    @staticmethod
+    @abstractmethod
+    def from_lyrics(segment_data: list["Tag"]) -> "FromLyricsSegment":
+        raise NotImplementedError
+
+
+# endregion
+# region concrete
 @dataclass
 class LogicalFalacySegment(FromSummaryTextSegment):
     @staticmethod
@@ -173,30 +214,6 @@ class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
         return ForgottenSuperheroesOfScienceSegment(split_text[1].strip())
 
 
-# endregion
-# region From Show Notes
-def parse_show_notes_segment_data(segment_data: list["Tag"]) -> "BaseSegment|None":
-    text = segment_data[0].text
-    lower_text = text.lower()
-
-    for segment_class in segment_mapping["from_notes"]:
-        if segment_class.match_string(lower_text):
-            return segment_class.from_show_notes(segment_data)
-
-    for segment_class in segment_mapping["from_summary"]:
-        if segment_class.match_string(lower_text):
-            return None
-
-    return UnknownSegment(text=text, source="notes")
-
-
-class FromShowNotesSegment(BaseSegment, ABC):
-    @staticmethod
-    @abstractmethod
-    def from_show_notes(segment_data: list["Tag"]) -> "FromShowNotesSegment":
-        raise NotImplementedError
-
-
 @dataclass
 class NoisySegment(FromShowNotesSegment):
     valid_splitters: ClassVar[str] = ":-"
@@ -233,14 +250,6 @@ class QuoteSegment(FromShowNotesSegment):
             return QuoteSegment("Unable to extract quote from show notes.")
 
         return QuoteSegment(segment_data[1].text)
-
-
-@dataclass
-class ScienceOrFictionItem:
-    item_number: str
-    answer: str
-    text: str
-    url: str
 
 
 @dataclass
@@ -322,8 +331,6 @@ class InterviewSegment(FromShowNotesSegment):
         return InterviewSegment(subject.strip(":- "))
 
 
-# endregion
-# region Hybrid Segments
 @dataclass
 class EmailSegment(FromSummaryTextSegment, FromShowNotesSegment):
     items: list[str]
@@ -353,23 +360,19 @@ class EmailSegment(FromSummaryTextSegment, FromShowNotesSegment):
 
 
 # endregion
-
-
-def get_url_from_tag(item: Tag) -> str:
-    url = ""
-    if a_tag_with_href := item.select_one('div > a[href]:not([href=""])'):
-        href = a_tag_with_href["href"]
-        url = href if isinstance(href, str) else href[0]
-
-    return url
-
-
+# region mappings
 class SegmentTypeMapping(TypedDict):
+    from_lyrics: list[type[FromLyricsSegment]]
     from_summary: list[type[FromSummaryTextSegment]]
     from_notes: list[type[FromShowNotesSegment]]
 
 
 segment_mapping: SegmentTypeMapping = {
+    "from_lyrics": [
+        c
+        for c in globals().values()
+        if isinstance(c, type) and issubclass(c, FromLyricsSegment) and c is not FromLyricsSegment
+    ],
     "from_summary": [
         c
         for c in globals().values()
@@ -381,3 +384,4 @@ segment_mapping: SegmentTypeMapping = {
         if isinstance(c, type) and issubclass(c, FromShowNotesSegment) and c is not FromShowNotesSegment
     ],
 }
+# endregion
