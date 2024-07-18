@@ -1,7 +1,6 @@
 import functools
 import json
 import pickle
-from collections.abc import Callable
 from hashlib import sha256
 from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
 
@@ -9,7 +8,7 @@ from sgu.config import CACHE_FOLDER
 from sgu.custom_logger import logger
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
+    from collections.abc import Callable, Coroutine
     from pathlib import Path
 
 P = ParamSpec("P")
@@ -32,7 +31,7 @@ def file_cache(func: "Callable[P, R]") -> "Callable[P, R]":
     return sync_wrapper
 
 
-def file_cache_async(func: "Callable[P, Awaitable[R]]") -> "Callable[P, Awaitable[R]]":
+def file_cache_async(func: "Callable[P, Coroutine[None, None, R]]") -> "Callable[P, Coroutine[None, None, R]]":
     @functools.wraps(func)
     async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         cache_filepath = _get_cache_file(func, args, kwargs)
