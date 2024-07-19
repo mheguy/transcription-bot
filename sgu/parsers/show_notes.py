@@ -2,7 +2,7 @@ from typing import cast
 
 from bs4 import BeautifulSoup, ResultSet, Tag
 
-from sgu.parsers.soup_helpers import extract_element, extract_image_url
+from sgu.helpers import extract_element
 from sgu.segment_types import (
     BaseSegment,
     FromShowNotesSegment,
@@ -22,7 +22,13 @@ def get_episode_image(raw_show_notes: bytes) -> str:
     soup = BeautifulSoup(raw_show_notes, "html.parser")
 
     header = extract_element(soup, PODCAST_HEADER_TAG_TYPE, PODCAST_HEADER_CLASS_NAME)
-    return extract_image_url(header)
+
+    thumbnail_div = extract_element(header, "div", "thumbnail")
+    thumbnail = thumbnail_div.findChild("img")
+    if not isinstance(thumbnail, Tag):
+        raise TypeError("Got an unexpected type in thumbnail")
+
+    return thumbnail.attrs["src"]
 
 
 def parse_show_notes(show_notes: bytes) -> Segments:

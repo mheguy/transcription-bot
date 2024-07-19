@@ -7,8 +7,7 @@ from typing import ClassVar
 from bs4 import Tag
 
 from sgu.custom_logger import logger
-from sgu.helpers import string_is_url
-from sgu.parsers.soup_helpers import extract_element, get_url_from_tag
+from sgu.helpers import extract_element, string_is_url
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
@@ -383,7 +382,17 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
 
     @staticmethod
     def process_show_notes(raw_items: list["Tag"]) -> list[NewsItem]:
-        return [NewsItem(raw_item.text, get_url_from_tag(raw_item)) for raw_item in raw_items]
+        news_items: list[NewsItem] = []
+
+        for raw_item in raw_items:
+            url = ""
+            if a_tag_with_href := raw_item.select_one('div > a[href]:not([href=""])'):
+                href = a_tag_with_href["href"]
+                url = href if isinstance(href, str) else href[0]
+
+            news_items.append(NewsItem(raw_item.text, url))
+
+        return news_items
 
     @staticmethod
     def from_lyrics(text: str, segment_number: int) -> "NewsSegment":
