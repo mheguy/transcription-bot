@@ -183,7 +183,10 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
             url = lines[2].strip()
 
         return DumbestThingOfTheWeekSegment(
-            segment_number=segment_number, topic=topic, url=url, source=SegmentSource.LYRICS
+            segment_number=segment_number,
+            topic=topic,
+            url=url,
+            source=SegmentSource.LYRICS,
         )
 
 
@@ -221,7 +224,9 @@ class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
             return ForgottenSuperheroesOfScienceSegment(segment_number=0, source=SegmentSource.SUMMARY)
 
         return ForgottenSuperheroesOfScienceSegment(
-            segment_number=0, subject=lines[1].strip(), source=SegmentSource.SUMMARY
+            segment_number=0,
+            subject=lines[1].strip(),
+            source=SegmentSource.SUMMARY,
         )
 
 
@@ -293,7 +298,10 @@ class QuoteSegment(FromLyricsSegment):
             raise ValueError(f"Unexpected number of lines in segment text: {text}")
 
         return QuoteSegment(
-            segment_number=segment_number, quote=lines[0], attribution=attribution, source=SegmentSource.NOTES
+            segment_number=segment_number,
+            quote=lines[0],
+            attribution=attribution,
+            source=SegmentSource.NOTES,
         )
 
 
@@ -357,7 +365,10 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
                 break
 
         return ScienceOrFictionSegment(
-            segment_number=segment_number, items=[], theme=theme, source=SegmentSource.LYRICS
+            segment_number=segment_number,
+            items=[],
+            theme=theme,
+            source=SegmentSource.LYRICS,
         )
 
 

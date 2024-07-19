@@ -89,7 +89,9 @@ def convert_transcript_to_text(transcript: "DiarizedTranscript") -> str:
     text_segments: list[str] = []
     for segment in transcript:
         start_time = "{:02d}:{:02d}:{:02d}".format(
-            int(segment["start"]) // 3600, int(segment["start"]) // 60 % 60, int(segment["start"]) % 60
+            int(segment["start"]) // 3600,
+            int(segment["start"]) // 60 % 60,
+            int(segment["start"]) % 60,
         )
 
         text = f"{start_time}-{segment['speaker']}<br>{segment['text']}"

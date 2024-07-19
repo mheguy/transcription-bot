@@ -96,7 +96,6 @@ line-ending = "lf"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "A003",    # class-attr-shadows-builtin - the `id` and `type` attrs are too common to fight
     "ANN101",  # missing-type-self - static analyzers infer the type of self
     "ANN102",  # missing-type-cls - static analyzers infer the type of cls
     "ANN401",  # any-type - this is acceptable in some cases
@@ -107,22 +106,17 @@ ignore = [
     "EM",      # flake8-errmsg - tough to enforce
     "ERA",     # commented-out-code - sometimes commented out code is useful
     "FIX002",  # errors for todos
-    "FBT",     # flake8-boolean-trap - not sure what this is meant to improve
-    "ISC003",  # warnings when explicit string concat is used - some situations are better with explicit concat
-    "PD901",   # gives a warning for using `df` as a variable name - df is a sensible name in most cases
-    "PGH003",  # blanket-type-ignore - pylance doesn't have a way to disable a single rule on a single line
-    "PLC0414", # removes aliases that do not rename original package - used for imports from packages
     "PLR0913", # too many arguments to function (including tests) - should not be a blocker
     "PT004",   # missing-fixture-name-underscore - adding underscore to names means IDEs will show them as unused
-    "PTH123",  # open() should be replaced by Path.open() - we don't always want to create a Path object
-    "SIM108",  # Ternaries make code harder to read, expecially for new developers
+    "SIM108",  # Ternaries make code harder to read, especially for new developers
     "TD",      # rules related to TODOs in code
     "T20",     # makes using print and pprint an error
     "TRY003",  # warns for long messages when raising exceptions rather than in the class
 
     # These are ignored because we use Ruff to format code.
-    "COM",
+    "COM812",
     "E501",
+    "ISC001",
 
     # Project-specific rules
     # "EXE001", # Example

@@ -72,11 +72,18 @@ def perform_transcription(audio: AudioArray) -> "TranscriptionResult":
 @file_cache
 @Timer("transcription_alignment", "{name} took {:.1f} seconds", "{name} starting")
 def perform_alignment(
-    audio: AudioArray, device: torch.device, transcription: "TranscriptionResult"
+    audio: AudioArray,
+    device: torch.device,
+    transcription: "TranscriptionResult",
 ) -> "AlignedTranscriptionResult":
     alignment_model, metadata = whisperx.load_align_model(language_code=TRANSCRIPTION_LANGUAGE, device=device)
     aligned_transcription = whisperx.align(
-        transcription["segments"], alignment_model, metadata, audio, cast(str, device), return_char_alignments=False
+        transcription["segments"],
+        alignment_model,
+        metadata,
+        audio,
+        cast(str, device),
+        return_char_alignments=False,
     )
 
     # Unload model
@@ -131,7 +138,8 @@ def send_diarization_request(listener_url: str, audio_file_url: str) -> None:
 
 
 def merge_transcript_and_diarization(
-    transcription: "AlignedTranscriptionResult", diarization: pd.DataFrame
+    transcription: "AlignedTranscriptionResult",
+    diarization: pd.DataFrame,
 ) -> DiarizedTranscript:
     raw_diarized_transcript: dict[str, list[dict[str, Any]]] = whisperx.assign_word_speakers(diarization, transcription)
 
@@ -143,7 +151,7 @@ def merge_transcript_and_diarization(
                 end=segment["end"],
                 text=segment["text"],
                 speaker=segment.get("speaker", "UNKNOWN"),
-            )
+            ),
         )
 
     return segments
