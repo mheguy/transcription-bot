@@ -5,6 +5,7 @@ from typing import ClassVar, Literal
 
 from bs4 import Tag
 
+from sgu.custom_logger import logger
 from sgu.helpers import string_is_url
 from sgu.parsers.soup_helpers import get_url_from_tag
 
@@ -14,6 +15,8 @@ SPECIAL_SUMMARY_PATTERNS = [
     "live from",
     "live recording",
 ]
+
+Segments = list["BaseSegment"]
 
 
 # region components
@@ -25,9 +28,19 @@ class ScienceOrFictionItem:
     url: str
 
 
+@dataclass
+class NewsItem:
+    topic: str
+    link: str
+
+
 # endregion
 # region base
 class BaseSegment(ABC):
+    @abstractmethod
+    def __str__(self) -> str:
+        raise NotImplementedError
+
     @staticmethod
     @abstractmethod
     def match_string(lowercase_text: str) -> bool:
@@ -60,7 +73,10 @@ class FromLyricsSegment(BaseSegment, ABC):
 @dataclass
 class UnknownSegment(BaseSegment):
     text: str
-    source: Literal["notes", "summary"]
+    source: Literal["lyrics", "notes", "summary"]
+
+    def __str__(self) -> str:
+        return self.text
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -69,6 +85,10 @@ class UnknownSegment(BaseSegment):
 
 @dataclass
 class LogicalFalacySegment(FromSummaryTextSegment):
+    def __str__(self) -> str:
+        # TODO
+        pass
+
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return "name that logical fallacy" in lowercase_text
@@ -84,6 +104,10 @@ class LogicalFalacySegment(FromSummaryTextSegment):
 class QuickieSegment(FromSummaryTextSegment):
     text: str
 
+    def __str__(self) -> str:
+        # TODO
+        pass
+
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("quickie with")
@@ -96,6 +120,10 @@ class QuickieSegment(FromSummaryTextSegment):
 @dataclass
 class WhatsTheWordSegment(FromSummaryTextSegment):
     word: str = "(Unable to extract word)"
+
+    def __str__(self) -> str:
+        # TODO
+        pass
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -114,6 +142,10 @@ class WhatsTheWordSegment(FromSummaryTextSegment):
 class DumbestThingOfTheWeekSegment(FromSummaryTextSegment, FromLyricsSegment):
     topic: str = "(Unable to extract topic)"
     url: str = "(Unable to extract url)"
+
+    def __str__(self) -> str:
+        # TODO
+        pass
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -147,6 +179,10 @@ class DumbestThingOfTheWeekSegment(FromSummaryTextSegment, FromLyricsSegment):
 class SwindlersListSegment(FromSummaryTextSegment):
     topic: str = "(Unable to extract topic)"
 
+    def __str__(self) -> str:
+        # TODO
+        pass
+
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return bool(re.match(r"swindler.s list", lowercase_text))
@@ -159,6 +195,10 @@ class SwindlersListSegment(FromSummaryTextSegment):
 @dataclass
 class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
     subject: str = "(Unable to extract subject)"
+
+    def __str__(self) -> str:
+        # TODO
+        pass
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -178,6 +218,10 @@ class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
     valid_splitters: ClassVar[str] = ":-"
 
     last_week_answer: str | None = None
+
+    def __str__(self) -> str:
+        # TODO
+        pass
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -201,8 +245,13 @@ class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
 
 
 @dataclass
-class QuoteSegment(FromShowNotesSegment):
+class QuoteSegment(FromLyricsSegment):
     quote: str
+    attribution: str = ""
+
+    def __str__(self) -> str:
+        # TODO
+        pass
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -215,10 +264,27 @@ class QuoteSegment(FromShowNotesSegment):
 
         return QuoteSegment(segment_data[1].text)
 
+    @staticmethod
+    def from_lyrics(text: str) -> "QuoteSegment":
+        lines = list(filter(None, text.split("\n")[1:]))
+        if len(lines) == 1:
+            logger.warning("Unable to extract quote attribution from lyrics.")
+            return QuoteSegment(lines[0])
+
+        if len(lines) == 2:  # noqa: PLR2004
+            return QuoteSegment(lines[0], lines[1])
+
+        raise ValueError(f"Unexpected number of lines in segment text: {text}")
+
 
 @dataclass
-class ScienceOrFictionSegment(FromShowNotesSegment):
+class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
     items: list[ScienceOrFictionItem]
+    theme: str | None = None
+
+    def __str__(self) -> str:
+        # TODO
+        pass
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -251,16 +317,26 @@ class ScienceOrFictionSegment(FromShowNotesSegment):
 
         return items
 
+    @staticmethod
+    def from_lyrics(text: str) -> "ScienceOrFictionSegment":
+        lines = text.split("\n")[2:]
+        theme = None
 
-@dataclass
-class NewsItem:
-    topic: str
-    link: str
+        for line in lines:
+            if line.lower().startswith("theme:"):
+                theme = line.split(":")[1].strip()
+                break
+
+        return ScienceOrFictionSegment([], theme=theme)
 
 
 @dataclass
 class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
     items: list[NewsItem]
+
+    def __str__(self) -> str:
+        # TODO
+        pass
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -296,6 +372,10 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
 class InterviewSegment(FromShowNotesSegment):
     subject: str
 
+    def __str__(self) -> str:
+        # TODO
+        pass
+
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("interview with")
@@ -309,8 +389,12 @@ class InterviewSegment(FromShowNotesSegment):
 
 
 @dataclass
-class EmailSegment(FromSummaryTextSegment, FromShowNotesSegment, FromLyricsSegment):
+class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
     items: list[str]
+
+    def __str__(self) -> str:
+        # TODO
+        pass
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
