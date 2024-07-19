@@ -115,7 +115,7 @@ ignore = [
     "PLR0913", # too many arguments to function (including tests) - should not be a blocker
     "PT004",   # missing-fixture-name-underscore - adding underscore to names means IDEs will show them as unused
     "PTH123",  # open() should be replaced by Path.open() - we don't always want to create a Path object
-    "S104",    # Possible binding to all interfaces - allowed as we are using docker containers
+    "SIM108",  # Ternaries make code harder to read, expecially for new developers
     "TD",      # rules related to TODOs in code
     "T20",     # makes using print and pprint an error
     "TRY003",  # warns for long messages when raising exceptions rather than in the class

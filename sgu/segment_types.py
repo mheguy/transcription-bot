@@ -1,13 +1,14 @@
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar, Literal
+from enum import Enum
+from typing import ClassVar
 
 from bs4 import Tag
 
 from sgu.custom_logger import logger
 from sgu.helpers import string_is_url
-from sgu.parsers.soup_helpers import get_url_from_tag
+from sgu.parsers.soup_helpers import extract_element, get_url_from_tag
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
@@ -20,6 +21,12 @@ Segments = list["BaseSegment"]
 
 
 # region components
+class SegmentSource(Enum):
+    LYRICS = "embedded lyrics"
+    NOTES = "show notes"
+    SUMMARY = "episode summary"
+
+
 @dataclass
 class ScienceOrFictionItem:
     item_number: str
@@ -36,15 +43,30 @@ class NewsItem:
 
 # endregion
 # region base
+@dataclass(kw_only=True)
 class BaseSegment(ABC):
-    @abstractmethod
+    segment_number: int
+    source: SegmentSource
+
     def __str__(self) -> str:
-        raise NotImplementedError
+        segment = self._get_segment_number()
+        text = self.get_text()
+        return f"{segment}<!-- extracted from {self.source} --><br>\n{text}"
 
     @staticmethod
     @abstractmethod
     def match_string(lowercase_text: str) -> bool:
         raise NotImplementedError
+
+    @abstractmethod
+    def get_text(self) -> str:
+        raise NotImplementedError
+
+    def _get_segment_number(self) -> str:
+        if self.segment_number:
+            return f"Segment #{self.segment_number}"
+
+        return "Segment"
 
 
 class FromSummaryTextSegment(BaseSegment, ABC):
@@ -64,18 +86,17 @@ class FromShowNotesSegment(BaseSegment, ABC):
 class FromLyricsSegment(BaseSegment, ABC):
     @staticmethod
     @abstractmethod
-    def from_lyrics(text: str) -> "FromLyricsSegment":
+    def from_lyrics(text: str, segment_number: int) -> "FromLyricsSegment":
         raise NotImplementedError
 
 
 # endregion
 # region concrete
-@dataclass
+@dataclass(kw_only=True)
 class UnknownSegment(BaseSegment):
     text: str
-    source: Literal["lyrics", "notes", "summary"]
 
-    def __str__(self) -> str:
+    def get_text(self) -> str:
         return self.text
 
     @staticmethod
@@ -83,11 +104,10 @@ class UnknownSegment(BaseSegment):
         raise NotImplementedError
 
 
-@dataclass
+@dataclass(kw_only=True)
 class LogicalFalacySegment(FromSummaryTextSegment):
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        raise NotImplementedError
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -97,16 +117,15 @@ class LogicalFalacySegment(FromSummaryTextSegment):
     def from_summary_text(text: str) -> "LogicalFalacySegment":
         del text
 
-        return LogicalFalacySegment()
+        return LogicalFalacySegment(segment_number=0, source=SegmentSource.SUMMARY)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class QuickieSegment(FromSummaryTextSegment):
     text: str
 
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        raise NotImplementedError
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -114,16 +133,15 @@ class QuickieSegment(FromSummaryTextSegment):
 
     @staticmethod
     def from_summary_text(text: str) -> "QuickieSegment":
-        return QuickieSegment(text)
+        return QuickieSegment(segment_number=0, text=text, source=SegmentSource.SUMMARY)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class WhatsTheWordSegment(FromSummaryTextSegment):
-    word: str = "(Unable to extract word)"
+    word: str
 
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        raise NotImplementedError
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -131,57 +149,51 @@ class WhatsTheWordSegment(FromSummaryTextSegment):
 
     @staticmethod
     def from_summary_text(text: str) -> "WhatsTheWordSegment":
-        split_text = text.split(":")
-        if len(split_text) == 1:
-            return WhatsTheWordSegment()
+        lines = text.split(":")
 
-        return WhatsTheWordSegment(split_text[1].strip())
+        if len(lines) > 1:
+            word = lines[1].strip()
+        else:
+            word = "N/A<!-- Failed to extract word -->"
+
+        return WhatsTheWordSegment(segment_number=0, word=word, source=SegmentSource.SUMMARY)
 
 
-@dataclass
-class DumbestThingOfTheWeekSegment(FromSummaryTextSegment, FromLyricsSegment):
-    topic: str = "(Unable to extract topic)"
-    url: str = "(Unable to extract url)"
+@dataclass(kw_only=True)
+class DumbestThingOfTheWeekSegment(FromLyricsSegment):
+    topic: str
+    url: str
 
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        return f"{self.topic}<br>\nLink:{self.url}"
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("dumbest thing of the week")
 
     @staticmethod
-    def from_summary_text(text: str) -> "DumbestThingOfTheWeekSegment":
-        split_text = text.split(":")
-        if len(split_text) == 1:
-            return DumbestThingOfTheWeekSegment()
+    def from_lyrics(text: str, segment_number: int) -> "DumbestThingOfTheWeekSegment":
+        lines = text.split("\n")
+        url = ""
+        topic = ""
 
-        return DumbestThingOfTheWeekSegment(split_text[1].strip())
+        if len(lines) > 1:
+            topic = lines[1].strip()
 
-    @staticmethod
-    def from_lyrics(text: str) -> "FromLyricsSegment":
-        split_text = text.split("\n")
+        if len(lines) > 2:  # noqa: PLR2004
+            url = lines[2].strip()
 
-        dispatch = {
-            1: lambda: DumbestThingOfTheWeekSegment(),
-            2: lambda: DumbestThingOfTheWeekSegment(split_text[1].strip()),
-            3: lambda: DumbestThingOfTheWeekSegment(split_text[1].strip(), split_text[2].strip()),
-        }
-
-        if len(split_text) in dispatch:
-            return dispatch[len(split_text)]()
-
-        raise ValueError(f"Unexpected number of lines in segment text: {text}")
+        return DumbestThingOfTheWeekSegment(
+            segment_number=segment_number, topic=topic, url=url, source=SegmentSource.LYRICS
+        )
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SwindlersListSegment(FromSummaryTextSegment):
-    topic: str = "(Unable to extract topic)"
+    topic: str = "N/A<!-- Failed to extract topic -->"
 
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        raise NotImplementedError
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -189,16 +201,15 @@ class SwindlersListSegment(FromSummaryTextSegment):
 
     @staticmethod
     def from_summary_text(text: str) -> "SwindlersListSegment":
-        return SwindlersListSegment(text.split(":")[1].strip())
+        return SwindlersListSegment(segment_number=0, topic=text.split(":")[1].strip(), source=SegmentSource.SUMMARY)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
-    subject: str = "(Unable to extract subject)"
+    subject: str = "N/A<!-- Failed to extract subject -->"
 
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        raise NotImplementedError
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -206,22 +217,23 @@ class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
 
     @staticmethod
     def from_summary_text(text: str) -> "ForgottenSuperheroesOfScienceSegment":
-        split_text = text.split(":")
-        if len(split_text) == 1:
-            return ForgottenSuperheroesOfScienceSegment()
+        lines = text.split(":")
+        if len(lines) == 1:
+            return ForgottenSuperheroesOfScienceSegment(segment_number=0, source=SegmentSource.SUMMARY)
 
-        return ForgottenSuperheroesOfScienceSegment(split_text[1].strip())
+        return ForgottenSuperheroesOfScienceSegment(
+            segment_number=0, subject=lines[1].strip(), source=SegmentSource.SUMMARY
+        )
 
 
-@dataclass
+@dataclass(kw_only=True)
 class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
     valid_splitters: ClassVar[str] = ":-"
 
-    last_week_answer: str | None = None
+    last_week_answer: str = "N/A<!-- Failed to extract last week's answer -->"
 
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        return f"Last week's answer: {self.last_week_answer}"
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -230,28 +242,31 @@ class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
     @staticmethod
     def from_show_notes(segment_data: list["Tag"]) -> "NoisySegment":
         if len(segment_data) == 1:
-            return NoisySegment()
+            return NoisySegment(segment_number=0, source=SegmentSource.NOTES)
 
         for splitter in NoisySegment.valid_splitters:
             if splitter in segment_data[1].text:
-                return NoisySegment(segment_data[1].text.split(splitter)[1].strip())
+                return NoisySegment(
+                    segment_number=0,
+                    last_week_answer=segment_data[1].text.split(splitter)[1].strip(),
+                    source=SegmentSource.NOTES,
+                )
 
-        return NoisySegment()
+        return NoisySegment(segment_number=0, source=SegmentSource.NOTES)
 
     @staticmethod
-    def from_lyrics(text: str) -> "NoisySegment":
+    def from_lyrics(text: str, segment_number: int) -> "NoisySegment":
         del text
-        return NoisySegment()
+        return NoisySegment(segment_number=segment_number, source=SegmentSource.NOTES)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class QuoteSegment(FromLyricsSegment):
     quote: str
-    attribution: str = ""
+    attribution: str
 
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        return f"{self.quote}<br>\n{self.attribution}"
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -259,32 +274,42 @@ class QuoteSegment(FromLyricsSegment):
 
     @staticmethod
     def from_show_notes(segment_data: list["Tag"]) -> "QuoteSegment":
-        if len(segment_data) == 1:
-            return QuoteSegment("Unable to extract quote from show notes.")
+        if len(segment_data) > 1:
+            quote = segment_data[1].text
+        else:
+            quote = "N/A<!-- Failed to extract quote -->"
 
-        return QuoteSegment(segment_data[1].text)
+        return QuoteSegment(segment_number=0, quote=quote, attribution="", source=SegmentSource.NOTES)
 
     @staticmethod
-    def from_lyrics(text: str) -> "QuoteSegment":
+    def from_lyrics(text: str, segment_number: int) -> "QuoteSegment":
         lines = list(filter(None, text.split("\n")[1:]))
+        attribution = "<!-- Failed to extract attribution -->"
+
         if len(lines) == 1:
             logger.warning("Unable to extract quote attribution from lyrics.")
-            return QuoteSegment(lines[0])
+        elif len(lines) == 2:  # noqa: PLR2004
+            attribution = lines[1]
+        else:
+            raise ValueError(f"Unexpected number of lines in segment text: {text}")
 
-        if len(lines) == 2:  # noqa: PLR2004
-            return QuoteSegment(lines[0], lines[1])
+        return QuoteSegment(
+            segment_number=segment_number, quote=lines[0], attribution=attribution, source=SegmentSource.NOTES
+        )
 
-        raise ValueError(f"Unexpected number of lines in segment text: {text}")
 
-
-@dataclass
+@dataclass(kw_only=True)
 class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
     items: list[ScienceOrFictionItem]
     theme: str | None = None
 
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        text = f"Theme: {self.theme}<br>\n" if self.theme else ""
+
+        for item in self.items:
+            text += f"<p>{item.item_number}<br>\n{item.text}<br>\nAnswer: {item.answer}<br>\nLink: {item.url}<br><p/>\n"
+
+        return text
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -296,29 +321,34 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
 
         items = ScienceOrFictionSegment.process_raw_items(raw_items)
 
-        return ScienceOrFictionSegment(items)
+        return ScienceOrFictionSegment(segment_number=0, items=items, source=SegmentSource.NOTES)
 
     @staticmethod
     def process_raw_items(raw_items: list["Tag"]) -> list[ScienceOrFictionItem]:
         items: list[ScienceOrFictionItem] = []
         for raw_item in raw_items:
-            title_tag = Tag, raw_item.find(class_="science-fiction__item-title")
-            title = title_tag.text if isinstance(title_tag, Tag) else ""
+            title_text = extract_element(raw_item, "span", "science-fiction__item-title").text
 
-            p_tag = Tag, raw_item.find("p")
-            text = p_tag.text if isinstance(p_tag, Tag) else ""
+            p_tag = extract_element(raw_item, "p", "")
+            p_text = p_tag.text.strip()
 
-            answer_tag = raw_item.find(class_="quiz__answer")
-            answer = answer_tag.text if isinstance(answer_tag, Tag) else ""
+            if better_tag := p_tag.next:
+                p_text = better_tag.text.strip()
 
-            url = get_url_from_tag(raw_item)
+            answer = extract_element(raw_item, "span", "quiz__answer").text
 
-            items.append(ScienceOrFictionItem(title, answer, text, url))
+            a_tag = extract_element(p_tag, "a", "")
+            url = a_tag.get("href", "")
+
+            if not isinstance(url, str):
+                raise TypeError("Got an unexpected type in url")
+
+            items.append(ScienceOrFictionItem(title_text, answer, p_text, url))
 
         return items
 
     @staticmethod
-    def from_lyrics(text: str) -> "ScienceOrFictionSegment":
+    def from_lyrics(text: str, segment_number: int) -> "ScienceOrFictionSegment":
         lines = text.split("\n")[2:]
         theme = None
 
@@ -327,16 +357,17 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
                 theme = line.split(":")[1].strip()
                 break
 
-        return ScienceOrFictionSegment([], theme=theme)
+        return ScienceOrFictionSegment(
+            segment_number=segment_number, items=[], theme=theme, source=SegmentSource.LYRICS
+        )
 
 
-@dataclass
+@dataclass(kw_only=True)
 class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
     items: list[NewsItem]
 
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        return "\n".join([f"{item.topic}<br>\nLink: {item.link}" for item in self.items])
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -348,14 +379,14 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
 
         items = NewsSegment.process_show_notes(show_notes)
 
-        return NewsSegment(items)
+        return NewsSegment(segment_number=0, items=items, source=SegmentSource.NOTES)
 
     @staticmethod
     def process_show_notes(raw_items: list["Tag"]) -> list[NewsItem]:
         return [NewsItem(raw_item.text, get_url_from_tag(raw_item)) for raw_item in raw_items]
 
     @staticmethod
-    def from_lyrics(text: str) -> "NewsSegment":
+    def from_lyrics(text: str, segment_number: int) -> "NewsSegment":
         lines = text.split("\n")[1:]
         news_items: list[NewsItem] = []
 
@@ -365,16 +396,15 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
                 url = next_line if next_line and string_is_url(next_line) else ""
                 news_items.append(NewsItem(line, url))
 
-        return NewsSegment(news_items)
+        return NewsSegment(segment_number=segment_number, items=news_items, source=SegmentSource.NOTES)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class InterviewSegment(FromShowNotesSegment):
     subject: str
 
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        raise NotImplementedError
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -385,16 +415,15 @@ class InterviewSegment(FromShowNotesSegment):
         text = segment_data[0].text
         subject = re.split(r"[w|W]ith", text)[1]
 
-        return InterviewSegment(subject.strip(":- "))
+        return InterviewSegment(segment_number=0, subject=subject.strip(":- "), source=SegmentSource.NOTES)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
     items: list[str]
 
-    def __str__(self) -> str:
-        # TODO
-        pass
+    def get_text(self) -> str:
+        return "<br>\n".join(self.items)
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -403,24 +432,24 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
     @staticmethod
     def from_summary_text(text: str) -> "EmailSegment":
         if ": " not in text:
-            return EmailSegment([])
+            return EmailSegment(segment_number=0, items=[], source=SegmentSource.SUMMARY)
 
         raw_items = text.split(":")[1].split(",")
         items = [raw_item.strip() for raw_item in raw_items]
-        return EmailSegment(items)
+        return EmailSegment(segment_number=0, items=items, source=SegmentSource.SUMMARY)
 
     @staticmethod
     def from_show_notes(segment_data: list["Tag"]) -> "EmailSegment":
         text = segment_data[0].text
         if ": " not in text:
-            return EmailSegment([])
+            return EmailSegment(segment_number=0, items=[], source=SegmentSource.NOTES)
 
         raw_items = text.split(":")[1].split(",")
         items = [raw_item.strip() for raw_item in raw_items]
-        return EmailSegment(items)
+        return EmailSegment(segment_number=0, items=items, source=SegmentSource.NOTES)
 
     @staticmethod
-    def from_lyrics(text: str) -> "EmailSegment":
+    def from_lyrics(text: str, segment_number: int) -> "EmailSegment":
         lines = text.split("\n")[1:] + [None]  # sentinel value
 
         items = []
@@ -434,7 +463,7 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
             if line:
                 question.append(line)
 
-        return EmailSegment(items)
+        return EmailSegment(segment_number=segment_number, items=items, source=SegmentSource.NOTES)
 
 
 # endregion

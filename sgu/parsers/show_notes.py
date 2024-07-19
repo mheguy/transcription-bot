@@ -7,6 +7,7 @@ from sgu.segment_types import (
     BaseSegment,
     FromShowNotesSegment,
     Segments,
+    SegmentSource,
     UnknownSegment,
     segment_types,
 )
@@ -47,7 +48,7 @@ def parse_show_notes_segment_data(segment_data: list["Tag"]) -> "BaseSegment|Non
     if found_match:
         return None
 
-    return UnknownSegment(text=text, source="notes")
+    return UnknownSegment(segment_number=0, text=text, source=SegmentSource.NOTES)
 
 
 def extract_segment_data(post_element: Tag) -> list[list["Tag"]]:
