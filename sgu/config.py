@@ -4,6 +4,7 @@ from pathlib import Path
 # URLs
 RSS_URL = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
 WIKI_EPISODE_URL_BASE = "https://www.sgutranscripts.org/w/rest.php/v1/page/SGU_Episode_"
+WIKI_API_BASE = "https://sgutranscripts.org/w/api.php"
 PYANNOTE_IDENTIFY_ENDPOINT = "https://api.pyannote.ai/v1/identify"
 PYANNOTE_VOICEPRINT_ENDPOINT = "https://api.pyannote.ai/v1/voiceprint"
 
