@@ -1,11 +1,12 @@
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar, Literal, TypedDict
+from typing import ClassVar, Literal
 
 from bs4 import Tag
 
-from sgu.parsers.show_notes import get_url_from_tag
+from sgu.helpers import string_is_url
+from sgu.parsers.soup_helpers import get_url_from_tag
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
@@ -33,17 +34,6 @@ class BaseSegment(ABC):
         raise NotImplementedError
 
 
-@dataclass
-class UnknownSegment(BaseSegment):
-    text: str
-    source: Literal["notes", "summary"]
-
-    @staticmethod
-    def match_string(lowercase_text: str) -> bool:
-        del lowercase_text
-        return True
-
-
 class FromSummaryTextSegment(BaseSegment, ABC):
     @staticmethod
     @abstractmethod
@@ -61,12 +51,22 @@ class FromShowNotesSegment(BaseSegment, ABC):
 class FromLyricsSegment(BaseSegment, ABC):
     @staticmethod
     @abstractmethod
-    def from_lyrics(segment_data: list["Tag"]) -> "FromLyricsSegment":
+    def from_lyrics(text: str) -> "FromLyricsSegment":
         raise NotImplementedError
 
 
 # endregion
 # region concrete
+@dataclass
+class UnknownSegment(BaseSegment):
+    text: str
+    source: Literal["notes", "summary"]
+
+    @staticmethod
+    def match_string(lowercase_text: str) -> bool:
+        raise NotImplementedError
+
+
 @dataclass
 class LogicalFalacySegment(FromSummaryTextSegment):
     @staticmethod
@@ -111,8 +111,9 @@ class WhatsTheWordSegment(FromSummaryTextSegment):
 
 
 @dataclass
-class DumbestThingOfTheWeekSegment(FromSummaryTextSegment):
+class DumbestThingOfTheWeekSegment(FromSummaryTextSegment, FromLyricsSegment):
     topic: str = "(Unable to extract topic)"
+    url: str = "(Unable to extract url)"
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -125,6 +126,21 @@ class DumbestThingOfTheWeekSegment(FromSummaryTextSegment):
             return DumbestThingOfTheWeekSegment()
 
         return DumbestThingOfTheWeekSegment(split_text[1].strip())
+
+    @staticmethod
+    def from_lyrics(text: str) -> "FromLyricsSegment":
+        split_text = text.split("\n")
+
+        dispatch = {
+            1: lambda: DumbestThingOfTheWeekSegment(),
+            2: lambda: DumbestThingOfTheWeekSegment(split_text[1].strip()),
+            3: lambda: DumbestThingOfTheWeekSegment(split_text[1].strip(), split_text[2].strip()),
+        }
+
+        if len(split_text) in dispatch:
+            return dispatch[len(split_text)]()
+
+        raise ValueError(f"Unexpected number of lines in segment text: {text}")
 
 
 @dataclass
@@ -158,7 +174,7 @@ class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
 
 
 @dataclass
-class NoisySegment(FromShowNotesSegment):
+class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
     valid_splitters: ClassVar[str] = ":-"
 
     last_week_answer: str | None = None
@@ -176,6 +192,11 @@ class NoisySegment(FromShowNotesSegment):
             if splitter in segment_data[1].text:
                 return NoisySegment(segment_data[1].text.split(splitter)[1].strip())
 
+        return NoisySegment()
+
+    @staticmethod
+    def from_lyrics(text: str) -> "NoisySegment":
+        del text
         return NoisySegment()
 
 
@@ -238,7 +259,7 @@ class NewsItem:
 
 
 @dataclass
-class NewsSegment(FromShowNotesSegment):
+class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
     items: list[NewsItem]
 
     @staticmethod
@@ -247,15 +268,28 @@ class NewsSegment(FromShowNotesSegment):
 
     @staticmethod
     def from_show_notes(segment_data: list["Tag"]) -> "NewsSegment":
-        raw_items = [i for i in segment_data[1].children if isinstance(i, Tag)]
+        show_notes = [i for i in segment_data[1].children if isinstance(i, Tag)]
 
-        items = NewsSegment.process_raw_items(raw_items)
+        items = NewsSegment.process_show_notes(show_notes)
 
         return NewsSegment(items)
 
     @staticmethod
-    def process_raw_items(raw_items: list["Tag"]) -> list[NewsItem]:
+    def process_show_notes(raw_items: list["Tag"]) -> list[NewsItem]:
         return [NewsItem(raw_item.text, get_url_from_tag(raw_item)) for raw_item in raw_items]
+
+    @staticmethod
+    def from_lyrics(text: str) -> "NewsSegment":
+        lines = text.split("\n")[1:]
+        news_items: list[NewsItem] = []
+
+        for index, line in enumerate(lines):
+            if "news item" in line.lower():
+                next_line = lines[index + 1] if index + 1 < len(lines) else ""
+                url = next_line if next_line and string_is_url(next_line) else ""
+                news_items.append(NewsItem(line, url))
+
+        return NewsSegment(news_items)
 
 
 @dataclass
@@ -275,7 +309,7 @@ class InterviewSegment(FromShowNotesSegment):
 
 
 @dataclass
-class EmailSegment(FromSummaryTextSegment, FromShowNotesSegment):
+class EmailSegment(FromSummaryTextSegment, FromShowNotesSegment, FromLyricsSegment):
     items: list[str]
 
     @staticmethod
@@ -301,30 +335,28 @@ class EmailSegment(FromSummaryTextSegment, FromShowNotesSegment):
         items = [raw_item.strip() for raw_item in raw_items]
         return EmailSegment(items)
 
+    @staticmethod
+    def from_lyrics(text: str) -> "EmailSegment":
+        lines = text.split("\n")[1:] + [None]  # sentinel value
+
+        items = []
+        question = []
+
+        for line in lines:
+            if question and (line is None or line.lower().startswith(("question #", "email #"))):
+                items.append("\n".join(question))
+                question = []
+
+            if line:
+                question.append(line)
+
+        return EmailSegment(items)
+
 
 # endregion
-# region mappings
-class SegmentTypeMapping(TypedDict):
-    from_lyrics: list[type[FromLyricsSegment]]
-    from_summary: list[type[FromSummaryTextSegment]]
-    from_notes: list[type[FromShowNotesSegment]]
-
-
-segment_mapping: SegmentTypeMapping = {
-    "from_lyrics": [
-        c
-        for c in globals().values()
-        if isinstance(c, type) and issubclass(c, FromLyricsSegment) and c is not FromLyricsSegment
-    ],
-    "from_summary": [
-        c
-        for c in globals().values()
-        if isinstance(c, type) and issubclass(c, FromSummaryTextSegment) and c is not FromSummaryTextSegment
-    ],
-    "from_notes": [
-        c
-        for c in globals().values()
-        if isinstance(c, type) and issubclass(c, FromShowNotesSegment) and c is not FromShowNotesSegment
-    ],
-}
-# endregion
+PARSER_SEGMENT_TYPES = (FromLyricsSegment, FromSummaryTextSegment, FromShowNotesSegment)
+segment_types = [
+    value
+    for value in globals().values()
+    if isinstance(value, type) and issubclass(value, PARSER_SEGMENT_TYPES) and value not in PARSER_SEGMENT_TYPES
+]

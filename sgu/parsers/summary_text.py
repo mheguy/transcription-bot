@@ -1,23 +1,31 @@
-from sgu.segments import SPECIAL_SUMMARY_PATTERNS, BaseSegment, UnknownSegment, segment_mapping
+from sgu.custom_logger import logger
+from sgu.segment_types import SPECIAL_SUMMARY_PATTERNS, BaseSegment, FromSummaryTextSegment, Segments, segment_types
 
 
-def is_special_summary_text(text: str) -> bool:
-    """Check if the text indicates something about the episode (guest, live, etc.)."""
-    return any(pattern in text for pattern in SPECIAL_SUMMARY_PATTERNS)
+def parse_summary_text(summary: str) -> Segments:
+    return list(filter(None, [create_segment_from_summary_text(line.strip()) for line in summary.split(";")]))
 
 
 def create_segment_from_summary_text(text: str) -> "BaseSegment|None":
     lower_text = text.lower()
 
-    for segment_class in segment_mapping["from_summary"]:
+    found_match = False
+    for segment_class in segment_types:
         if segment_class.match_string(lower_text):
-            return segment_class.from_summary_text(text)
+            found_match = True
+            if issubclass(segment_class, FromSummaryTextSegment):
+                return segment_class.from_summary_text(text)
 
-    for segment_class in segment_mapping["from_notes"]:
-        if segment_class.match_string(lower_text):
-            return None
+    if found_match:
+        return None
 
     if is_special_summary_text(lower_text):
         return None
 
-    return UnknownSegment(text, "summary")
+    logger.warning("Summary text did not match any segment type: %s", text)
+    return None
+
+
+def is_special_summary_text(text: str) -> bool:
+    """Check if the text indicates something about the episode (guest, live, etc.)."""
+    return any(pattern in text for pattern in SPECIAL_SUMMARY_PATTERNS)
