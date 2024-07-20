@@ -8,14 +8,22 @@ if TYPE_CHECKING:
 
 
 def parse_lyrics(lyrics: str) -> Segments:
+    """Parse the lyrics and return a list of segments.
+
+    Args:
+        lyrics (str): The lyrics to parse.
+
+    Returns:
+        Segments: A list of segments parsed from the lyrics.
+    """
     lyrics = lyrics.replace("\r", "\n")
     pattern = r"(Segment #\d.+?)(?=(?:Segment #\d+|$))"
     lyric_chunks = re.findall(pattern, lyrics, re.DOTALL)
 
-    return list(filter(None, [create_segment_from_lyric_chunk(line.strip()) for line in lyric_chunks]))
+    return list(filter(None, [_create_segment_from_lyric_chunk(line.strip()) for line in lyric_chunks]))
 
 
-def create_segment_from_lyric_chunk(text: str) -> "BaseSegment|None":
+def _create_segment_from_lyric_chunk(text: str) -> "BaseSegment|None":
     match = re.search(r"Segment #(\d+)", text)
 
     segment_number = int(match.group(1)) if match else 0

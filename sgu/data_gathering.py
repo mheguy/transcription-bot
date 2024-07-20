@@ -8,14 +8,10 @@ from mutagen.id3 import ID3
 
 from sgu.caching import file_cache_async
 from sgu.config import AUDIO_FOLDER
-from sgu.custom_logger import logger
 from sgu.downloader import FileDownloader
 from sgu.transcription import (
     DiarizedTranscript,
-    create_diarization,
-    create_transcription,
-    load_audio,
-    merge_transcript_and_diarization,
+    get_transcript,
 )
 
 if TYPE_CHECKING:
@@ -30,6 +26,15 @@ if TYPE_CHECKING:
 
 @dataclass
 class EpisodeData:
+    """Detailed data about a podcast episode.
+
+    Attributes:
+        podcast: The basic information about the episode.
+        transcript: The diarized transcript of the episode.
+        lyrics: The lyrics that were embedded in the MP3 file.
+        show_notes: The show notes of the episode from the website.
+    """
+
     podcast: "PodcastEpisode"
     transcript: "DiarizedTranscript"
     lyrics: str
@@ -37,13 +42,14 @@ class EpisodeData:
 
 
 async def gather_data(client: "requests.Session", podcast: "PodcastEpisode") -> EpisodeData:
+    """Gather data about a podcast episode."""
     print("Getting show notes...")
     audio_file = await get_audio_file(client, podcast)
 
     async with asyncio.TaskGroup() as tg:
         transcript_task = tg.create_task(get_transcript(audio_file, podcast))
-        lyrics_task = tg.create_task(get_lyrics_from_mp3(audio_file.read_bytes()))
-        show_notes_task = tg.create_task(get_show_notes(client, podcast.link))
+        lyrics_task = tg.create_task(_get_lyrics_from_mp3(audio_file.read_bytes()))
+        show_notes_task = tg.create_task(_get_show_notes(client, podcast.link))
 
     return EpisodeData(
         podcast=podcast,
@@ -55,6 +61,7 @@ async def gather_data(client: "requests.Session", podcast: "PodcastEpisode") -> 
 
 @file_cache_async
 async def get_audio_file(client: "Session", podcast: "PodcastEpisode") -> "Path":
+    """Retrieve the audio file for a podcast episode."""
     audio_file = AUDIO_FOLDER / f"{podcast.episode_number}.mp3"
     if audio_file.exists():
         audio = audio_file.read_bytes()
@@ -67,7 +74,7 @@ async def get_audio_file(client: "Session", podcast: "PodcastEpisode") -> "Path"
 
 
 @file_cache_async
-async def get_show_notes(client: "Session", url: str) -> bytes:
+async def _get_show_notes(client: "Session", url: str) -> bytes:
     resp = client.get(url)
     resp.raise_for_status()
 
@@ -75,7 +82,7 @@ async def get_show_notes(client: "Session", url: str) -> bytes:
 
 
 @file_cache_async
-async def get_lyrics_from_mp3(raw_bytes: bytes) -> str:
+async def _get_lyrics_from_mp3(raw_bytes: bytes) -> str:
     audio = ID3(BytesIO(raw_bytes))
 
     uslt_frame: USLT = audio.getall("USLT::eng")[0]
@@ -86,17 +93,3 @@ async def get_lyrics_from_mp3(raw_bytes: bytes) -> str:
         raise ValueError("could not find lyrics")
 
     return result
-
-
-@file_cache_async
-async def get_transcript(audio_file: "Path", podcast: "PodcastEpisode") -> "DiarizedTranscript":
-    audio = load_audio(audio_file)
-
-    logger.info("Creating transcript")
-    transcription = create_transcription(audio)
-
-    logger.info("Getting diarization")
-    diarization = await create_diarization(podcast)
-
-    logger.info("Creating diarized transcript")
-    return merge_transcript_and_diarization(transcription, diarization)

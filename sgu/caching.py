@@ -16,6 +16,8 @@ R = TypeVar("R")
 
 
 def file_cache(func: "Callable[P, R]") -> "Callable[P, R]":
+    """Cache the result of the decorated sync function to a file."""
+
     @functools.wraps(func)
     def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         cache_filepath = _get_cache_file(func, args, kwargs)
@@ -32,6 +34,8 @@ def file_cache(func: "Callable[P, R]") -> "Callable[P, R]":
 
 
 def file_cache_async(func: "Callable[P, Coroutine[None, None, R]]") -> "Callable[P, Coroutine[None, None, R]]":
+    """Cache the result of the decorated async function to a file."""
+
     @functools.wraps(func)
     async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         cache_filepath = _get_cache_file(func, args, kwargs)

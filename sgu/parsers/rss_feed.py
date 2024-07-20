@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 
 @dataclass
 class PodcastEpisode:
+    """Basic information about a podcast episode."""
+
     episode_number: int
     official_title: str
     summary: str
@@ -23,19 +25,27 @@ class PodcastEpisode:
 
 
 def get_podcast_episodes(client: "requests.Session") -> list[PodcastEpisode]:
-    raw_feed_entries = get_raw_rss_feed_entries(client)
-    feed_entries = convert_feed_entries_to_episodes(raw_feed_entries)
+    """Retrieve the list of SGU podcast episodes.
+
+    Args:
+        client (requests.Session): The HTTP client to use for making requests.
+
+    Returns:
+        list[PodcastEpisode]: A list of podcast episodes, sorted by episode number in descending order.
+    """
+    raw_feed_entries = _get_raw_rss_feed_entries(client)
+    feed_entries = _convert_feed_entries_to_episodes(raw_feed_entries)
     return sorted(feed_entries, key=lambda e: e.episode_number, reverse=True)
 
 
-def get_raw_rss_feed_entries(client: "requests.Session") -> list[dict[str, Any]]:
+def _get_raw_rss_feed_entries(client: "requests.Session") -> list[dict[str, Any]]:
     response = client.get(RSS_URL, timeout=10)
     response.raise_for_status()
 
     return feedparser.parse(response.text)["entries"]
 
 
-def convert_feed_entries_to_episodes(feed_entries: list[dict[str, Any]]) -> list[PodcastEpisode]:
+def _convert_feed_entries_to_episodes(feed_entries: list[dict[str, Any]]) -> list[PodcastEpisode]:
     podcast_episodes: list[PodcastEpisode] = []
     for entry in feed_entries:
         episode_number = int(entry["link"].split("/")[-1])

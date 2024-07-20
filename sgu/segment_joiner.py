@@ -15,30 +15,30 @@ def join_segments(
     show_note_segments: "Segments",
     summary_text_segments: "Segments",
 ) -> "Segments":
-    """Decide which segments to keep and flag any potential issues."""
-    find_duplicates(lyric_segments, show_note_segments, summary_text_segments)
+    """Join segments from different collections and flag any potential issues."""
+    _find_duplicate_segments(lyric_segments, show_note_segments, summary_text_segments)
 
-    merge_noisy_segments(lyric_segments, show_note_segments)
-    merge_science_or_fiction_segments(lyric_segments, show_note_segments)
+    _merge_noisy_segments(lyric_segments, show_note_segments)
+    _merge_science_or_fiction_segments(lyric_segments, show_note_segments)
 
     return lyric_segments
 
 
-def merge_noisy_segments(lyric_segments: "Segments", show_note_segments: "Segments") -> None:
-    lyric_segment = get_segment_of_type(NoisySegment, lyric_segments)
-    show_note_segment = get_segment_of_type(NoisySegment, show_note_segments)
+def _merge_noisy_segments(lyric_segments: "Segments", show_note_segments: "Segments") -> None:
+    lyric_segment = _get_segment_of_type(NoisySegment, lyric_segments)
+    show_note_segment = _get_segment_of_type(NoisySegment, show_note_segments)
     if lyric_segment and show_note_segment:
         lyric_segment.last_week_answer = show_note_segment.last_week_answer
 
 
-def merge_science_or_fiction_segments(lyric_segments: "Segments", show_note_segments: "Segments") -> None:
-    lyric_segment = get_segment_of_type(ScienceOrFictionSegment, lyric_segments)
-    show_note_segment = get_segment_of_type(ScienceOrFictionSegment, show_note_segments)
+def _merge_science_or_fiction_segments(lyric_segments: "Segments", show_note_segments: "Segments") -> None:
+    lyric_segment = _get_segment_of_type(ScienceOrFictionSegment, lyric_segments)
+    show_note_segment = _get_segment_of_type(ScienceOrFictionSegment, show_note_segments)
     if lyric_segment and show_note_segment:
         lyric_segment.items = show_note_segment.items
 
 
-def get_segment_of_type(segment_type: type[T], segments: "Segments") -> "T | None":
+def _get_segment_of_type(segment_type: type[T], segments: "Segments") -> "T | None":
     for segment in segments:
         if isinstance(segment, segment_type):
             return segment
@@ -46,7 +46,7 @@ def get_segment_of_type(segment_type: type[T], segments: "Segments") -> "T | Non
     return None
 
 
-def find_duplicates(*segment_collections: "Segments") -> None:
+def _find_duplicate_segments(*segment_collections: "Segments") -> None:
     for segment_collection in segment_collections:
         seen = []
 

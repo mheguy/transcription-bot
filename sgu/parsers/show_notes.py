@@ -2,7 +2,7 @@ from typing import cast
 
 from bs4 import BeautifulSoup, ResultSet, Tag
 
-from sgu.helpers import extract_element
+from sgu.helpers import find_single_element
 from sgu.segment_types import (
     BaseSegment,
     FromShowNotesSegment,
@@ -18,12 +18,13 @@ PODCAST_MAIN_TAG_TYPE = "main"
 PODCAST_MAIN_CLASS_NAME = "podcast-main"
 
 
-def get_episode_image(raw_show_notes: bytes) -> str:
-    soup = BeautifulSoup(raw_show_notes, "html.parser")
+def get_episode_image_url(show_notes: bytes) -> str:
+    """Extract the episode image URL from the show notes."""
+    soup = BeautifulSoup(show_notes, "html.parser")
 
-    header = extract_element(soup, PODCAST_HEADER_TAG_TYPE, PODCAST_HEADER_CLASS_NAME)
+    header = find_single_element(soup, PODCAST_HEADER_TAG_TYPE, PODCAST_HEADER_CLASS_NAME)
 
-    thumbnail_div = extract_element(header, "div", "thumbnail")
+    thumbnail_div = find_single_element(header, "div", "thumbnail")
     thumbnail = thumbnail_div.findChild("img")
     if not isinstance(thumbnail, Tag):
         raise TypeError("Got an unexpected type in thumbnail")
@@ -32,15 +33,16 @@ def get_episode_image(raw_show_notes: bytes) -> str:
 
 
 def parse_show_notes(show_notes: bytes) -> Segments:
+    """Parse the show notes HTML and return a list of segments."""
     soup = BeautifulSoup(show_notes, "html.parser")
 
-    post = extract_element(soup, PODCAST_MAIN_TAG_TYPE, PODCAST_MAIN_CLASS_NAME)
-    segment_data = extract_segment_data(post)
+    post = find_single_element(soup, PODCAST_MAIN_TAG_TYPE, PODCAST_MAIN_CLASS_NAME)
+    segment_data = _extract_segment_data(post)
 
-    return list(filter(None, [parse_show_notes_segment_data(segment_data) for segment_data in segment_data]))
+    return list(filter(None, [_parse_show_notes_segment_data(segment_data) for segment_data in segment_data]))
 
 
-def parse_show_notes_segment_data(segment_data: list["Tag"]) -> "BaseSegment|None":
+def _parse_show_notes_segment_data(segment_data: list["Tag"]) -> "BaseSegment|None":
     text = segment_data[0].text
     lower_text = text.lower()
 
@@ -57,7 +59,7 @@ def parse_show_notes_segment_data(segment_data: list["Tag"]) -> "BaseSegment|Non
     return UnknownSegment(segment_number=0, text=text, source=SegmentSource.NOTES)
 
 
-def extract_segment_data(post_element: Tag) -> list[list["Tag"]]:
+def _extract_segment_data(post_element: Tag) -> list[list["Tag"]]:
     h3_tags = post_element.find_all("h3")
 
     if any(not isinstance(h3_tag, Tag) for h3_tag in h3_tags):

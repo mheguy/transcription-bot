@@ -99,7 +99,6 @@ ignore = [
     "ANN101",  # missing-type-self - static analyzers infer the type of self
     "ANN102",  # missing-type-cls - static analyzers infer the type of cls
     "ANN401",  # any-type - this is acceptable in some cases
-    "D",       # doc - as the project is closed source, enforcing documentation makes no sense
     "D105",    # undocumented-magic-method - documenting magic methods is redundant
     "D107",    # undocumented-public-init - documenting init methods is redundant
     "DTZ",     # flake8-datetimez - we don't always want timezone-aware datetimes
@@ -118,8 +117,8 @@ ignore = [
     "E501",
     "ISC001",
 
-    # Project-specific rules
-    # "EXE001", # Example
+    # Doc rules.
+    "D100", # public modules (I don't think this is necessary)
 ]
 # Frustrating automatic fixes (ex. removing unused imports before you have a chance to use them)
 unfixable = ["B007", "E712", "F401", "F841"]
@@ -163,7 +162,14 @@ known-first-party = ["sgu_sof_tool"]
 # Rules for init files:
 "__init__.py" = ["D10"]
 # Project-specific rules:
-# "main.py" = ["S101"]
+# Each segment type does not need its own docstring.
+"segment_types.py" = [
+    "D101",
+    "D102", # public methods (this can be disabled if we can transition to py3.12 and use the override decorator)
+]
+"**/entrypoints/*" = [
+    "D", # these scripts are one-off and/or for debugging
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

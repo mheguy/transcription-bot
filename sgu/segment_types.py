@@ -7,7 +7,7 @@ from typing import ClassVar
 from bs4 import Tag
 
 from sgu.custom_logger import logger
-from sgu.helpers import extract_element, string_is_url
+from sgu.helpers import find_single_element, string_is_url
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
@@ -21,6 +21,8 @@ Segments = list["BaseSegment"]
 
 # region components
 class SegmentSource(Enum):
+    """The origin of the segment data."""
+
     LYRICS = "embedded lyrics"
     NOTES = "show notes"
     SUMMARY = "episode summary"
@@ -44,6 +46,8 @@ class NewsItem:
 # region base
 @dataclass(kw_only=True)
 class BaseSegment(ABC):
+    """Base for all segments."""
+
     segment_number: int
     source: SegmentSource
 
@@ -55,10 +59,12 @@ class BaseSegment(ABC):
     @staticmethod
     @abstractmethod
     def match_string(lowercase_text: str) -> bool:
+        """Determine if the provided text matches a segment type."""
         raise NotImplementedError
 
     @abstractmethod
     def get_text(self) -> str:
+        """Get the text representation of the segment (for the wiki page)."""
         raise NotImplementedError
 
     def _get_segment_number(self) -> str:
@@ -69,23 +75,32 @@ class BaseSegment(ABC):
 
 
 class FromSummaryTextSegment(BaseSegment, ABC):
+    """A segment whose source is the episode summary."""
+
     @staticmethod
     @abstractmethod
     def from_summary_text(text: str) -> "FromSummaryTextSegment":
+        """Create a segment from the episode summary text."""
         raise NotImplementedError
 
 
 class FromShowNotesSegment(BaseSegment, ABC):
+    """A segment whose source is the show notes."""
+
     @staticmethod
     @abstractmethod
     def from_show_notes(segment_data: list["Tag"]) -> "FromShowNotesSegment":
+        """Create a segment from the show notes."""
         raise NotImplementedError
 
 
 class FromLyricsSegment(BaseSegment, ABC):
+    """A segment whose source is the embedded lyrics."""
+
     @staticmethod
     @abstractmethod
     def from_lyrics(text: str, segment_number: int) -> "FromLyricsSegment":
+        """Create a segment from the embedded lyrics."""
         raise NotImplementedError
 
 
@@ -93,6 +108,8 @@ class FromLyricsSegment(BaseSegment, ABC):
 # region concrete
 @dataclass(kw_only=True)
 class UnknownSegment(BaseSegment):
+    """A segment that could not be identified."""
+
     text: str
 
     def get_text(self) -> str:
@@ -334,17 +351,17 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
     def process_raw_items(raw_items: list["Tag"]) -> list[ScienceOrFictionItem]:
         items: list[ScienceOrFictionItem] = []
         for raw_item in raw_items:
-            title_text = extract_element(raw_item, "span", "science-fiction__item-title").text
+            title_text = find_single_element(raw_item, "span", "science-fiction__item-title").text
 
-            p_tag = extract_element(raw_item, "p", "")
+            p_tag = find_single_element(raw_item, "p", "")
             p_text = p_tag.text.strip()
 
             if better_tag := p_tag.next:
                 p_text = better_tag.text.strip()
 
-            answer = extract_element(raw_item, "span", "quiz__answer").text
+            answer = find_single_element(raw_item, "span", "quiz__answer").text
 
-            a_tag = extract_element(p_tag, "a", "")
+            a_tag = find_single_element(p_tag, "a", "")
             url = a_tag.get("href", "")
 
             if not isinstance(url, str):
@@ -387,23 +404,9 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
     def from_show_notes(segment_data: list["Tag"]) -> "NewsSegment":
         show_notes = [i for i in segment_data[1].children if isinstance(i, Tag)]
 
-        items = NewsSegment.process_show_notes(show_notes)
+        items = NewsSegment._process_show_notes(show_notes)
 
         return NewsSegment(segment_number=0, items=items, source=SegmentSource.NOTES)
-
-    @staticmethod
-    def process_show_notes(raw_items: list["Tag"]) -> list[NewsItem]:
-        news_items: list[NewsItem] = []
-
-        for raw_item in raw_items:
-            url = ""
-            if a_tag_with_href := raw_item.select_one('div > a[href]:not([href=""])'):
-                href = a_tag_with_href["href"]
-                url = href if isinstance(href, str) else href[0]
-
-            news_items.append(NewsItem(raw_item.text, url))
-
-        return news_items
 
     @staticmethod
     def from_lyrics(text: str, segment_number: int) -> "NewsSegment":
@@ -417,6 +420,20 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
                 news_items.append(NewsItem(line, url))
 
         return NewsSegment(segment_number=segment_number, items=news_items, source=SegmentSource.NOTES)
+
+    @staticmethod
+    def _process_show_notes(raw_items: list["Tag"]) -> list[NewsItem]:
+        news_items: list[NewsItem] = []
+
+        for raw_item in raw_items:
+            url = ""
+            if a_tag_with_href := raw_item.select_one('div > a[href]:not([href=""])'):
+                href = a_tag_with_href["href"]
+                url = href if isinstance(href, str) else href[0]
+
+            news_items.append(NewsItem(raw_item.text, url))
+
+        return news_items
 
 
 @dataclass(kw_only=True)

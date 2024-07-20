@@ -3,10 +3,11 @@ from sgu.segment_types import SPECIAL_SUMMARY_PATTERNS, BaseSegment, FromSummary
 
 
 def parse_summary_text(summary: str) -> Segments:
-    return list(filter(None, [create_segment_from_summary_text(line.strip()) for line in summary.split(";")]))
+    """Parse the summary text and return a list of segments."""
+    return list(filter(None, [_create_segment_from_summary_text(line.strip()) for line in summary.split(";")]))
 
 
-def create_segment_from_summary_text(text: str) -> "BaseSegment|None":
+def _create_segment_from_summary_text(text: str) -> "BaseSegment|None":
     lower_text = text.lower()
 
     found_match = False
@@ -19,13 +20,12 @@ def create_segment_from_summary_text(text: str) -> "BaseSegment|None":
     if found_match:
         return None
 
-    if is_special_summary_text(lower_text):
+    if _is_special_summary_text(lower_text):
         return None
 
     logger.warning("Summary text did not match any segment type: %s", text)
     return None
 
 
-def is_special_summary_text(text: str) -> bool:
-    """Check if the text indicates something about the episode (guest, live, etc.)."""
+def _is_special_summary_text(text: str) -> bool:
     return any(pattern in text for pattern in SPECIAL_SUMMARY_PATTERNS)
