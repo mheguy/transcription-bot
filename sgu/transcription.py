@@ -18,6 +18,7 @@ from sgu.config import (
     PYANNOTE_TOKEN,
     TRANSCRIPTION_LANGUAGE,
     TRANSCRIPTION_MODEL,
+    TRANSCRIPTION_PROMPT,
     VOICEPRINT_FILE,
 )
 from sgu.custom_logger import logger
@@ -141,7 +142,11 @@ def _merge_transcript_and_diarization(
 @file_cache
 @Timer("transcription", "{name} took {:.1f} seconds", "{name} starting")
 def _perform_transcription(audio: AudioArray) -> "TranscriptionResult":
-    transcription_model = whisperx.load_model(TRANSCRIPTION_MODEL, "cuda")
+    transcription_model = whisperx.load_model(
+        TRANSCRIPTION_MODEL,
+        "cuda",
+        asr_options={"initial_prompt": TRANSCRIPTION_PROMPT},
+    )
     result = transcription_model.transcribe(audio)
 
     # Unload model

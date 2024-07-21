@@ -2,10 +2,12 @@ import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from bs4 import Tag
+from jinja2 import Environment, FileSystemLoader
 
+from sgu.config import TEMPLATES_FOLDER
 from sgu.custom_logger import logger
 from sgu.helpers import find_single_element, string_is_url
 
@@ -48,13 +50,30 @@ class NewsItem:
 class BaseSegment(ABC):
     """Base for all segments."""
 
-    segment_number: int
+    template_env: ClassVar = Environment(
+        block_start_string="((*",
+        block_end_string="*))",
+        variable_start_string="(((",
+        variable_end_string=")))",
+        comment_start_string="((=",
+        comment_end_string="=))",
+        autoescape=True,
+        loader=FileSystemLoader(TEMPLATES_FOLDER),
+    )
+
     source: SegmentSource
 
-    def __str__(self) -> str:
-        segment = self._get_segment_number()
-        text = self.get_text()
-        return f"{segment}<!-- extracted from {self.source} --><br>\n{text}"
+    def get_section_header(self) -> str:
+        """Get the wiki text / section header for the segment."""
+        template = self.template_env.get_template(self.template_name)
+        template_values = self.get_template_values()
+        return template.render(**template_values)
+
+    @property
+    @abstractmethod
+    def template_name(self) -> str:
+        """The name of the Jinja2 template file."""
+        raise NotImplementedError
 
     @staticmethod
     @abstractmethod
@@ -63,15 +82,9 @@ class BaseSegment(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         """Get the text representation of the segment (for the wiki page)."""
         raise NotImplementedError
-
-    def _get_segment_number(self) -> str:
-        if self.segment_number:
-            return f"Segment #{self.segment_number}"
-
-        return "Segment"
 
 
 class FromSummaryTextSegment(BaseSegment, ABC):
@@ -99,7 +112,7 @@ class FromLyricsSegment(BaseSegment, ABC):
 
     @staticmethod
     @abstractmethod
-    def from_lyrics(text: str, segment_number: int) -> "FromLyricsSegment":
+    def from_lyrics(text: str) -> "FromLyricsSegment":
         """Create a segment from the embedded lyrics."""
         raise NotImplementedError
 
@@ -112,8 +125,22 @@ class UnknownSegment(BaseSegment):
 
     text: str
 
-    def get_text(self) -> str:
-        return self.text
+    def get_template_values(self) -> dict[str, Any]:
+        return {"text": self.text}
+
+    @staticmethod
+    def match_string(lowercase_text: str) -> bool:
+        raise NotImplementedError
+
+
+@dataclass(kw_only=True)
+class IntroSegment(BaseSegment):
+    """The segment that introduces the show and has banter betweeen the rogues."""
+
+    text: str
+
+    def get_template_values(self) -> dict[str, Any]:
+        return {"text": self.text}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -122,7 +149,7 @@ class UnknownSegment(BaseSegment):
 
 @dataclass(kw_only=True)
 class LogicalFalacySegment(FromSummaryTextSegment):
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
     @staticmethod
@@ -133,14 +160,14 @@ class LogicalFalacySegment(FromSummaryTextSegment):
     def from_summary_text(text: str) -> "LogicalFalacySegment":
         del text
 
-        return LogicalFalacySegment(segment_number=0, source=SegmentSource.SUMMARY)
+        return LogicalFalacySegment(source=SegmentSource.SUMMARY)
 
 
 @dataclass(kw_only=True)
 class QuickieSegment(FromSummaryTextSegment):
     text: str
 
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
     @staticmethod
@@ -149,14 +176,14 @@ class QuickieSegment(FromSummaryTextSegment):
 
     @staticmethod
     def from_summary_text(text: str) -> "QuickieSegment":
-        return QuickieSegment(segment_number=0, text=text, source=SegmentSource.SUMMARY)
+        return QuickieSegment(text=text, source=SegmentSource.SUMMARY)
 
 
 @dataclass(kw_only=True)
 class WhatsTheWordSegment(FromSummaryTextSegment):
     word: str
 
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
     @staticmethod
@@ -172,7 +199,7 @@ class WhatsTheWordSegment(FromSummaryTextSegment):
         else:
             word = "N/A<!-- Failed to extract word -->"
 
-        return WhatsTheWordSegment(segment_number=0, word=word, source=SegmentSource.SUMMARY)
+        return WhatsTheWordSegment(word=word, source=SegmentSource.SUMMARY)
 
 
 @dataclass(kw_only=True)
@@ -180,7 +207,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
     topic: str
     url: str
 
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         return f"{self.topic}<br>\nLink:{self.url}"
 
     @staticmethod
@@ -188,7 +215,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
         return lowercase_text.startswith("dumbest thing of the week")
 
     @staticmethod
-    def from_lyrics(text: str, segment_number: int) -> "DumbestThingOfTheWeekSegment":
+    def from_lyrics(text: str) -> "DumbestThingOfTheWeekSegment":
         lines = text.split("\n")
         url = ""
         topic = ""
@@ -200,7 +227,6 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
             url = lines[2].strip()
 
         return DumbestThingOfTheWeekSegment(
-            segment_number=segment_number,
             topic=topic,
             url=url,
             source=SegmentSource.LYRICS,
@@ -211,7 +237,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
 class SwindlersListSegment(FromSummaryTextSegment):
     topic: str = "N/A<!-- Failed to extract topic -->"
 
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
     @staticmethod
@@ -220,14 +246,14 @@ class SwindlersListSegment(FromSummaryTextSegment):
 
     @staticmethod
     def from_summary_text(text: str) -> "SwindlersListSegment":
-        return SwindlersListSegment(segment_number=0, topic=text.split(":")[1].strip(), source=SegmentSource.SUMMARY)
+        return SwindlersListSegment(topic=text.split(":")[1].strip(), source=SegmentSource.SUMMARY)
 
 
 @dataclass(kw_only=True)
 class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
     subject: str = "N/A<!-- Failed to extract subject -->"
 
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
     @staticmethod
@@ -238,10 +264,9 @@ class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
     def from_summary_text(text: str) -> "ForgottenSuperheroesOfScienceSegment":
         lines = text.split(":")
         if len(lines) == 1:
-            return ForgottenSuperheroesOfScienceSegment(segment_number=0, source=SegmentSource.SUMMARY)
+            return ForgottenSuperheroesOfScienceSegment(source=SegmentSource.SUMMARY)
 
         return ForgottenSuperheroesOfScienceSegment(
-            segment_number=0,
             subject=lines[1].strip(),
             source=SegmentSource.SUMMARY,
         )
@@ -253,7 +278,7 @@ class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
 
     last_week_answer: str = "N/A<!-- Failed to extract last week's answer -->"
 
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         return f"Last week's answer: {self.last_week_answer}"
 
     @staticmethod
@@ -263,22 +288,21 @@ class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
     @staticmethod
     def from_show_notes(segment_data: list["Tag"]) -> "NoisySegment":
         if len(segment_data) == 1:
-            return NoisySegment(segment_number=0, source=SegmentSource.NOTES)
+            return NoisySegment(source=SegmentSource.NOTES)
 
         for splitter in NoisySegment.valid_splitters:
             if splitter in segment_data[1].text:
                 return NoisySegment(
-                    segment_number=0,
                     last_week_answer=segment_data[1].text.split(splitter)[1].strip(),
                     source=SegmentSource.NOTES,
                 )
 
-        return NoisySegment(segment_number=0, source=SegmentSource.NOTES)
+        return NoisySegment(source=SegmentSource.NOTES)
 
     @staticmethod
-    def from_lyrics(text: str, segment_number: int) -> "NoisySegment":
+    def from_lyrics(text: str) -> "NoisySegment":
         del text
-        return NoisySegment(segment_number=segment_number, source=SegmentSource.NOTES)
+        return NoisySegment(source=SegmentSource.NOTES)
 
 
 @dataclass(kw_only=True)
@@ -286,7 +310,7 @@ class QuoteSegment(FromLyricsSegment):
     quote: str
     attribution: str
 
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         return f"{self.quote}<br>\n{self.attribution}"
 
     @staticmethod
@@ -300,10 +324,10 @@ class QuoteSegment(FromLyricsSegment):
         else:
             quote = "N/A<!-- Failed to extract quote -->"
 
-        return QuoteSegment(segment_number=0, quote=quote, attribution="", source=SegmentSource.NOTES)
+        return QuoteSegment(quote=quote, attribution="", source=SegmentSource.NOTES)
 
     @staticmethod
-    def from_lyrics(text: str, segment_number: int) -> "QuoteSegment":
+    def from_lyrics(text: str) -> "QuoteSegment":
         lines = list(filter(None, text.split("\n")[1:]))
         attribution = "<!-- Failed to extract attribution -->"
 
@@ -315,7 +339,6 @@ class QuoteSegment(FromLyricsSegment):
             raise ValueError(f"Unexpected number of lines in segment text: {text}")
 
         return QuoteSegment(
-            segment_number=segment_number,
             quote=lines[0],
             attribution=attribution,
             source=SegmentSource.NOTES,
@@ -327,7 +350,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
     items: list[ScienceOrFictionItem]
     theme: str | None = None
 
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         text = f"Theme: {self.theme}<br>\n" if self.theme else ""
 
         for item in self.items:
@@ -345,7 +368,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
 
         items = ScienceOrFictionSegment.process_raw_items(raw_items)
 
-        return ScienceOrFictionSegment(segment_number=0, items=items, source=SegmentSource.NOTES)
+        return ScienceOrFictionSegment(items=items, source=SegmentSource.NOTES)
 
     @staticmethod
     def process_raw_items(raw_items: list["Tag"]) -> list[ScienceOrFictionItem]:
@@ -372,7 +395,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
         return items
 
     @staticmethod
-    def from_lyrics(text: str, segment_number: int) -> "ScienceOrFictionSegment":
+    def from_lyrics(text: str) -> "ScienceOrFictionSegment":
         lines = text.split("\n")[2:]
         theme = None
 
@@ -382,7 +405,6 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
                 break
 
         return ScienceOrFictionSegment(
-            segment_number=segment_number,
             items=[],
             theme=theme,
             source=SegmentSource.LYRICS,
@@ -393,7 +415,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
 class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
     items: list[NewsItem]
 
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         return "\n".join([f"{item.topic}<br>\nLink: {item.link}" for item in self.items])
 
     @staticmethod
@@ -406,10 +428,10 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
 
         items = NewsSegment._process_show_notes(show_notes)
 
-        return NewsSegment(segment_number=0, items=items, source=SegmentSource.NOTES)
+        return NewsSegment(items=items, source=SegmentSource.NOTES)
 
     @staticmethod
-    def from_lyrics(text: str, segment_number: int) -> "NewsSegment":
+    def from_lyrics(text: str) -> "NewsSegment":
         lines = text.split("\n")[1:]
         news_items: list[NewsItem] = []
 
@@ -419,7 +441,7 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
                 url = next_line if next_line and string_is_url(next_line) else ""
                 news_items.append(NewsItem(line, url))
 
-        return NewsSegment(segment_number=segment_number, items=news_items, source=SegmentSource.NOTES)
+        return NewsSegment(items=news_items, source=SegmentSource.NOTES)
 
     @staticmethod
     def _process_show_notes(raw_items: list["Tag"]) -> list[NewsItem]:
@@ -440,7 +462,7 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
 class InterviewSegment(FromShowNotesSegment):
     subject: str
 
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
     @staticmethod
@@ -452,14 +474,14 @@ class InterviewSegment(FromShowNotesSegment):
         text = segment_data[0].text
         subject = re.split(r"[w|W]ith", text)[1]
 
-        return InterviewSegment(segment_number=0, subject=subject.strip(":- "), source=SegmentSource.NOTES)
+        return InterviewSegment(subject=subject.strip(":- "), source=SegmentSource.NOTES)
 
 
 @dataclass(kw_only=True)
 class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
     items: list[str]
 
-    def get_text(self) -> str:
+    def get_template_values(self) -> dict[str, Any]:
         return "<br>\n".join(self.items)
 
     @staticmethod
@@ -469,24 +491,24 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
     @staticmethod
     def from_summary_text(text: str) -> "EmailSegment":
         if ": " not in text:
-            return EmailSegment(segment_number=0, items=[], source=SegmentSource.SUMMARY)
+            return EmailSegment(items=[], source=SegmentSource.SUMMARY)
 
         raw_items = text.split(":")[1].split(",")
         items = [raw_item.strip() for raw_item in raw_items]
-        return EmailSegment(segment_number=0, items=items, source=SegmentSource.SUMMARY)
+        return EmailSegment(items=items, source=SegmentSource.SUMMARY)
 
     @staticmethod
     def from_show_notes(segment_data: list["Tag"]) -> "EmailSegment":
         text = segment_data[0].text
         if ": " not in text:
-            return EmailSegment(segment_number=0, items=[], source=SegmentSource.NOTES)
+            return EmailSegment(items=[], source=SegmentSource.NOTES)
 
         raw_items = text.split(":")[1].split(",")
         items = [raw_item.strip() for raw_item in raw_items]
-        return EmailSegment(segment_number=0, items=items, source=SegmentSource.NOTES)
+        return EmailSegment(items=items, source=SegmentSource.NOTES)
 
     @staticmethod
-    def from_lyrics(text: str, segment_number: int) -> "EmailSegment":
+    def from_lyrics(text: str) -> "EmailSegment":
         lines = text.split("\n")[1:] + [None]  # sentinel value
 
         items = []
@@ -500,7 +522,7 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
             if line:
                 question.append(line)
 
-        return EmailSegment(segment_number=segment_number, items=items, source=SegmentSource.NOTES)
+        return EmailSegment(items=items, source=SegmentSource.NOTES)
 
 
 # endregion

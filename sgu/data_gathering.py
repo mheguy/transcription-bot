@@ -1,8 +1,8 @@
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 from mutagen.id3 import ID3
 
@@ -24,6 +24,18 @@ if TYPE_CHECKING:
     from sgu.parsers.rss_feed import PodcastEpisode
 
 
+class RogueAttendance(TypedDict, total=False):
+    """A dictionary of the presence of the rogues in a podcast episode."""
+
+    bob: bool
+    cara: bool
+    jay: bool
+    evan: bool
+    george: bool
+    rebecca: bool
+    perry: bool
+
+
 @dataclass
 class EpisodeData:
     """Detailed data about a podcast episode.
@@ -39,6 +51,7 @@ class EpisodeData:
     transcript: "DiarizedTranscript"
     lyrics: str
     show_notes: bytes
+    rogue_attendance: RogueAttendance = field(default_factory=RogueAttendance)
 
 
 async def gather_data(client: "requests.Session", podcast: "PodcastEpisode") -> EpisodeData:

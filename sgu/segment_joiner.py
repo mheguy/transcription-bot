@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING, TypeVar
 
 from sgu.custom_logger import logger
-from sgu.segment_types import BaseSegment, NoisySegment, ScienceOrFictionSegment
+from sgu.episode_segments import BaseSegment, NoisySegment, ScienceOrFictionSegment
 
 if TYPE_CHECKING:
-    from sgu.segment_types import Segments
+    from sgu.episode_segments import Segments
 
 
 T = TypeVar("T", bound=BaseSegment)

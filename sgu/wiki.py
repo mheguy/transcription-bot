@@ -2,17 +2,19 @@ import os
 from http.client import NOT_FOUND
 from typing import TYPE_CHECKING
 
-from sgu.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE
+from jinja2 import Environment, FileSystemLoader, Template
+
+from sgu.config import TEMPLATES_FOLDER, WIKI_API_BASE, WIKI_EPISODE_URL_BASE
 from sgu.data_gathering import gather_data
-from sgu.parsers.episode_data import convert_episode_data_to_segments
+from sgu.parsers.episode_data import convert_episode_data_to_episode_segments
 from sgu.parsers.show_notes import get_episode_image_url
 
 if TYPE_CHECKING:
     from requests import Session
 
     from sgu.data_gathering import EpisodeData
+    from sgu.episode_segments import Segments
     from sgu.parsers.rss_feed import PodcastEpisode
-    from sgu.segment_types import Segments
     from sgu.transcription import DiarizedTranscript
 
 
@@ -33,14 +35,17 @@ async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode")
     print("Gathering all data...")
     episode_data = await gather_data(client, podcast)
 
+    # TODO: Upload episode image to wiki so that we can reference back to it later.
+    episode_image_url = get_episode_image_url(episode_data.show_notes)
+    episode_icon_name = _upload_image_to_wiki(client, episode_image_url)
+
     print("Merging data...")
-    segments = convert_episode_data_to_segments(episode_data)
-    episode_image = get_episode_image_url(episode_data.show_notes)
+    episode_segments = convert_episode_data_to_episode_segments(episode_data)
+    segments = _merge_segments_and_transcript(episode_segments, episode_data.transcript)
 
     print("Creating wiki page...")
-    wiki_page = _convert_to_wiki(episode_data, segments, episode_image)
-
-    _edit_page(client, page_text=wiki_page)  # TODO: Change for "Craete page"
+    wiki_page = _convert_to_wiki(episode_data, segments, episode_icon_name)
+    _edit_page(client, page_text=wiki_page)  # TODO: Change for "Create page"
 
 
 def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
@@ -63,33 +68,72 @@ def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
     return True
 
 
-def _convert_to_wiki(episode_data: "EpisodeData", segments: "Segments", episode_image: str) -> str:
-    components = [
-        f"Episode #{episode_data.podcast.episode_number}",
-        f"Title: {episode_data.podcast.official_title}",
-        f"Download URL: {episode_data.podcast.download_url}",
-        f"Link: {episode_data.podcast.link}",
-        f"Episode Image (link): {episode_image}",
-        ("Segments:\n\n" + "\n\n".join(str(s) for s in segments)),
-        f"Transcript:\n\n{_convert_transcript_to_text(episode_data.transcript)}",
-    ]
+def _convert_to_wiki(episode_data: "EpisodeData", segments: list[str], episode_icon_name: str) -> str:
+    template = _get_template()
 
-    return "\n\n\n\n".join(components)
+    num = str(episode_data.podcast.episode_number)
+    episode_group_number = num[0] + "0" * (len(num) - 1) + "s"
+
+    return template.render(
+        episode_number=episode_data.podcast.episode_number,
+        episode_group_number=episode_group_number,
+        episode_icon_name=episode_icon_name,
+        quote_of_the_week="",
+        quote_of_the_week_attribution="",
+        segments=segments,
+        is_bob_present=episode_data.rogue_attendance.get("bob"),
+        is_cara_present=episode_data.rogue_attendance.get("cara"),
+        is_jay_present=episode_data.rogue_attendance.get("jay"),
+        is_evan_present=episode_data.rogue_attendance.get("evan"),
+        is_george_present=episode_data.rogue_attendance.get("george"),
+        is_rebecca_present=episode_data.rogue_attendance.get("rebecca"),
+        is_perry_present=episode_data.rogue_attendance.get("perry"),
+    )
 
 
-def _convert_transcript_to_text(transcript: "DiarizedTranscript") -> str:
+def _get_template() -> Template:
+    env = Environment(
+        block_start_string="((*",
+        block_end_string="*))",
+        variable_start_string="(((",
+        variable_end_string=")))",
+        comment_start_string="((=",
+        comment_end_string="=))",
+        autoescape=True,
+        loader=FileSystemLoader(TEMPLATES_FOLDER),
+    )
+    return env.get_template("wiki_page.tex.jinja2")
+
+
+def _merge_segments_and_transcript(segments: "Segments", transcript: "DiarizedTranscript") -> list[str]:
+    # TODO: Merge segments and transcript
+    for segment in segments:
+        header = segment.get_header()
+
+    for transcript_chunk in transcript:
+        if "SPEAKER_" in transcript_chunk["speaker"]:
+            name = "Unknown speaker #" + transcript_chunk["speaker"].split("_")[1]
+            transcript_chunk["speaker"] = name
+        else:
+            transcript_chunk["speaker"] = transcript_chunk["speaker"][0]
+
     text_segments: list[str] = []
-    for segment in transcript:
+    for transcript_chunk in transcript:
         start_time = "{:02d}:{:02d}:{:02d}".format(
-            int(segment["start"]) // 3600,
-            int(segment["start"]) // 60 % 60,
-            int(segment["start"]) % 60,
+            int(transcript_chunk["start"]) // 3600,
+            int(transcript_chunk["start"]) // 60 % 60,
+            int(transcript_chunk["start"]) % 60,
         )
 
-        text = f"{start_time}-{segment['speaker']}<br>{segment['text']}"
+        text = f"{start_time}<br />\n'''{transcript_chunk['speaker']}''':{transcript_chunk['text']}<br />\n"
         text_segments.append(text)
 
-    return "\n\n".join(text_segments)
+    return "".join(text_segments)
+
+
+def _upload_image_to_wiki(client: "Session", image_url: str) -> str:
+    # TODO: Upload image to wiki and return the image name
+    raise NotImplementedError
 
 
 def _edit_page(client: "Session", page_title: str = "User:Mheguy", page_text: str = "") -> None:

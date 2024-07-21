@@ -1,5 +1,5 @@
 from sgu.custom_logger import logger
-from sgu.segment_types import SPECIAL_SUMMARY_PATTERNS, BaseSegment, FromSummaryTextSegment, Segments, segment_types
+from sgu.episode_segments import SPECIAL_SUMMARY_PATTERNS, BaseSegment, FromSummaryTextSegment, Segments, segment_types
 
 
 def parse_summary_text(summary: str) -> Segments:

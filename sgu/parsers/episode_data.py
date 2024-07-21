@@ -7,10 +7,10 @@ from sgu.segment_joiner import join_segments
 
 if TYPE_CHECKING:
     from sgu.data_gathering import EpisodeData
-    from sgu.segment_types import Segments
+    from sgu.episode_segments import Segments
 
 
-def convert_episode_data_to_segments(episode_data: "EpisodeData") -> "Segments":
+def convert_episode_data_to_episode_segments(episode_data: "EpisodeData") -> "Segments":
     """Converts episode data into segments.
 
     This function takes the episode data and parses the lyrics, show notes, and summary text

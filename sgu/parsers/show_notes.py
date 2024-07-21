@@ -2,8 +2,7 @@ from typing import cast
 
 from bs4 import BeautifulSoup, ResultSet, Tag
 
-from sgu.helpers import find_single_element
-from sgu.segment_types import (
+from sgu.episode_segments import (
     BaseSegment,
     FromShowNotesSegment,
     Segments,
@@ -11,6 +10,7 @@ from sgu.segment_types import (
     UnknownSegment,
     segment_types,
 )
+from sgu.helpers import find_single_element
 
 PODCAST_HEADER_TAG_TYPE = "section"
 PODCAST_HEADER_CLASS_NAME = "podcast-head"

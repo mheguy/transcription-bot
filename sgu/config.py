@@ -21,11 +21,13 @@ SERVER_PORT = 23500
 # Transcription settings
 TRANSCRIPTION_MODEL = "medium.en"
 TRANSCRIPTION_LANGUAGE = "en"
+TRANSCRIPTION_PROMPT = "The Skeptic's Guide to the Universe is hosted by Steven Novella, Bob Novella, Jay Novella, Cara Santa Maria, and Evan Bernstein."
 
 # Paths
-VOICEPRINT_FILE = Path("sgu/data/voiceprint_map.json").resolve()
-
 PROCESSED_DATA_FOLDER = Path("data/").resolve()
+
+TEMPLATES_FOLDER = PROCESSED_DATA_FOLDER / "templates"
+VOICEPRINT_FILE = PROCESSED_DATA_FOLDER / "voiceprint_map.json"
 
 AUDIO_FOLDER = PROCESSED_DATA_FOLDER / "audio"
 AUDIO_FOLDER.mkdir(exist_ok=True)
