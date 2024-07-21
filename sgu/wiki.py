@@ -3,6 +3,7 @@ from http.client import NOT_FOUND
 from typing import TYPE_CHECKING
 
 from jinja2 import Environment, FileSystemLoader, Template
+from requests import RequestException
 
 from sgu.config import TEMPLATES_FOLDER, WIKI_API_BASE, WIKI_EPISODE_URL_BASE
 from sgu.data_gathering import gather_data
@@ -35,9 +36,11 @@ async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode")
     print("Gathering all data...")
     episode_data = await gather_data(client, podcast)
 
-    # TODO: Upload episode image to wiki so that we can reference back to it later.
-    episode_image_url = get_episode_image_url(episode_data.show_notes)
-    episode_icon_name = _upload_image_to_wiki(client, episode_image_url)
+    episode_icon_name = _find_image_upload(client, str(episode_data.podcast.episode_number))
+
+    if not episode_icon_name:
+        episode_image_url = get_episode_image_url(episode_data.show_notes)
+        episode_icon_name = _upload_image_to_wiki(client, episode_image_url, episode_data.podcast.episode_number)
 
     print("Merging data...")
     episode_segments = convert_episode_data_to_episode_segments(episode_data)
@@ -108,7 +111,7 @@ def _get_template() -> Template:
 def _merge_segments_and_transcript(segments: "Segments", transcript: "DiarizedTranscript") -> list[str]:
     # TODO: Merge segments and transcript
     for segment in segments:
-        header = segment.get_header()
+        header = segment.get_section_header()
 
     for transcript_chunk in transcript:
         if "SPEAKER_" in transcript_chunk["speaker"]:
@@ -131,9 +134,29 @@ def _merge_segments_and_transcript(segments: "Segments", transcript: "DiarizedTr
     return "".join(text_segments)
 
 
-def _upload_image_to_wiki(client: "Session", image_url: str) -> str:
-    # TODO: Upload image to wiki and return the image name
-    raise NotImplementedError
+def _upload_image_to_wiki(client: "Session", image_url: str, episode_number: int) -> str:
+    image_response = client.get(image_url)
+    image_data = image_response.content
+
+    filename = f"{episode_number}.{image_url.split('.')[-1]}"
+
+    csrf_token = _log_into_wiki(client)
+    upload_params = {
+        "action": "upload",
+        "filename": filename,
+        "format": "json",
+        "token": csrf_token,
+    }
+    files = {"file": (filename, image_data)}
+
+    upload_response = client.post(WIKI_API_BASE, data=upload_params, files=files)
+    upload_response.raise_for_status()
+
+    upload_data = upload_response.json()
+    if "error" in upload_data:
+        raise RequestException(f"Error uploading image: {upload_data['error']['info']}")
+
+    return filename
 
 
 def _edit_page(client: "Session", page_title: str = "User:Mheguy", page_text: str = "") -> None:
@@ -198,3 +221,12 @@ def _get_csrf_token(client: "Session") -> str:
     data = resp.json()
 
     return data["query"]["tokens"]["csrftoken"]
+
+
+def _find_image_upload(client: "Session", episode_number: str) -> str:
+    params = {"action": "query", "list": "allimages", "aiprefix": episode_number, "format": "json"}
+    response = client.get(WIKI_API_BASE, params=params)
+    data = response.json()
+
+    files = data.get("query", {}).get("allimages", [])
+    return files[0]["name"] if files else ""
