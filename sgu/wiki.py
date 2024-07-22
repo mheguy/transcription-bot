@@ -2,13 +2,13 @@ import os
 from http.client import NOT_FOUND
 from typing import TYPE_CHECKING
 
-from jinja2 import Environment, FileSystemLoader, Template
 from requests import RequestException
 
-from sgu.config import TEMPLATES_FOLDER, WIKI_API_BASE, WIKI_EPISODE_URL_BASE
+from sgu.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE
 from sgu.data_gathering import gather_data
 from sgu.parsers.episode_data import convert_episode_data_to_episode_segments
 from sgu.parsers.show_notes import get_episode_image_url
+from sgu.template_environment import template_env
 
 if TYPE_CHECKING:
     from requests import Session
@@ -129,7 +129,7 @@ def _upload_image_to_wiki(client: "Session", image_url: str, episode_number: int
 def _get_pretty_transcript(transcript: "DiarizedTranscript") -> str:
     for transcript_chunk in transcript:
         if "SPEAKER_" in transcript_chunk["speaker"]:
-            name = "Unknown speaker #" + transcript_chunk["speaker"].split("_")[1]
+            name = "US#" + transcript_chunk["speaker"].split("_")[1]
             transcript_chunk["speaker"] = name
         else:
             transcript_chunk["speaker"] = transcript_chunk["speaker"][0]
@@ -154,7 +154,7 @@ def _construct_wiki_page(
     segment_text: str,
     transcript: str,
 ) -> str:
-    template = _get_template()
+    template = template_env.get_template("base.j2x")
 
     num = str(episode_data.podcast.episode_number)
     episode_group_number = num[0] + "0" * (len(num) - 1) + "s"
@@ -196,20 +196,6 @@ def _edit_page(client: "Session", page_title: str = "User:Mheguy", page_text: st
     data = resp.json()
 
     print(data)
-
-
-def _get_template() -> Template:
-    env = Environment(
-        block_start_string="((*",
-        block_end_string="*))",
-        variable_start_string="(((",
-        variable_end_string=")))",
-        comment_start_string="((#",
-        comment_end_string="#))",
-        autoescape=True,
-        loader=FileSystemLoader(TEMPLATES_FOLDER),
-    )
-    return env.get_template("wiki_page.tex.jinja2")
 
 
 def _get_login_token(client: "Session") -> str:

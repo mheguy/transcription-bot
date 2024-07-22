@@ -41,14 +41,11 @@ And the Better Jinja extension in VSCode supports them, so that's what I'm using
 |forumLinktopic = ((( forum_link )))
 |}}
 
-((#
-== Full Un-segmented Transcription ==
-((( transcription )))
 
-((( segments )))
-#))
+((( segment_text )))
 
-((( page_body )))
+
+((( transcript )))
 
 == Signoff ==
 '''S:''' —and until next week, this is your {{SGU}}.

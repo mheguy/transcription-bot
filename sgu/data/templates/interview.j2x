@@ -1,25 +1,5 @@
-((# TODO #))
-{{top}}{{anchor|interview}} <!-- leave anchor(s) directly above the corresponding section that follows -->
-== Interview with ___ <small>( ((( start_time ))) )</small> ==
-{{Page categories
-|Interview = <!--
-
-search for NAME interview: TOPIC (nnnn), where "(nnnn)" is the episode number, then edit that page with:
-
-#REDIRECT
-[[SGU_Episode_NNNN#interview]]
-[[Category:Interview]]
-
-Instead of adding an entire episode to a category, once redirects have been created, we suggest typing "redirect(s) created for" in front of the text you hide in the markup that follows the category name, seen in the "page categories" template above.
-
-We suggest typing "redirect(s) created for" in front of the text you hide in the markup. -->
-}}
-* _Interviewee_Topic_Event_ <!--
-
-We recommend using an in-line link to the Wikipedia entry: {{w|_Interviewee_}}
-You could also add or substitute a website and reference:
-
-* [LINK_URL _article_title_or_webpage_name_]<ref>[LINK_URL PUBLICATION: _article_title_or_webpage_name_]</ref>
--->
+{{anchor|interview}}
+((( source )))
+== Interview with ((( name ))) <small>( ((( start_time ))) )</small> ==
 
 ((( transcript )))

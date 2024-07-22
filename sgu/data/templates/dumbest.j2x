@@ -1,12 +1,16 @@
-((# TODO #))
 {{anchor|dumbest}}
+((( source )))
 
-== Dumbest Thing of the Week <small>( ((( start_time ))) )</small> ==
+((* if topic *))
+== Dumbest Thing of the Week: ((( topic )))<small>( ((( start_time ))) )</small> ==
+((* else *))
+== Dumbest Thing of the Week<small>( ((( start_time ))) )</small> ==
+((* endif *))
 
 {{shownotes
-|weblink = <!-- must begin with http:// -->
-|article_title = <!-- please replace ALL CAPS with Title Case or Sentence case -->
-|publication = <!-- enter nn for Neurologica :-) -->
+|weblink = ((( url )))
+|article_title = ((( article_title )))
+|publication = ((( publication )))
 }}
 
 ((( transcript )))

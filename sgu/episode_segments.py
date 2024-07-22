@@ -5,11 +5,10 @@ from enum import Enum
 from typing import Any, ClassVar
 
 from bs4 import Tag
-from jinja2 import Environment, FileSystemLoader
 
-from sgu.config import TEMPLATES_FOLDER
 from sgu.custom_logger import logger
 from sgu.helpers import find_single_element, string_is_url
+from sgu.template_environment import template_env
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
@@ -38,14 +37,18 @@ class ScienceOrFictionItem:
     sof_result: str
 
     # From the article URL, we can get the following fields:
-    article_title: str = ""  # TODO
-    article_publication: str = ""  # TODO
+    title: str = ""  # TODO
+    publication: str = ""  # TODO
 
 
 @dataclass
 class NewsItem:
     topic: str
-    link: str
+    url: str
+
+    # From the article URL, we can get the following fields:
+    title: str = ""  # TODO
+    publication: str = ""  # TODO
 
 
 # endregion
@@ -54,24 +57,14 @@ class NewsItem:
 class BaseSegment(ABC):
     """Base for all segments."""
 
-    template_env: ClassVar = Environment(
-        block_start_string="((*",
-        block_end_string="*))",
-        variable_start_string="(((",
-        variable_end_string=")))",
-        comment_start_string="((=",
-        comment_end_string="=))",
-        autoescape=True,
-        loader=FileSystemLoader(TEMPLATES_FOLDER),
-    )
-
     source: SegmentSource
+    start_time: str = "00:00:00"
 
     def to_wiki(self) -> str:
         """Get the wiki text / section header for the segment."""
-        template = self.template_env.get_template(f"{self.template_name}.j2x")
+        template = template_env.get_template(f"{self.template_name}.j2x")
         template_values = self.get_template_values()
-        return template.render(**template_values)
+        return template.render(start_time="start_time_placeholder", **template_values)
 
     @property
     @abstractmethod
@@ -128,6 +121,7 @@ class UnknownSegment(BaseSegment):
     """A segment that could not be identified."""
 
     title: str
+    extra_text: str
 
     @property
     def template_name(self) -> str:
@@ -139,6 +133,18 @@ class UnknownSegment(BaseSegment):
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         raise NotImplementedError
+
+    @staticmethod
+    def create(text: str, source: SegmentSource) -> "UnknownSegment":
+        lines = text.split()
+        title = lines[0].strip()
+
+        if len(lines) > 1:
+            extra_text = "\n".join(lines[1:])
+        else:
+            extra_text = ""
+
+        return UnknownSegment(title=title, extra_text=extra_text, source=source)
 
 
 @dataclass(kw_only=True)
@@ -180,6 +186,7 @@ class LogicalFalacySegment(FromSummaryTextSegment):
 @dataclass(kw_only=True)
 class QuickieSegment(FromLyricsSegment, FromSummaryTextSegment):
     title: str
+    subject: str
 
     @property
     def template_name(self) -> str:
@@ -194,11 +201,19 @@ class QuickieSegment(FromLyricsSegment, FromSummaryTextSegment):
 
     @staticmethod
     def from_summary_text(text: str) -> "QuickieSegment":
-        return QuickieSegment(title=text, source=SegmentSource.SUMMARY)
+        return QuickieSegment(title=text, subject="", source=SegmentSource.SUMMARY)
 
     @staticmethod
     def from_lyrics(text: str) -> "QuickieSegment":
-        return QuickieSegment(title=text, source=SegmentSource.LYRICS)
+        lines = text.split("\n")
+        title = lines[0].strip()
+
+        if len(lines) > 1:
+            subject = lines[1].strip()
+        else:
+            subject = ""
+
+        return QuickieSegment(title=title, subject=subject, source=SegmentSource.LYRICS)
 
 
 @dataclass(kw_only=True)
@@ -232,13 +247,15 @@ class WhatsTheWordSegment(FromSummaryTextSegment):
 class DumbestThingOfTheWeekSegment(FromLyricsSegment):
     topic: str
     url: str
+    article_title: str = ""  # TODO
+    article_publication: str = ""  # TODO
 
     @property
     def template_name(self) -> str:
         raise NotImplementedError
 
     def get_template_values(self) -> dict[str, Any]:
-        return {"topic": self.topic, "link": self.url}
+        return {"topic": self.topic, "url": self.url}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -267,7 +284,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
 class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
     valid_splitters: ClassVar[str] = ":-"
 
-    last_week_answer: str = "N/A<!-- Failed to extract last week's answer -->"
+    last_week_answer: str = "<!-- Failed to extract last week's answer -->"
 
     @property
     def template_name(self) -> str:
@@ -473,7 +490,7 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
 
 @dataclass(kw_only=True)
 class InterviewSegment(FromShowNotesSegment):
-    subject: str
+    name: str
 
     @property
     def template_name(self) -> str:
@@ -489,9 +506,9 @@ class InterviewSegment(FromShowNotesSegment):
     @staticmethod
     def from_show_notes(segment_data: list["Tag"]) -> "InterviewSegment":
         text = segment_data[0].text
-        subject = re.split(r"[w|W]ith", text)[1]
+        name = re.split(r"[w|W]ith", text)[1]
 
-        return InterviewSegment(subject=subject.strip(":- "), source=SegmentSource.NOTES)
+        return InterviewSegment(name=name.strip(":- "), source=SegmentSource.NOTES)
 
 
 @dataclass(kw_only=True)
@@ -500,11 +517,10 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
 
     @property
     def template_name(self) -> str:
-        raise NotImplementedError
+        return "email"
 
     def get_template_values(self) -> dict[str, Any]:
-        raise NotImplementedError
-        return "<br>\n".join(self.items)
+        return {"items": self.items}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:

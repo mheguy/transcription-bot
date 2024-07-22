@@ -1,26 +1,7 @@
-((# TODO #))
 {{anchor|wtw}}
-<!-- leave anchor(s) directly above the corresponding section that follows -->
+((( source )))
 == What's the Word? <small>( ((( start_time ))) )</small> ==
 
-{{Page categories
-|What's the Word?       = 
-<!--
-
-search for "WORD (nnnn WTW)" to create a redirect page, where "(nnnn)" is the episode number, then edit that page with:
-
-#REDIRECT
-[[SGU_Episode_NNNN#wtw]]
-[[Category:What's the Word?]]
-
-Instead of adding an entire episode to a category, once redirects have been created, we suggest typing "redirect(s) created for" in front of the text you hide in the markup that follows the category name, seen in the "page categories" template above
--->
-}}
-
-* Word_Topic_Concept
-<!-- (delete this parenthetical and the preceding markup wiki code to use the Vocabulary ref group) <ref group="v">[https://en.wiktionary.org/wiki/WORD Wiktionary: WORD]</ref> <!--
-
-** We recommend having an in-line link to the Wikipedia or Wiktionary entry in addition to the Wiktionary vocab group reference. So, before the Wikitionary reference, put either {{w|word_topic_concept}} or [https://en.wiktionary.org/wiki/WORD WORD]
--->
+* ((( word )))
 
 ((( transcript )))

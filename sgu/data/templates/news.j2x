@@ -1,13 +1,13 @@
-{{anchor|news#}}
+((( source )))
 
 ((* for item in items *))
 
-=== ((( item.subject ))) <small>( ((( item.start_time ))) )</small> ===
+=== ((( item.topic ))) <small>( ((( item.start_time ))) )</small> ===
+{{anchor|news((( item.index )))}}
 {{shownotes
-|weblink = ((( item.url )))
-|article_title = ((( item.subject|capitalize )))
-|publication = 
-|redirect_title =
+|weblink = ((( item.link )))
+|article_title = ((( item.title )))
+|publication = ((( item.publication )))
 }}
 
 ((( item.transcript )))
