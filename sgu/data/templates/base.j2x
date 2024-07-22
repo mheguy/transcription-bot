@@ -1,0 +1,56 @@
+((#
+This is not intended to be converted to LaTeX.
+We're templating a template.
+That makes it difficult to reason about without good syntax highlighting.
+
+Jinja LaTeX uses delimiters that are compatible with the wiki templating we're working with.
+And the Better Jinja extension in VSCode supports them, so that's what I'm using here.
+((* block / statement *)) - default is {% %}
+((( variable ))) - default is {{ }}
+#))
+
+{{Editing required
+|proofreading = y
+|time-stamps = y
+|formatting = y
+|links = y
+|Today I Learned list = y
+|categories = y
+|segment redirects = y
+|}}
+
+{{InfoBox
+|verified = <!-- leave blank until verified, then put a 'y'-->
+|episodeNum = ((( episode_number )))
+|episodeDate = {{((( episode_group_number )))|((( episode_number )))|boxdate}}
+|episodeIcon = File:((( episode_icon_name )))
+|caption =
+|bob = ((( is_bob_present )))
+|cara = ((( is_cara_present )))
+|jay = ((( is_jay_present )))
+|evan = ((( is_evan_present )))
+|george = ((( is_george_present )))
+|rebecca = ((( is_rebecca_present )))
+|perry = ((( is_perry_present )))
+|guest1 = ((# If guest_1 is present, string needs to be: "name_of_guest: {{w|name_of_guest}}" #))
+|guest2 = ((# If guest_2 is present, string needs to be: "name_of_guest: {{w|name_of_guest}}" #))
+|guest3 = ((# If guest_3 is present, string needs to be: "name_of_guest: {{w|name_of_guest}}" #))
+|qowText = ((( quote_of_the_week )))
+|qowAuthor = ((( quote_of_the_week_attribution )))
+|downloadLink = {{((( episode_group_number )))|((( episode_number )))|download}}
+|forumLinktopic = ((( forum_link )))
+|}}
+
+((#
+== Full Un-segmented Transcription ==
+((( transcription )))
+
+((( segments )))
+#))
+
+((( page_body )))
+
+== Signoff ==
+'''S:''' —and until next week, this is your {{SGU}}.
+
+{{Navigation}}

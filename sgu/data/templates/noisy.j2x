@@ -1,0 +1,18 @@
+{{anchor|wtn}}{{anchor|futureWTN}}
+<!-- keep right above the following sub-section. this is the anchor used by the "wtnAnswer" template, which links the previous "new noisy" segment to its future WTN, here. -->
+== Who's That Noisy? <small>()</small> ==
+{{wtnHiddenAnswer
+|episodeNum = NNNN <!-- episode number for previous Noisy -->
+|answer = _brief_description_of_answer_ _perhaps_with_a_link_
+|}}
+<!--
+    ** START SECTION TRANSCRIPTION HERE **
+-->
+
+{{wtnAnswer|NNNN|short_text_from_transcript}}
+<!-- "NNNN" is the episode number of the next WTN segment and "short_text_from_transcript" is the portion of this transcript that will transclude a link to the next WTN segment, using that episode's anchor, seen here just above the beginning of this WTN section. -->
+
+== Announcements <small>()</small> ==
+<!--
+    ** START SECTION TRANSCRIPTION HERE **
+-->

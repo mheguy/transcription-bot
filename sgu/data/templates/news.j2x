@@ -1,0 +1,14 @@
+{{anchor|news#}}
+
+((* for item in items *))
+
+=== ((( item.subject ))) <small>( ((( item.start_time ))) )</small> ===
+{{shownotes
+|weblink = ((( item.url )))
+|article_title = ((( item.subject|capitalize )))
+|publication = 
+|redirect_title =
+}}
+
+((( item.transcript )))
+((* endfor *))

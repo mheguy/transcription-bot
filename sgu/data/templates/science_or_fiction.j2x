@@ -1,0 +1,76 @@
+{{top}}
+{{anchor|sof}}
+{{anchor|theme}}
+== Science or Fiction <small>((((start_time))))</small> ==
+
+(((transcript)))
+
+
+{{SOFinfo
+|theme = ((( theme )))
+|hiddentheme =
+
+((* for item in items *))
+|item((( item.number ))) = ((( item.text )))
+|link((( item.number )))web = ((( item.article_url )))
+|link((( item.number )))title = ((( item.article_title )))
+|}}
+((* endfor *))
+
+
+{{SOFResults
+((* for item in items *))
+((( sof_result )))
+
+|rogue1 = <!-- rogues in order of response -->
+|answer1 = <!-- item guessed, using word or phrase from above -->
+
+|rogue2 =
+|answer2 =
+
+|rogue3 =
+|answer3 =
+
+|rogue4 = <!-- delete or leave blank if absent -->
+|answer4 = <!-- delete or leave blank if absent -->
+
+|rogue5 = <!-- delete or leave blank if absent -->
+|answer5 = <!-- delete or leave blank if absent -->
+
+|host =steve <!-- asker of the questions; change name if other than steve -->
+<!-- for the result options below,
+     only put a 'y' next to one. -->
+|sweep = <!-- all the Rogues guessed wrong -->
+|clever = <!-- each item was guessed (Steve's preferred result) -->
+|win = <!-- at least one Rogue guessed wrong, but not them all -->
+|swept = <!-- all the Rogues guessed right -->
+}}
+''Voice-over: It's time for Science or Fiction.''
+<!--
+    ** START SECTION TRANSCRIPTION HERE **
+-->
+
+<big>'''_Rogue_'s Response'''</big>
+<!--
+*
+** If subsections in the ToC are desired/preferred over these big-text headers, change the <big>'''_Rogue_'s Response'''</big> into === _Rogue_'s Response ===
+*
+-->
+
+<big>'''_Rogue_'s Response'''</big>
+
+<big>'''_Rogue_'s Response'''</big>
+
+<big>'''_Rogue_'s Response'''</big>
+
+<!--
+If there was a live audience, make sure to add a header/subsection: <big>'''Audience's Response'''</big> OR === Audience's Response ===
+-->
+
+=== Steve Explains Item #_n_ === <!-- change host's name if other than steve -->
+
+=== Steve Explains Item #_n_ ===
+
+=== Steve Explains Item #_n_ ===
+
+=== Steve Explains Item #_n_ === <!-- delete if no 4th item -->

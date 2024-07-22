@@ -1,0 +1,60 @@
+{{shownotes email       <!-- delete this template if no email is given in the shownotes or read in the episode -->
+|text                   =   <!-- If appropriate, lightly edit emails for grammar and clarity. -->
+|sender                 =
+|location               =   <!-- delete or leave blank if none -->
+|}}
+
+{{anchor|number}}       <!-- leave anchor(s) directly above the corresponding section that follows -->
+== Your Number's Up <small>(m:ss)</small> ==
+* _Number_Topic_Concept_ <!-- redirect created for _insert_redirect_title_here_ (if appropriate) then delete the following bullet
+
+** We recommend using an in-line link to the Wikipedia entry: {{w|_Number_Topic_Concept_}} -->
+<!--
+    ** START SECTION TRANSCRIPTION HERE **
+-->
+
+{{shownotes email <!-- delete this template if no email is given in the shownotes or read in the episode -->
+|text = <!-- If appropriate, lightly edit emails for grammar and clarity. -->
+|sender =
+|location = <!-- delete or leave blank if none -->
+|}}
+<!--
+    ** START SECTION TRANSCRIPTION HERE **
+-->
+
+{{anchor|followup}}
+{{anchor|correction}}
+{{anchor|email}} <!-- leave anchor(s) directly above the corresponding section/subsection that follows -->
+<!--
+*** For any email discussion redirect pages, add
+
+#REDIRECT
+[[SGU_Episode_NNNN#_RELEVANT_ANCHOR_]]
+
+and any relevant [[Category:_CATEGORY_NAME_]]
+-->
+
+== Questions/Emails/Corrections/Follow-ups <small>()</small> ==
+=== Question_Email_Correction #1: _brief_description_ <small>()</small> ===
+{{shownotes email <!-- delete this template if no email is given in the shownotes or read in the episode -->
+|text = <!-- If appropriate, lightly edit emails for grammar and clarity. -->
+|sender =
+|location = <!-- delete or leave blank if none -->
+|redirect_title =
+<!-- optional...use _Redirect_title_(NNN) to prompt a redirect page to be created; hide the redirect title inside this markup text when redirect is created -->
+|}}
+<!--
+    ** START SECTION TRANSCRIPTION HERE **
+-->
+
+=== Question_Email_Correction #2: _brief_description_ <small>()</small> ===
+{{shownotes email <!-- delete this template if no email is given in the shownotes or read in the episode -->
+|text = <!-- If appropriate, lightly edit emails for grammar and clarity. -->
+|sender =
+|location = <!-- delete or leave blank if none -->
+|redirect_title =
+<!-- optional...use _Redirect_title_(NNN) to prompt a redirect page to be created; hide the redirect title inside this markup text when redirect is created -->
+|}}
+<!--
+    ** START SECTION TRANSCRIPTION HERE **
+-->
