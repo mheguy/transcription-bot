@@ -67,9 +67,9 @@ class BaseSegment(ABC):
 
     source: SegmentSource
 
-    def get_section_header(self) -> str:
+    def to_wiki(self) -> str:
         """Get the wiki text / section header for the segment."""
-        template = self.template_env.get_template(self.template_name)
+        template = self.template_env.get_template(f"{self.template_name}.j2x")
         template_values = self.get_template_values()
         return template.render(**template_values)
 
@@ -127,14 +127,14 @@ class FromLyricsSegment(BaseSegment, ABC):
 class UnknownSegment(BaseSegment):
     """A segment that could not be identified."""
 
-    text: str
+    title: str
 
     @property
     def template_name(self) -> str:
-        raise NotImplementedError
+        return "unknown"
 
     def get_template_values(self) -> dict[str, Any]:
-        return {"text": self.text}
+        return {"title": self.title}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -145,14 +145,12 @@ class UnknownSegment(BaseSegment):
 class IntroSegment(BaseSegment):
     """The segment that introduces the show and has banter betweeen the rogues."""
 
-    text: str
-
     @property
     def template_name(self) -> str:
         raise NotImplementedError
 
     def get_template_values(self) -> dict[str, Any]:
-        return {"text": self.text}
+        return {}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -180,15 +178,15 @@ class LogicalFalacySegment(FromSummaryTextSegment):
 
 
 @dataclass(kw_only=True)
-class QuickieSegment(FromSummaryTextSegment):
-    text: str
+class QuickieSegment(FromLyricsSegment, FromSummaryTextSegment):
+    title: str
 
     @property
     def template_name(self) -> str:
         return "quickie"
 
     def get_template_values(self) -> dict[str, Any]:
-        raise NotImplementedError
+        return {"title": self.title}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -196,7 +194,11 @@ class QuickieSegment(FromSummaryTextSegment):
 
     @staticmethod
     def from_summary_text(text: str) -> "QuickieSegment":
-        return QuickieSegment(text=text, source=SegmentSource.SUMMARY)
+        return QuickieSegment(title=text, source=SegmentSource.SUMMARY)
+
+    @staticmethod
+    def from_lyrics(text: str) -> "QuickieSegment":
+        return QuickieSegment(title=text, source=SegmentSource.LYRICS)
 
 
 @dataclass(kw_only=True)
@@ -352,13 +354,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
         return "science_or_fiction"
 
     def get_template_values(self) -> dict[str, Any]:
-        raise NotImplementedError
-        text = f"Theme: {self.theme}<br>\n" if self.theme else ""
-
-        for item in self.items:
-            text += f"<p>{item.item_number}<br>\n{item.text}<br>\nAnswer: {item.answer}<br>\nLink: {item.url}<br><p/>\n"
-
-        return text
+        return {"items": self.items, "theme": self.theme}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -379,7 +375,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
         science_items = 1
         for raw_item in raw_items:
             title_text = find_single_element(raw_item, "span", "science-fiction__item-title").text
-            match = re.match(r"(\d+)", title_text)
+            match = re.search(r"(\d+)", title_text)
             if not match:
                 raise ValueError(f"Failed to extract item number from: {title_text}")
 
@@ -433,8 +429,7 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
         return "news"
 
     def get_template_values(self) -> dict[str, Any]:
-        raise NotImplementedError
-        return "\n".join([f"{item.topic}<br>\nLink: {item.link}" for item in self.items])
+        return {"items": self.items}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:

@@ -30,4 +30,4 @@ def _create_segment_from_lyric_chunk(text: str) -> "BaseSegment|None":
     if found_match:
         raise ValueError(f"Match found in other parsers: {text}")
 
-    return UnknownSegment(text=text, source=SegmentSource.LYRICS)
+    return UnknownSegment(title=text, source=SegmentSource.LYRICS)

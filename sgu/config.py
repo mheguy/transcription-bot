@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+import pkg_resources
+
 # URLs
 RSS_URL = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
 WIKI_EPISODE_URL_BASE = "https://www.sgutranscripts.org/w/rest.php/v1/page/SGU_Episode_"
@@ -23,11 +25,14 @@ TRANSCRIPTION_MODEL = "medium.en"
 TRANSCRIPTION_LANGUAGE = "en"
 TRANSCRIPTION_PROMPT = "The Skeptic's Guide to the Universe is hosted by Steven Novella, Bob Novella, Jay Novella, Cara Santa Maria, and Evan Bernstein."
 
-# Paths
-PROCESSED_DATA_FOLDER = Path("data/").resolve()
+# Internal data paths
 
-TEMPLATES_FOLDER = PROCESSED_DATA_FOLDER / "templates"
-VOICEPRINT_FILE = PROCESSED_DATA_FOLDER / "voiceprint_map.json"
+DATA_FOLDER = Path(pkg_resources.resource_filename("sgu", "data/"))
+VOICEPRINT_FILE = DATA_FOLDER / "voiceprint_map.json"
+TEMPLATES_FOLDER = DATA_FOLDER / "templates"
+
+# Saved data paths (these are not in the repo / codebase)
+PROCESSED_DATA_FOLDER = Path("data/").resolve()
 
 AUDIO_FOLDER = PROCESSED_DATA_FOLDER / "audio"
 AUDIO_FOLDER.mkdir(exist_ok=True)

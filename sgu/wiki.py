@@ -52,11 +52,11 @@ async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode")
     episode_segments = convert_episode_data_to_episode_segments(episode_data)
 
     # TODO: Split transcript by episode segment
-    wiki_segments = _convert_segments_to_wiki(episode_segments)
-    wiki_page_body = _merge_segments_and_transcript(wiki_segments, episode_data.transcript)
+    wiki_segments = "\n".join(s.to_wiki() for s in episode_segments)  # convert segments to wiki
+    pretty_transcript = _get_pretty_transcript(episode_data.transcript)
 
     print("Creating wiki page...")
-    wiki_page = _merge_body_and_header_information(wiki_page_body, episode_data, episode_icon_name)
+    wiki_page = _construct_wiki_page(episode_data, episode_icon_name, wiki_segments, pretty_transcript)
     _edit_page(client, page_text=wiki_page)  # TODO: Change for "Create page"
 
 
@@ -126,14 +126,7 @@ def _upload_image_to_wiki(client: "Session", image_url: str, episode_number: int
     return filename
 
 
-def _convert_segments_to_wiki(segments: "Segments") -> str: ...
-
-
-def _merge_segments_and_transcript(segments: "Segments", transcript: "DiarizedTranscript") -> list[str]:
-    # TODO: Merge segments and transcript
-    for segment in segments:
-        header = segment.get_section_header()
-
+def _get_pretty_transcript(transcript: "DiarizedTranscript") -> str:
     for transcript_chunk in transcript:
         if "SPEAKER_" in transcript_chunk["speaker"]:
             name = "Unknown speaker #" + transcript_chunk["speaker"].split("_")[1]
@@ -155,19 +148,25 @@ def _merge_segments_and_transcript(segments: "Segments", transcript: "DiarizedTr
     return "".join(text_segments)
 
 
-def _merge_body_and_header_information(wiki_page_body: str, episode_data: "EpisodeData", episode_icon_name: str) -> str:
+def _construct_wiki_page(
+    episode_data: "EpisodeData",
+    episode_icon_name: str,
+    segment_text: str,
+    transcript: str,
+) -> str:
     template = _get_template()
 
     num = str(episode_data.podcast.episode_number)
     episode_group_number = num[0] + "0" * (len(num) - 1) + "s"
 
     return template.render(
+        segment_text=segment_text,
+        transcript=transcript,
         episode_number=episode_data.podcast.episode_number,
         episode_group_number=episode_group_number,
         episode_icon_name=episode_icon_name,
         quote_of_the_week="",
         quote_of_the_week_attribution="",
-        page_body=wiki_page_body,
         is_bob_present=episode_data.rogue_attendance.get("bob"),
         is_cara_present=episode_data.rogue_attendance.get("cara"),
         is_jay_present=episode_data.rogue_attendance.get("jay"),
