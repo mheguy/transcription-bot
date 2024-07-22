@@ -1,20 +1,4 @@
-((# TODO #))
-{{anchor|quickie}}      <!-- leave anchor(s) directly above the corresponding section that follows -->
-== Quickie with _Rogue_: _title_ <small>(m:ss)</small> ==
-{{shownotes             <!-- delete this template if no suitable article can be found -->
-|weblink                =   <!-- must begin with http:// -->
-|article_title          =   <!-- please replace ALL CAPS with Title Case or Sentence case -->
-|publication            =   <!-- enter nn for Neurologica :-) -->
-|note                   =   <!-- optional; enter "not" to generate "(Note: this article is not from the SGU show notes page)" -->
-|redirect_title         =   <!-- optional...use _Redirect_title_(NNN) to prompt a redirect page to be created; hide the redirect title inside this markup text when redirect is created
+{{anchor|quickie}}
+== ((( text ))) <small>( ((( start_time ))) )</small> ==
 
-*** For the redirect page, add
-
-#REDIRECT
-[[SGU_Episode_NNNN#quickie]]
-
-and any relevant [[Category:_CATEGORY_NAME_]] -->
-}}
-<!--
-    ** START SECTION TRANSCRIPTION HERE **
--->
+((( transcription )))
