@@ -1,5 +1,5 @@
 ((* for item in items *))
-=== ((( item.topic ))) <small>( ((( item.start_time ))) )</small> ===
+=== News Item #((( loop.index ))) - ((( item.topic ))) <small>( ((( item.start_time ))) )</small> ===
 ((( source )))
 {{anchor|news((( loop.index )))}}
 {{shownotes

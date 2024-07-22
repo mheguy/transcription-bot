@@ -480,7 +480,13 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
             if "news item" in line.lower():
                 next_line = lines[index + 1] if index + 1 < len(lines) else ""
                 url = next_line if next_line and string_is_url(next_line) else ""
-                news_items.append(NewsItem(line, url))
+
+                match = re.match(r"news item #\d+ . (.+)", line, re.IGNORECASE)
+                if not match:
+                    raise ValueError(f"Failed to extract news topic from: {line}")
+                topic = match.group(1).strip()
+
+                news_items.append(NewsItem(topic, url))
 
         return NewsSegment(items=news_items, source=SegmentSource.NOTES)
 
