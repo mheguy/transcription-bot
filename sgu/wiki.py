@@ -6,6 +6,7 @@ from requests import RequestException
 
 from sgu.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE
 from sgu.data_gathering import gather_data
+from sgu.episode_segments import BaseSegment, QuoteSegment
 from sgu.parsers.episode_data import convert_episode_data_to_episode_segments
 from sgu.parsers.show_notes import get_episode_image_url
 from sgu.template_environment import template_env
@@ -14,7 +15,6 @@ if TYPE_CHECKING:
     from requests import Session
 
     from sgu.data_gathering import EpisodeData
-    from sgu.episode_segments import Segments
     from sgu.parsers.rss_feed import PodcastEpisode
     from sgu.transcription import DiarizedTranscript
 
@@ -41,22 +41,20 @@ async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode")
 
     episode_icon_name = _find_image_upload(client, str(episode_data.podcast.episode_number))
 
-    # TODO: Investigate why this isn't working.
-    # The server says we are not allowed as uploading is restricted to user and administrator groups.
-    # Maybe the bot is in a different group?
-    # if not episode_icon_name:
-    #     episode_image_url = get_episode_image_url(episode_data.show_notes)
-    #     episode_icon_name = _upload_image_to_wiki(client, episode_image_url, episode_data.podcast.episode_number)
+    if not episode_icon_name:
+        episode_image_url = get_episode_image_url(episode_data.show_notes)
+        episode_icon_name = _upload_image_to_wiki(client, episode_image_url, episode_data.podcast.episode_number)
 
     print("Merging data...")
     episode_segments = convert_episode_data_to_episode_segments(episode_data)
+    qotw_segment = _extract_quote_of_the_week_for_wiki(episode_segments)
 
     # TODO: Split transcript by episode segment
     wiki_segments = "\n".join(s.to_wiki() for s in episode_segments)  # convert segments to wiki
     pretty_transcript = _get_pretty_transcript(episode_data.transcript)
 
     print("Creating wiki page...")
-    wiki_page = _construct_wiki_page(episode_data, episode_icon_name, wiki_segments, pretty_transcript)
+    wiki_page = _construct_wiki_page(episode_data, episode_icon_name, wiki_segments, pretty_transcript, qotw_segment)
     _edit_page(client, page_text=wiki_page)  # TODO: Change for "Create page"
 
 
@@ -126,6 +124,14 @@ def _upload_image_to_wiki(client: "Session", image_url: str, episode_number: int
     return filename
 
 
+def _extract_quote_of_the_week_for_wiki(segments: list["BaseSegment"]) -> QuoteSegment | None:
+    for segment in segments:
+        if isinstance(segment, QuoteSegment):
+            return segment
+
+    return None
+
+
 def _get_pretty_transcript(transcript: "DiarizedTranscript") -> str:
     for transcript_chunk in transcript:
         if "SPEAKER_" in transcript_chunk["speaker"]:
@@ -153,11 +159,19 @@ def _construct_wiki_page(
     episode_icon_name: str,
     segment_text: str,
     transcript: str,
+    qotw_segment: QuoteSegment | None,
 ) -> str:
     template = template_env.get_template("base.j2x")
 
     num = str(episode_data.podcast.episode_number)
     episode_group_number = num[0] + "0" * (len(num) - 1) + "s"
+
+    if qotw_segment:
+        quote_of_the_week = qotw_segment.quote
+        quote_of_the_week_attribution = qotw_segment.attribution
+    else:
+        quote_of_the_week = ""
+        quote_of_the_week_attribution = ""
 
     return template.render(
         segment_text=segment_text,
@@ -165,8 +179,8 @@ def _construct_wiki_page(
         episode_number=episode_data.podcast.episode_number,
         episode_group_number=episode_group_number,
         episode_icon_name=episode_icon_name,
-        quote_of_the_week="",
-        quote_of_the_week_attribution="",
+        quote_of_the_week=quote_of_the_week,
+        quote_of_the_week_attribution=quote_of_the_week_attribution,
         is_bob_present=episode_data.rogue_attendance.get("bob"),
         is_cara_present=episode_data.rogue_attendance.get("cara"),
         is_jay_present=episode_data.rogue_attendance.get("jay"),
@@ -174,6 +188,7 @@ def _construct_wiki_page(
         is_george_present=episode_data.rogue_attendance.get("george"),
         is_rebecca_present=episode_data.rogue_attendance.get("rebecca"),
         is_perry_present=episode_data.rogue_attendance.get("perry"),
+        forum_link="",  # TODO: Add forum link
     )
 
 
