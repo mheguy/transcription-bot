@@ -5,7 +5,7 @@
 === ((( item.topic ))) <small>( ((( item.start_time ))) )</small> ===
 {{anchor|news((( item.index )))}}
 {{shownotes
-|weblink = ((( item.link )))
+|weblink = ((( item.url )))
 |article_title = ((( item.title )))
 |publication = ((( item.publication )))
 }}

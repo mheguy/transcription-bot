@@ -44,10 +44,11 @@ And the Better Jinja extension in VSCode supports them, so that's what I'm using
 
 ((( segment_text )))
 
-
-((( transcript )))
-
 == Signoff ==
 '''S:''' —and until next week, this is your {{SGU}}.
 
 {{Navigation}}
+
+== below is the full diarized transcript, not broken into segments ==
+
+((( transcript )))

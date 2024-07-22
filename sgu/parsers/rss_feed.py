@@ -20,7 +20,7 @@ class PodcastEpisode:
     official_title: str
     summary: str
     download_url: str
-    link: str
+    episode_url: str
     published_time: "struct_time"
 
 
@@ -61,7 +61,7 @@ def _convert_feed_entries_to_episodes(feed_entries: list[dict[str, Any]]) -> lis
                 official_title=entry["title"],
                 summary=entry["summary"],
                 download_url=entry["links"][0]["href"],
-                link=entry["link"],
+                episode_url=entry["link"],
                 published_time=entry["published_parsed"],
             )
         )
