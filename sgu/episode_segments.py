@@ -32,10 +32,14 @@ class SegmentSource(Enum):
 
 @dataclass
 class ScienceOrFictionItem:
-    item_number: str
-    answer: str
-    text: str
-    url: str
+    number: int
+    show_notes_text: str
+    article_url: str
+    sof_result: str
+
+    # From the article URL, we can get the following fields:
+    article_title: str = ""  # TODO
+    article_publication: str = ""  # TODO
 
 
 @dataclass
@@ -125,6 +129,10 @@ class UnknownSegment(BaseSegment):
 
     text: str
 
+    @property
+    def template_name(self) -> str:
+        raise NotImplementedError
+
     def get_template_values(self) -> dict[str, Any]:
         return {"text": self.text}
 
@@ -139,6 +147,10 @@ class IntroSegment(BaseSegment):
 
     text: str
 
+    @property
+    def template_name(self) -> str:
+        raise NotImplementedError
+
     def get_template_values(self) -> dict[str, Any]:
         return {"text": self.text}
 
@@ -149,6 +161,10 @@ class IntroSegment(BaseSegment):
 
 @dataclass(kw_only=True)
 class LogicalFalacySegment(FromSummaryTextSegment):
+    @property
+    def template_name(self) -> str:
+        return "logical_falacy"
+
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
@@ -167,6 +183,10 @@ class LogicalFalacySegment(FromSummaryTextSegment):
 class QuickieSegment(FromSummaryTextSegment):
     text: str
 
+    @property
+    def template_name(self) -> str:
+        return "quickie"
+
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
@@ -182,6 +202,10 @@ class QuickieSegment(FromSummaryTextSegment):
 @dataclass(kw_only=True)
 class WhatsTheWordSegment(FromSummaryTextSegment):
     word: str
+
+    @property
+    def template_name(self) -> str:
+        return "whats_the_word"
 
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
@@ -207,8 +231,12 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
     topic: str
     url: str
 
+    @property
+    def template_name(self) -> str:
+        raise NotImplementedError
+
     def get_template_values(self) -> dict[str, Any]:
-        return f"{self.topic}<br>\nLink:{self.url}"
+        return {"topic": self.topic, "link": self.url}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -234,52 +262,17 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
 
 
 @dataclass(kw_only=True)
-class SwindlersListSegment(FromSummaryTextSegment):
-    topic: str = "N/A<!-- Failed to extract topic -->"
-
-    def get_template_values(self) -> dict[str, Any]:
-        raise NotImplementedError
-
-    @staticmethod
-    def match_string(lowercase_text: str) -> bool:
-        return bool(re.match(r"swindler.s list", lowercase_text))
-
-    @staticmethod
-    def from_summary_text(text: str) -> "SwindlersListSegment":
-        return SwindlersListSegment(topic=text.split(":")[1].strip(), source=SegmentSource.SUMMARY)
-
-
-@dataclass(kw_only=True)
-class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
-    subject: str = "N/A<!-- Failed to extract subject -->"
-
-    def get_template_values(self) -> dict[str, Any]:
-        raise NotImplementedError
-
-    @staticmethod
-    def match_string(lowercase_text: str) -> bool:
-        return bool(re.match(r"forgotten superhero(es)? of science", lowercase_text))
-
-    @staticmethod
-    def from_summary_text(text: str) -> "ForgottenSuperheroesOfScienceSegment":
-        lines = text.split(":")
-        if len(lines) == 1:
-            return ForgottenSuperheroesOfScienceSegment(source=SegmentSource.SUMMARY)
-
-        return ForgottenSuperheroesOfScienceSegment(
-            subject=lines[1].strip(),
-            source=SegmentSource.SUMMARY,
-        )
-
-
-@dataclass(kw_only=True)
 class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
     valid_splitters: ClassVar[str] = ":-"
 
     last_week_answer: str = "N/A<!-- Failed to extract last week's answer -->"
 
+    @property
+    def template_name(self) -> str:
+        return "noisy"
+
     def get_template_values(self) -> dict[str, Any]:
-        return f"Last week's answer: {self.last_week_answer}"
+        return {"last_week_answer": self.last_week_answer}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -310,8 +303,12 @@ class QuoteSegment(FromLyricsSegment):
     quote: str
     attribution: str
 
+    @property
+    def template_name(self) -> str:
+        return "quote"
+
     def get_template_values(self) -> dict[str, Any]:
-        return f"{self.quote}<br>\n{self.attribution}"
+        return {"quote": self.quote, "attribution": self.attribution}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -350,7 +347,12 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
     items: list[ScienceOrFictionItem]
     theme: str | None = None
 
+    @property
+    def template_name(self) -> str:
+        return "science_or_fiction"
+
     def get_template_values(self) -> dict[str, Any]:
+        raise NotImplementedError
         text = f"Theme: {self.theme}<br>\n" if self.theme else ""
 
         for item in self.items:
@@ -373,8 +375,15 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
     @staticmethod
     def process_raw_items(raw_items: list["Tag"]) -> list[ScienceOrFictionItem]:
         items: list[ScienceOrFictionItem] = []
+
+        science_items = 1
         for raw_item in raw_items:
             title_text = find_single_element(raw_item, "span", "science-fiction__item-title").text
+            match = re.match(r"(\d+)", title_text)
+            if not match:
+                raise ValueError(f"Failed to extract item number from: {title_text}")
+
+            item_number = int(match.group(1))
 
             p_tag = find_single_element(raw_item, "p", "")
             p_text = p_tag.text.strip()
@@ -390,7 +399,11 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
             if not isinstance(url, str):
                 raise TypeError("Got an unexpected type in url")
 
-            items.append(ScienceOrFictionItem(title_text, answer, p_text, url))
+            if answer.lower() == "science":
+                sof_result = f"science{science_items}"
+                science_items += 1
+
+            items.append(ScienceOrFictionItem(item_number, p_text, url, sof_result))
 
         return items
 
@@ -415,7 +428,12 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
 class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
     items: list[NewsItem]
 
+    @property
+    def template_name(self) -> str:
+        return "news"
+
     def get_template_values(self) -> dict[str, Any]:
+        raise NotImplementedError
         return "\n".join([f"{item.topic}<br>\nLink: {item.link}" for item in self.items])
 
     @staticmethod
@@ -462,6 +480,10 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
 class InterviewSegment(FromShowNotesSegment):
     subject: str
 
+    @property
+    def template_name(self) -> str:
+        raise NotImplementedError
+
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
@@ -481,7 +503,12 @@ class InterviewSegment(FromShowNotesSegment):
 class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
     items: list[str]
 
+    @property
+    def template_name(self) -> str:
+        raise NotImplementedError
+
     def get_template_values(self) -> dict[str, Any]:
+        raise NotImplementedError
         return "<br>\n".join(self.items)
 
     @staticmethod
@@ -523,6 +550,53 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
                 question.append(line)
 
         return EmailSegment(items=items, source=SegmentSource.NOTES)
+
+
+# @dataclass(kw_only=True)
+# class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
+#     subject: str = "N/A<!-- Failed to extract subject -->"
+
+#     @property
+#     def template_name(self) -> str:
+#         raise NotImplementedError
+
+#     def get_template_values(self) -> dict[str, Any]:
+#         raise NotImplementedError
+
+#     @staticmethod
+#     def match_string(lowercase_text: str) -> bool:
+#         return bool(re.match(r"forgotten superhero(es)? of science", lowercase_text))
+
+#     @staticmethod
+#     def from_summary_text(text: str) -> "ForgottenSuperheroesOfScienceSegment":
+#         lines = text.split(":")
+#         if len(lines) == 1:
+#             return ForgottenSuperheroesOfScienceSegment(source=SegmentSource.SUMMARY)
+
+#         return ForgottenSuperheroesOfScienceSegment(
+#             subject=lines[1].strip(),
+#             source=SegmentSource.SUMMARY,
+#         )
+
+
+# @dataclass(kw_only=True)
+# class SwindlersListSegment(FromSummaryTextSegment):
+#     topic: str = "N/A<!-- Failed to extract topic -->"
+
+#     @property
+#     def template_name(self) -> str:
+#         raise NotImplementedError
+
+#     def get_template_values(self) -> dict[str, Any]:
+#         raise NotImplementedError
+
+#     @staticmethod
+#     def match_string(lowercase_text: str) -> bool:
+#         return bool(re.match(r"swindler.s list", lowercase_text))
+
+#     @staticmethod
+#     def from_summary_text(text: str) -> "SwindlersListSegment":
+#         return SwindlersListSegment(topic=text.split(":")[1].strip(), source=SegmentSource.SUMMARY)
 
 
 # endregion

@@ -19,6 +19,9 @@ if TYPE_CHECKING:
     from sgu.transcription import DiarizedTranscript
 
 
+# region public functions
+
+
 async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode"):
     """Creates a wiki page for a podcast episode.
 
@@ -38,16 +41,22 @@ async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode")
 
     episode_icon_name = _find_image_upload(client, str(episode_data.podcast.episode_number))
 
-    if not episode_icon_name:
-        episode_image_url = get_episode_image_url(episode_data.show_notes)
-        episode_icon_name = _upload_image_to_wiki(client, episode_image_url, episode_data.podcast.episode_number)
+    # TODO: Investigate why this isn't working.
+    # The server says we are not allowed as uploading is restricted to user and administrator groups.
+    # Maybe the bot is in a different group?
+    # if not episode_icon_name:
+    #     episode_image_url = get_episode_image_url(episode_data.show_notes)
+    #     episode_icon_name = _upload_image_to_wiki(client, episode_image_url, episode_data.podcast.episode_number)
 
     print("Merging data...")
     episode_segments = convert_episode_data_to_episode_segments(episode_data)
-    segments = _merge_segments_and_transcript(episode_segments, episode_data.transcript)
+
+    # TODO: Split transcript by episode segment
+    wiki_segments = _convert_segments_to_wiki(episode_segments)
+    wiki_page_body = _merge_segments_and_transcript(wiki_segments, episode_data.transcript)
 
     print("Creating wiki page...")
-    wiki_page = _convert_to_wiki(episode_data, segments, episode_icon_name)
+    wiki_page = _merge_body_and_header_information(wiki_page_body, episode_data, episode_icon_name)
     _edit_page(client, page_text=wiki_page)  # TODO: Change for "Create page"
 
 
@@ -71,41 +80,53 @@ def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
     return True
 
 
-def _convert_to_wiki(episode_data: "EpisodeData", segments: list[str], episode_icon_name: str) -> str:
-    template = _get_template()
+def log_into_wiki(client: "Session") -> str:
+    """Perform a login to the wiki and return the csrf token."""
+    login_token = _get_login_token(client)
+    _send_credentials(client, login_token)
 
-    num = str(episode_data.podcast.episode_number)
-    episode_group_number = num[0] + "0" * (len(num) - 1) + "s"
-
-    return template.render(
-        episode_number=episode_data.podcast.episode_number,
-        episode_group_number=episode_group_number,
-        episode_icon_name=episode_icon_name,
-        quote_of_the_week="",
-        quote_of_the_week_attribution="",
-        segments=segments,
-        is_bob_present=episode_data.rogue_attendance.get("bob"),
-        is_cara_present=episode_data.rogue_attendance.get("cara"),
-        is_jay_present=episode_data.rogue_attendance.get("jay"),
-        is_evan_present=episode_data.rogue_attendance.get("evan"),
-        is_george_present=episode_data.rogue_attendance.get("george"),
-        is_rebecca_present=episode_data.rogue_attendance.get("rebecca"),
-        is_perry_present=episode_data.rogue_attendance.get("perry"),
-    )
+    return _get_csrf_token(client)
 
 
-def _get_template() -> Template:
-    env = Environment(
-        block_start_string="((*",
-        block_end_string="*))",
-        variable_start_string="(((",
-        variable_end_string=")))",
-        comment_start_string="((=",
-        comment_end_string="=))",
-        autoescape=True,
-        loader=FileSystemLoader(TEMPLATES_FOLDER),
-    )
-    return env.get_template("wiki_page.tex.jinja2")
+# endregion
+# region private functions
+
+
+def _find_image_upload(client: "Session", episode_number: str) -> str:
+    params = {"action": "query", "list": "allimages", "aiprefix": episode_number, "format": "json"}
+    response = client.get(WIKI_API_BASE, params=params)
+    data = response.json()
+
+    files = data.get("query", {}).get("allimages", [])
+    return files[0]["name"] if files else ""
+
+
+def _upload_image_to_wiki(client: "Session", image_url: str, episode_number: int) -> str:
+    image_response = client.get(image_url)
+    image_data = image_response.content
+
+    filename = f"{episode_number}.{image_url.split('.')[-1]}"
+
+    csrf_token = log_into_wiki(client)
+    upload_params = {
+        "action": "upload",
+        "filename": filename,
+        "format": "json",
+        "token": csrf_token,
+    }
+    files = {"file": (filename, image_data)}
+
+    upload_response = client.post(WIKI_API_BASE, data=upload_params, files=files)
+    upload_response.raise_for_status()
+
+    upload_data = upload_response.json()
+    if "error" in upload_data:
+        raise RequestException(f"Error uploading image: {upload_data['error']['info']}")
+
+    return filename
+
+
+def _convert_segments_to_wiki(segments: "Segments") -> str: ...
 
 
 def _merge_segments_and_transcript(segments: "Segments", transcript: "DiarizedTranscript") -> list[str]:
@@ -134,33 +155,31 @@ def _merge_segments_and_transcript(segments: "Segments", transcript: "DiarizedTr
     return "".join(text_segments)
 
 
-def _upload_image_to_wiki(client: "Session", image_url: str, episode_number: int) -> str:
-    image_response = client.get(image_url)
-    image_data = image_response.content
+def _merge_body_and_header_information(wiki_page_body: str, episode_data: "EpisodeData", episode_icon_name: str) -> str:
+    template = _get_template()
 
-    filename = f"{episode_number}.{image_url.split('.')[-1]}"
+    num = str(episode_data.podcast.episode_number)
+    episode_group_number = num[0] + "0" * (len(num) - 1) + "s"
 
-    csrf_token = _log_into_wiki(client)
-    upload_params = {
-        "action": "upload",
-        "filename": filename,
-        "format": "json",
-        "token": csrf_token,
-    }
-    files = {"file": (filename, image_data)}
-
-    upload_response = client.post(WIKI_API_BASE, data=upload_params, files=files)
-    upload_response.raise_for_status()
-
-    upload_data = upload_response.json()
-    if "error" in upload_data:
-        raise RequestException(f"Error uploading image: {upload_data['error']['info']}")
-
-    return filename
+    return template.render(
+        episode_number=episode_data.podcast.episode_number,
+        episode_group_number=episode_group_number,
+        episode_icon_name=episode_icon_name,
+        quote_of_the_week="",
+        quote_of_the_week_attribution="",
+        page_body=wiki_page_body,
+        is_bob_present=episode_data.rogue_attendance.get("bob"),
+        is_cara_present=episode_data.rogue_attendance.get("cara"),
+        is_jay_present=episode_data.rogue_attendance.get("jay"),
+        is_evan_present=episode_data.rogue_attendance.get("evan"),
+        is_george_present=episode_data.rogue_attendance.get("george"),
+        is_rebecca_present=episode_data.rogue_attendance.get("rebecca"),
+        is_perry_present=episode_data.rogue_attendance.get("perry"),
+    )
 
 
 def _edit_page(client: "Session", page_title: str = "User:Mheguy", page_text: str = "") -> None:
-    csrf_token = _log_into_wiki(client)
+    csrf_token = log_into_wiki(client)
 
     payload = {
         "action": "edit",
@@ -180,11 +199,18 @@ def _edit_page(client: "Session", page_title: str = "User:Mheguy", page_text: st
     print(data)
 
 
-def _log_into_wiki(client: "Session") -> str:
-    login_token = _get_login_token(client)
-    _send_credentials(client, login_token)
-
-    return _get_csrf_token(client)
+def _get_template() -> Template:
+    env = Environment(
+        block_start_string="((*",
+        block_end_string="*))",
+        variable_start_string="(((",
+        variable_end_string=")))",
+        comment_start_string="((#",
+        comment_end_string="#))",
+        autoescape=True,
+        loader=FileSystemLoader(TEMPLATES_FOLDER),
+    )
+    return env.get_template("wiki_page.tex.jinja2")
 
 
 def _get_login_token(client: "Session") -> str:
@@ -223,10 +249,4 @@ def _get_csrf_token(client: "Session") -> str:
     return data["query"]["tokens"]["csrftoken"]
 
 
-def _find_image_upload(client: "Session", episode_number: str) -> str:
-    params = {"action": "query", "list": "allimages", "aiprefix": episode_number, "format": "json"}
-    response = client.get(WIKI_API_BASE, params=params)
-    data = response.json()
-
-    files = data.get("query", {}).get("allimages", [])
-    return files[0]["name"] if files else ""
+# endregion
