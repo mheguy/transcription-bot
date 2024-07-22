@@ -1,19 +1,23 @@
 ((# TODO #))
 {{anchor|ntlf}} <!-- leave anchor(s) directly above the corresponding section that follows -->
-== Name That Logical Fallacy <small>()</small> ==
+== Name That Logical Fallacy <small>( ((( start_time ))) )</small> ==
 {{Page categories
 |Name That Logical Fallacy =
-<!--
 
+<!--
 search for "FALLACY/TOPIC (nnnn)" to create a redirect page, where "(nnnn)" is the episode number, then edit that page with:
 
 #REDIRECT
 [[SGU_Episode_NNNN#ntlf]]
 [[Category:Name That Logical Fallacy]]
 
-Instead of adding an entire episode to a category, once redirects have been created, we suggest typing "redirect(s) created for" in front of the text you hide in the markup that follows the category name, seen in the "page categories" template above -->
+Instead of adding an entire episode to a category, once redirects have been created, we suggest typing "redirect(s) created for" in front of the text you hide in the markup that follows the category name, seen in the "page categories" template above
+-->
+
 }}
-* _Fallacy_Topic_Event_ <!--
+* _Fallacy_Topic_Event_
+
+<!--
 
 We recommend using an in-line link to the Wikipedia entry: {{w|_Fallacy_}}
 
@@ -21,3 +25,5 @@ You could also add or substitute a website and reference:
 
 * [LINK_URL _article_title_or_webpage_name_]<ref>[LINK_URL PUBLICATION: _article_title_or_webpage_name_]</ref>
 -->
+
+((( transcript )))

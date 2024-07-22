@@ -6,7 +6,7 @@
 |}}
 
 {{anchor|number}}       <!-- leave anchor(s) directly above the corresponding section that follows -->
-== Your Number's Up <small>(m:ss)</small> ==
+== Your Number's Up <small>( ((( start_time ))) )</small> ==
 * _Number_Topic_Concept_ <!-- redirect created for _insert_redirect_title_here_ (if appropriate) then delete the following bullet
 
 ** We recommend using an in-line link to the Wikipedia entry: {{w|_Number_Topic_Concept_}} -->
@@ -26,6 +26,7 @@
 {{anchor|followup}}
 {{anchor|correction}}
 {{anchor|email}} <!-- leave anchor(s) directly above the corresponding section/subsection that follows -->
+
 <!--
 *** For any email discussion redirect pages, add
 
@@ -59,3 +60,5 @@ and any relevant [[Category:_CATEGORY_NAME_]]
 <!--
     ** START SECTION TRANSCRIPTION HERE **
 -->
+
+((( transcript )))

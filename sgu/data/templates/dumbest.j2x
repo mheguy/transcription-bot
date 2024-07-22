@@ -1,19 +1,12 @@
 ((# TODO #))
-{{anchor|dumbest}} <!-- leave anchor(s) directly above the corresponding section that follows -->
-== Dumbest Thing of the Week <small>()</small> ==
+{{anchor|dumbest}}
+
+== Dumbest Thing of the Week <small>( ((( start_time ))) )</small> ==
+
 {{shownotes
 |weblink = <!-- must begin with http:// -->
 |article_title = <!-- please replace ALL CAPS with Title Case or Sentence case -->
 |publication = <!-- enter nn for Neurologica :-) -->
-|redirect_title = <!-- optional...use _Redirect_title_(NNN) to prompt a redirect page to be created; hide the redirect title inside this markup text when redirect is created
-*** For the redirect page, add
-
-#REDIRECT
-[[SGU_Episode_NNNN#dumbest]]
-[[Category:Other]]
-
-and any relevant [[Category:_CATEGORY_NAME_]] -->
 }}
-<!--
-    ** START SECTION TRANSCRIPTION HERE **
--->
+
+((( transcript )))

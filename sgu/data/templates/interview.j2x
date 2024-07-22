@@ -1,6 +1,6 @@
 ((# TODO #))
 {{top}}{{anchor|interview}} <!-- leave anchor(s) directly above the corresponding section that follows -->
-== Interview with ___ <small>()</small> ==
+== Interview with ___ <small>( ((( start_time ))) )</small> ==
 {{Page categories
 |Interview = <!--
 
@@ -21,6 +21,5 @@ You could also add or substitute a website and reference:
 
 * [LINK_URL _article_title_or_webpage_name_]<ref>[LINK_URL PUBLICATION: _article_title_or_webpage_name_]</ref>
 -->
-<!--
-    ** START SECTION TRANSCRIPTION HERE **
--->
+
+((( transcript )))

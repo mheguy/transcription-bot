@@ -1,7 +1,7 @@
 ((# TODO #))
 {{anchor|wtw}}
 <!-- leave anchor(s) directly above the corresponding section that follows -->
-== What's the Word? <small>(m:ss)</small> ==
+== What's the Word? <small>( ((( start_time ))) )</small> ==
 
 {{Page categories
 |What's the Word?       = 
@@ -22,6 +22,5 @@ Instead of adding an entire episode to a category, once redirects have been crea
 
 ** We recommend having an in-line link to the Wikipedia or Wiktionary entry in addition to the Wiktionary vocab group reference. So, before the Wikitionary reference, put either {{w|word_topic_concept}} or [https://en.wiktionary.org/wiki/WORD WORD]
 -->
-<!--
-    ** START SECTION TRANSCRIPTION HERE **
--->
+
+((( transcript )))

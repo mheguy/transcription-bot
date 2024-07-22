@@ -1,6 +1,6 @@
 ((# TODO #))
 {{anchor|qow}} <!-- leave anchor(s) directly above the corresponding section that follows -->
-== Skeptical Quote of the Week <small>()</small> ==
+== Skeptical Quote of the Week <small>( ((( start_time ))) )</small> ==
 <!--
 
     ** START TRANSCRIPTION BELOW the following template **
@@ -14,6 +14,5 @@
 |lived = _birth_year_-_death_year_ <!-- replace death year with "present" if author is still alive -->
 |desc = <!-- _usually_author's_nationality_then_short_description_  -->
 }}
-<!--
-    ** START SECTION TRANSCRIPTION HERE **
--->
+
+((( transcript )))
