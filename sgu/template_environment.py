@@ -1,4 +1,4 @@
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from sgu.config import TEMPLATES_FOLDER
 
@@ -11,4 +11,5 @@ template_env = Environment(
     comment_end_string="#))",
     autoescape=False,  # noqa: S701
     loader=FileSystemLoader(TEMPLATES_FOLDER),
+    undefined=StrictUndefined,
 )

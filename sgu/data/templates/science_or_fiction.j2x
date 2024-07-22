@@ -1,22 +1,19 @@
 {{anchor|sof}}
 {{anchor|theme}}
-((( source )))
 == Science or Fiction <small>( ((( start_time ))) )</small> ==
-
+((( source )))
 {{SOFinfo
 |theme = ((( theme )))
 |hiddentheme =
-
 ((* for item in items *))
-|item((( item.number ))) = ((( item.text )))
-|link((( item.number )))web = ((( item.url )))
+|item((( item.number ))) = ((( item.show_notes_text )))
+|link((( item.number )))web = ((( item.article_url )))
 |link((( item.number )))title = ((( item.title )))
-|}}
 ((* endfor *))
-
+|}}
 {{SOFResults
 ((* for item in items *))
-((( item.sof_result )))
+|((( item.sof_result ))) = Item #((( item.number )))
 ((* endfor *))
 |rogue1 =
 |answer1 =
@@ -28,14 +25,10 @@
 |answer4 =
 |rogue5 =
 |answer5 =
-
 |host = steve
 |sweep = <!-- all the Rogues guessed wrong -->
 |clever = <!-- each item was guessed (Steve's preferred result) -->
 |win = <!-- at least one Rogue guessed wrong, but not them all -->
 |swept = <!-- all the Rogues guessed right -->
 }}
-
-''Voice-over: It's time for Science or Fiction.''
-
 ((( transcript )))

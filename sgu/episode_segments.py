@@ -50,6 +50,9 @@ class NewsItem:
     title: str = ""  # TODO
     publication: str = ""  # TODO
 
+    start_time: str = "00:00:00"
+    transcript: str = "transcript_placeholder"
+
 
 # endregion
 # region base
@@ -59,12 +62,18 @@ class BaseSegment(ABC):
 
     source: SegmentSource
     start_time: str = "00:00:00"
+    transcript: str = "transcript_placeholder"
 
     def to_wiki(self) -> str:
         """Get the wiki text / section header for the segment."""
         template = template_env.get_template(f"{self.template_name}.j2x")
         template_values = self.get_template_values()
-        return template.render(start_time="start_time_placeholder", **template_values)
+        return template.render(
+            start_time=self.start_time,
+            transcript=self.transcript,
+            source=f"<!-- {self.source.value} -->",
+            **template_values,
+        )
 
     @property
     @abstractmethod
@@ -193,7 +202,7 @@ class QuickieSegment(FromLyricsSegment, FromSummaryTextSegment):
         return "quickie"
 
     def get_template_values(self) -> dict[str, Any]:
-        return {"title": self.title}
+        return {"title": self.title, "subject": self.subject}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -415,6 +424,8 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
             if answer.lower() == "science":
                 sof_result = f"science{science_items}"
                 science_items += 1
+            else:
+                sof_result = "fiction"
 
             items.append(ScienceOrFictionItem(item_number, p_text, url, sof_result))
 

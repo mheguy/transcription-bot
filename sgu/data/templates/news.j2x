@@ -1,14 +1,11 @@
-((( source )))
-
 ((* for item in items *))
-
 === ((( item.topic ))) <small>( ((( item.start_time ))) )</small> ===
-{{anchor|news((( item.index )))}}
+((( source )))
+{{anchor|news((( loop.index )))}}
 {{shownotes
 |weblink = ((( item.url )))
-|article_title = ((( item.title )))
+|article_title = ((( item.topic ))) ((# TODO: Replace with item.title #))
 |publication = ((( item.publication )))
 }}
-
 ((( item.transcript )))
 ((* endfor *))

@@ -8,7 +8,6 @@ And the Better Jinja extension in VSCode supports them, so that's what I'm using
 ((* block / statement *)) - default is {% %}
 ((( variable ))) - default is {{ }}
 #))
-
 {{Editing required
 |proofreading = y
 |time-stamps = y
@@ -18,7 +17,6 @@ And the Better Jinja extension in VSCode supports them, so that's what I'm using
 |categories = y
 |segment redirects = y
 |}}
-
 {{InfoBox
 |verified = <!-- leave blank until verified, then put a 'y'-->
 |episodeNum = ((( episode_number )))
@@ -41,14 +39,12 @@ And the Better Jinja extension in VSCode supports them, so that's what I'm using
 |forumLinktopic = ((( forum_link )))
 |}}
 
-
 ((( segment_text )))
-
-== Signoff ==
-'''S:''' —and until next week, this is your {{SGU}}.
 
 {{Navigation}}
 
-== below is the full diarized transcript, not broken into segments ==
+= Transcript =
+Below is the full diarized transcript, not broken into segments.
+
 
 ((( transcript )))

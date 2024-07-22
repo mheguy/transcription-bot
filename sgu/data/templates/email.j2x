@@ -1,12 +1,10 @@
 ((# TODO: Handle multiple emails, classify question, follow-up, correction, etc. #))
 {{anchor|email}}
-((( source )))
 == Emails <small>( ((( start_time ))) )</small> ==
-
+((( source )))
 <!-- 
 ((* for item in items *))
 text: ((( item )))
 ((* endfor *))
 -->
-
 ((( transcript )))
