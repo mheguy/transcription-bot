@@ -12,7 +12,7 @@ from flask import Flask, Response, request, send_file
 from sgu.config import NGROK_TOKEN, PYANNOTE_TOKEN, PYANNOTE_VOICEPRINT_ENDPOINT, SERVER_PORT
 
 # This determines who is being processed!
-ROGUE_TO_PROCESS = "Steven"
+ROGUE_TO_PROCESS = "Steve"
 
 AUDIO_FILE = Path(f"data/voiceprints/{ROGUE_TO_PROCESS}.mp3").resolve()
 if not AUDIO_FILE.exists():

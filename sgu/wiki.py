@@ -10,6 +10,7 @@ from sgu.episode_segments import BaseSegment, QuoteSegment
 from sgu.parsers.episode_data import convert_episode_data_to_episode_segments
 from sgu.parsers.show_notes import get_episode_image_url
 from sgu.template_environment import template_env
+from sgu.transcription_splitting import add_transcript_to_segments
 
 if TYPE_CHECKING:
     from requests import Session
@@ -35,23 +36,28 @@ async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode")
     Returns:
         str: The wiki page content.
     """
-    # Gather all data
     print("Gathering all data...")
     episode_data = await gather_data(client, podcast)
 
-    episode_icon_name = _find_image_upload(client, str(episode_data.podcast.episode_number))
-
-    if not episode_icon_name:
-        episode_image_url = get_episode_image_url(episode_data.show_notes)
-        episode_icon_name = _upload_image_to_wiki(client, episode_image_url, episode_data.podcast.episode_number)
-
-    print("Merging data...")
+    print("Converting data to segments...")
     episode_segments = convert_episode_data_to_episode_segments(episode_data)
-    qotw_segment = _extract_quote_of_the_week_for_wiki(episode_segments)
+
+    print("Merging transcript into episode segments...")
+    episode_segments = add_transcript_to_segments(episode_data.transcript, episode_segments)
 
     # TODO: Split transcript by episode segment
-    wiki_segments = "\n".join(s.to_wiki() for s in episode_segments)  # convert segments to wiki
     pretty_transcript = _get_pretty_transcript(episode_data.transcript)
+
+    # Wiki-specific actions
+    wiki_segments = "\n".join(s.to_wiki() for s in episode_segments)  # convert segments to wiki
+    qotw_segment = _extract_quote_of_the_week_for_wiki(episode_segments)
+
+    # Image upload
+    episode_icon_name = _find_image_upload(client, str(episode_data.podcast.episode_number))
+    if not episode_icon_name:
+        print("Uploading image for episode...")
+        episode_image_url = get_episode_image_url(episode_data.show_notes)
+        episode_icon_name = _upload_image_to_wiki(client, episode_image_url, episode_data.podcast.episode_number)
 
     print("Creating wiki page...")
     wiki_page = _construct_wiki_page(episode_data, episode_icon_name, wiki_segments, pretty_transcript, qotw_segment)

@@ -31,3 +31,9 @@ def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str)
         raise ValueError("Unexpected number of description elements extracted, expected 1, got %s", len(results))
 
     return results[0]
+
+
+def are_strings_in_string(strings: list[str], string: str) -> bool:
+    """Check if all strings are in a given string."""
+    return all(s in string for s in strings)
+

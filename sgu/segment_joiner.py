@@ -15,7 +15,10 @@ def join_segments(
     show_note_segments: "Segments",
     summary_text_segments: "Segments",
 ) -> "Segments":
-    """Join segments from different collections and flag any potential issues."""
+    """Join segments from different collections and flag any potential issues.
+
+    NOTE: This modifies the `lyric_segments` collection in place.
+    """
     _find_duplicate_segments(lyric_segments, show_note_segments, summary_text_segments)
 
     _merge_noisy_segments(lyric_segments, show_note_segments)
