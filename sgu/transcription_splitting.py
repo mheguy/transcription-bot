@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 
 
 def add_transcript_to_segments(transcript: "DiarizedTranscript", episode_segments: "Segments") -> "Segments":
+    """Add the transcript to the episode segments."""
     segments: Segments = [IntroSegment(source=SegmentSource.HARDCODED, start_time=0), *episode_segments]
     transcript = transcript.copy()
 
@@ -50,7 +51,7 @@ def _sort_segments(segments: "Segments") -> "Segments":
     return [*with_starts, *without_starts]
 
 
-def _join_speaker_segments_in_transcript(transcript: "DiarizedTranscript") -> list[dict[str, str]]:
+def _join_speaker_segments_in_transcript(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
     current_speaker = None
 
     speaker_chunks = []

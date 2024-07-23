@@ -154,12 +154,19 @@ class UnknownSegment(BaseSegment):
         raise NotImplementedError
 
     def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
-        del transcript
+        for chunk in transcript:
+            if are_strings_in_string(self.title.split(), chunk["text"].lower()):
+                return chunk["start"]
+
+            if are_strings_in_string(self.extra_text.split(), chunk["text"].lower()):
+                return chunk["start"]
+
+        print("Did not find start of unknown segment:", self.title)
         return None
 
     @staticmethod
     def create(text: str, source: SegmentSource) -> "UnknownSegment":
-        lines = text.split()
+        lines = text.split("\n")
         title = lines[0].strip()
 
         if len(lines) > 1:
@@ -176,7 +183,7 @@ class IntroSegment(BaseSegment):
 
     @property
     def template_name(self) -> str:
-        raise NotImplementedError
+        return "intro"
 
     def get_template_values(self) -> dict[str, Any]:
         return {}
@@ -204,7 +211,12 @@ class LogicalFalacySegment(FromSummaryTextSegment):
         return "name that logical fallacy" in lowercase_text
 
     def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
-        raise NotImplementedError
+        for chunk in transcript:
+            if are_strings_in_string(["name", "logical", "fallacy"], chunk["text"].lower()):
+                return chunk["start"]
+
+        print("Did not find start of name that logical fallacy segment.")
+        return None
 
     @staticmethod
     def from_summary_text(text: str) -> "LogicalFalacySegment":
@@ -234,7 +246,7 @@ class QuickieSegment(FromLyricsSegment, FromSummaryTextSegment):
             if are_strings_in_string(["quickie", "with"], chunk["text"].lower()):
                 return chunk["start"]
 
-            if "Steve" in self.title and "quick" in chunk["text"].lower():
+            if are_strings_in_string(self.subject.split(), chunk["text"].lower()):
                 return chunk["start"]
 
         print("Did not find start of quickie segment.")
@@ -273,7 +285,15 @@ class WhatsTheWordSegment(FromSummaryTextSegment):
         return lowercase_text.startswith("what's the word")
 
     def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
-        raise NotImplementedError
+        for chunk in transcript:
+            if re.match(r"what.?s the word", chunk["text"].lower()):
+                return chunk["start"]
+
+            if self.word.lower() in chunk["text"].lower():
+                return chunk["start"]
+
+        print("Did not find start of what's the word segment.")
+        return None
 
     @staticmethod
     def from_summary_text(text: str) -> "WhatsTheWordSegment":
@@ -285,6 +305,39 @@ class WhatsTheWordSegment(FromSummaryTextSegment):
             word = "N/A<!-- Failed to extract word -->"
 
         return WhatsTheWordSegment(word=word, source=SegmentSource.SUMMARY)
+
+
+@dataclass(kw_only=True)
+class TikTokSegment(FromLyricsSegment):
+    title: str
+    url: str
+
+    @property
+    def template_name(self) -> str:
+        return "tiktok"
+
+    def get_template_values(self) -> dict[str, Any]:
+        return {"title": self.title, "url": self.url}
+
+    @staticmethod
+    def match_string(lowercase_text: str) -> bool:
+        return lowercase_text.startswith("from tiktok")
+
+    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+        for chunk in transcript:
+            if are_strings_in_string(self.title.split(), chunk["text"].lower()):
+                return chunk["start"]
+
+        print("Did not find start of tiktok segment")
+        return None
+
+    @staticmethod
+    def from_lyrics(text: str) -> "TikTokSegment":
+        lines = text.split("\n")
+        title = lines[1].strip()
+        url = lines[2].strip()
+
+        return TikTokSegment(title=title, url=url, source=SegmentSource.LYRICS)
 
 
 @dataclass(kw_only=True)
@@ -372,7 +425,7 @@ class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
     @staticmethod
     def from_lyrics(text: str) -> "NoisySegment":
         del text
-        return NoisySegment(source=SegmentSource.NOTES)
+        return NoisySegment(source=SegmentSource.LYRICS)
 
 
 @dataclass(kw_only=True)
@@ -424,7 +477,7 @@ class QuoteSegment(FromLyricsSegment):
         return QuoteSegment(
             quote=lines[0],
             attribution=attribution,
-            source=SegmentSource.NOTES,
+            source=SegmentSource.LYRICS,
         )
 
 
@@ -528,8 +581,7 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("news item")
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
-        raise NotImplementedError
+    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None: ...  # TODO
 
     @staticmethod
     def from_show_notes(segment_data: list["Tag"]) -> "NewsSegment":
@@ -556,7 +608,7 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
 
                 news_items.append(NewsItem(topic, url))
 
-        return NewsSegment(items=news_items, source=SegmentSource.NOTES)
+        return NewsSegment(items=news_items, source=SegmentSource.LYRICS)
 
     @staticmethod
     def _process_show_notes(raw_items: list["Tag"]) -> list[NewsItem]:
@@ -656,7 +708,7 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
             if line:
                 question.append(line)
 
-        return EmailSegment(items=items, source=SegmentSource.NOTES)
+        return EmailSegment(items=items, source=SegmentSource.LYRICS)
 
 
 @dataclass(kw_only=True)
@@ -675,7 +727,12 @@ class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
         return bool(re.match(r"forgotten superhero(es)? of science", lowercase_text))
 
     def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
-        raise NotImplementedError
+        for chunk in transcript:
+            if are_strings_in_string(["forgotten", "hero", "science"], chunk["text"].lower()):
+                return chunk["start"]
+
+        print("Did not find start of forgotten superhero of science segment.")
+        return None
 
     @staticmethod
     def from_summary_text(text: str) -> "ForgottenSuperheroesOfScienceSegment":
@@ -705,7 +762,12 @@ class SwindlersListSegment(FromSummaryTextSegment):
         return bool(re.match(r"swindler.s list", lowercase_text))
 
     def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
-        raise NotImplementedError
+        for chunk in transcript:
+            if are_strings_in_string(["swindler", "list"], chunk["text"].lower()):
+                return chunk["start"]
+
+        print("Did not find start of swindler's list segment.")
+        return None
 
     @staticmethod
     def from_summary_text(text: str) -> "SwindlersListSegment":
