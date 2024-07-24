@@ -86,6 +86,12 @@ class BaseSegment(ABC):
         """The name of the Jinja2 template file."""
         raise NotImplementedError
 
+    @property
+    @abstractmethod
+    def llm_prompt(self) -> str:
+        """A prompt to help an LLM identify a transition between segments."""
+        raise NotImplementedError
+
     @staticmethod
     @abstractmethod
     def match_string(lowercase_text: str) -> bool:
@@ -146,6 +152,10 @@ class UnknownSegment(BaseSegment):
     def template_name(self) -> str:
         return "unknown"
 
+    @property
+    def llm_prompt(self) -> str:
+        return f"Please identify the start of the segment whose title is: {self.title}, {self.extra_text}"
+
     def get_template_values(self) -> dict[str, Any]:
         return {"title": self.title}
 
@@ -185,6 +195,10 @@ class IntroSegment(BaseSegment):
     def template_name(self) -> str:
         return "intro"
 
+    @property
+    def llm_prompt(self) -> str:
+        raise NotImplementedError
+
     def get_template_values(self) -> dict[str, Any]:
         return {}
 
@@ -202,6 +216,10 @@ class LogicalFalacySegment(FromSummaryTextSegment):
     @property
     def template_name(self) -> str:
         return "logical_falacy"
+
+    @property
+    def llm_prompt(self) -> str:
+        return "Please identify the start of the 'name that logical fallacy' segment."
 
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
@@ -233,6 +251,10 @@ class QuickieSegment(FromLyricsSegment, FromSummaryTextSegment):
     @property
     def template_name(self) -> str:
         return "quickie"
+
+    @property
+    def llm_prompt(self) -> str:
+        return f"Please find the start of the 'quickie' segment: {self.title}. The subject is: {self.subject}"
 
     def get_template_values(self) -> dict[str, Any]:
         return {"title": self.title, "subject": self.subject}
@@ -277,6 +299,13 @@ class WhatsTheWordSegment(FromSummaryTextSegment):
     def template_name(self) -> str:
         return "whats_the_word"
 
+    @property
+    def llm_prompt(self) -> str:
+        return (
+            "Please find the start of the 'what's the word' segment."
+            "This is typically introduced by Steve asking Cara for the word."
+        )
+
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
@@ -316,6 +345,10 @@ class TikTokSegment(FromLyricsSegment):
     def template_name(self) -> str:
         return "tiktok"
 
+    @property
+    def llm_prompt(self) -> str:
+        return f"Please identify the start of the 'from tiktok' segment. The topic is: {self.title}"
+
     def get_template_values(self) -> dict[str, Any]:
         return {"title": self.title, "url": self.url}
 
@@ -350,6 +383,13 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
     @property
     def template_name(self) -> str:
         raise NotImplementedError
+
+    @property
+    def llm_prompt(self) -> str:
+        return (
+            "Please identify the start of the 'dumbest thing of the week' segment."
+            f"This segment is about: {self.topic}"
+        )
 
     def get_template_values(self) -> dict[str, Any]:
         return {"topic": self.topic, "url": self.url}
@@ -394,6 +434,10 @@ class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
     def template_name(self) -> str:
         return "noisy"
 
+    @property
+    def llm_prompt(self) -> str:
+        return "Please identify the start of the 'who's that noisy' segment."
+
     def get_template_values(self) -> dict[str, Any]:
         return {"last_week_answer": self.last_week_answer}
 
@@ -436,6 +480,10 @@ class QuoteSegment(FromLyricsSegment):
     @property
     def template_name(self) -> str:
         return "quote"
+
+    @property
+    def llm_prompt(self) -> str:
+        return "Please identify the start of the 'quote' segment. This is usually Steve asking Evan for the quote."
 
     def get_template_values(self) -> dict[str, Any]:
         return {"quote": self.quote, "attribution": self.attribution}
@@ -489,6 +537,10 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
     @property
     def template_name(self) -> str:
         return "science_or_fiction"
+
+    @property
+    def llm_prompt(self) -> str:
+        return "Please identify the start of the 'science or fiction' segment."
 
     def get_template_values(self) -> dict[str, Any]:
         return {"items": self.items, "theme": self.theme}
@@ -574,6 +626,10 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
     def template_name(self) -> str:
         return "news"
 
+    @property
+    def llm_prompt(self) -> str:
+        raise NotImplementedError
+
     def get_template_values(self) -> dict[str, Any]:
         return {"items": self.items}
 
@@ -633,6 +689,10 @@ class InterviewSegment(FromShowNotesSegment):
     def template_name(self) -> str:
         raise NotImplementedError
 
+    @property
+    def llm_prompt(self) -> str:
+        return "Please identity the beginning of the interview segment."
+
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
@@ -658,6 +718,10 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
     @property
     def template_name(self) -> str:
         return "email"
+
+    @property
+    def llm_prompt(self) -> str:
+        return "Please identify the start of the 'email' segment."
 
     def get_template_values(self) -> dict[str, Any]:
         return {"items": self.items}
@@ -719,6 +783,10 @@ class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
     def template_name(self) -> str:
         raise NotImplementedError
 
+    @property
+    def llm_prompt(self) -> str:
+        return "Please identify the start of the 'forgotten superheroes of science' segment."
+
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
@@ -752,6 +820,10 @@ class SwindlersListSegment(FromSummaryTextSegment):
 
     @property
     def template_name(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def llm_prompt(self) -> str:
         raise NotImplementedError
 
     def get_template_values(self) -> dict[str, Any]:

@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 from sgu.episode_segments import IntroSegment, SegmentSource
+from sgu.llm_interface import ask_llm_for_segment_start
 
 if TYPE_CHECKING:
     from sgu.episode_segments import Segments
@@ -19,8 +20,13 @@ def add_transcript_to_segments(transcript: "DiarizedTranscript", episode_segment
         segment.start_time = segment.get_start_time(transcript)
 
         if not segment.start_time:
-            # If the segment does not have a start time, it's useless to us.
-            continue
+            start_time = ask_llm_for_segment_start(segment, transcript)
+
+            if not start_time:
+                # If the segment does not have a start time, it's useless to us.
+                continue
+
+            segment.start_time = start_time
 
         # Fill in the transcript for the last segment
         transcript_segments_for_last_episode_segment = []

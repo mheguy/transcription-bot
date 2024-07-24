@@ -23,6 +23,7 @@ flask = "^3.0.3"
 pandas = "^2.2.2"
 pyarrow = "^16.1.0"
 setuptools = "^71.1.0"
+openai = "^1.37.0"
 
 [tool.poetry.group.ml.dependencies]
 whisperx = { git = "https://github.com/m-bain/whisperx.git", markers = "sys_platform == 'linux'", rev = "f2da2f858e99e4211fe4f64b5f2938b007827e17" }
