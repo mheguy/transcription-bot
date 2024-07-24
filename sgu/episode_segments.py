@@ -46,19 +46,6 @@ class ScienceOrFictionItem:
     publication: str = ""  # TODO
 
 
-@dataclass
-class NewsItem:
-    topic: str
-    url: str
-
-    # From the article URL, we can get the following fields:
-    title: str = ""  # TODO
-    publication: str = ""  # TODO
-
-    start_time: str = "00:00:00"
-    transcript: str = "transcript_placeholder"
-
-
 # endregion
 # region base
 @dataclass(kw_only=True)
@@ -618,9 +605,15 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
         )
 
 
-@dataclass(kw_only=True)
-class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
-    items: list[NewsItem]
+@dataclass
+class NewsItem(BaseSegment):
+    item_number: int
+    topic: str
+    url: str
+
+    # From the article URL, we can get the following fields:
+    title: str = ""  # TODO
+    publication: str = ""  # TODO
 
     @property
     def template_name(self) -> str:
@@ -628,57 +621,90 @@ class NewsSegment(FromShowNotesSegment, FromLyricsSegment):
 
     @property
     def llm_prompt(self) -> str:
+        return f"Please identify the start of the news segment whose topic is: {self.title}"
+
+    def get_template_values(self) -> dict[str, Any]:
+        return {
+            "item_number": self.item_number,
+            "topic": self.topic,
+            "url": self.url,
+            "title": self.title,
+            "publication": self.publication,
+        }
+
+    @staticmethod
+    def match_string(lowercase_text: str) -> bool:
+        raise NotImplementedError
+
+    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+        del transcript
+
+        return None
+
+
+@dataclass(kw_only=True)
+class NewsMetaSegment(FromShowNotesSegment, FromLyricsSegment):
+    """This "metasegment" contains multiple news segments. It is expanded in segment_joiner."""
+
+    news_segments: list[NewsItem]
+
+    @property
+    def template_name(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def llm_prompt(self) -> str:
         raise NotImplementedError
 
     def get_template_values(self) -> dict[str, Any]:
-        return {"items": self.items}
+        raise NotImplementedError
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("news item")
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None: ...  # TODO
+    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+        raise NotImplementedError
 
     @staticmethod
-    def from_show_notes(segment_data: list["Tag"]) -> "NewsSegment":
+    def from_show_notes(segment_data: list["Tag"]) -> "NewsMetaSegment":
         show_notes = [i for i in segment_data[1].children if isinstance(i, Tag)]
 
-        items = NewsSegment._process_show_notes(show_notes)
+        items: list[NewsItem] = []
+        for index, raw_item in enumerate(show_notes):
+            url = ""
+            if a_tag_with_href := raw_item.select_one('div > a[href]:not([href=""])'):
+                href = a_tag_with_href["href"]
+                url = href if isinstance(href, str) else href[0]
 
-        return NewsSegment(items=items, source=SegmentSource.NOTES)
+            items.append(NewsItem(item_number=index, topic=raw_item.text, url=url, source=SegmentSource.NOTES))
+
+        return NewsMetaSegment(news_segments=items, source=SegmentSource.NOTES)
 
     @staticmethod
-    def from_lyrics(text: str) -> "NewsSegment":
+    def from_lyrics(text: str) -> "NewsMetaSegment":
         lines = text.split("\n")[1:]
-        news_items: list[NewsItem] = []
+
+        items: list[NewsItem] = []
+        item_counter = 0
 
         for index, line in enumerate(lines):
             if "news item" in line.lower():
-                next_line = lines[index + 1] if index + 1 < len(lines) else ""
-                url = next_line if next_line and string_is_url(next_line) else ""
+                item_counter += 1
+
+                url = ""
+                next_index = index + 1
+                if next_index < len(lines) and string_is_url(lines[next_index]):
+                    url = lines[next_index]
 
                 match = re.match(r"news item #\d+ . (.+)", line, re.IGNORECASE)
                 if not match:
                     raise ValueError(f"Failed to extract news topic from: {line}")
                 topic = match.group(1).strip()
 
-                news_items.append(NewsItem(topic, url))
+                items.append(NewsItem(item_number=item_counter, topic=topic, url=url, source=SegmentSource.LYRICS))
 
-        return NewsSegment(items=news_items, source=SegmentSource.LYRICS)
-
-    @staticmethod
-    def _process_show_notes(raw_items: list["Tag"]) -> list[NewsItem]:
-        news_items: list[NewsItem] = []
-
-        for raw_item in raw_items:
-            url = ""
-            if a_tag_with_href := raw_item.select_one('div > a[href]:not([href=""])'):
-                href = a_tag_with_href["href"]
-                url = href if isinstance(href, str) else href[0]
-
-            news_items.append(NewsItem(raw_item.text, url))
-
-        return news_items
+        return NewsMetaSegment(news_segments=items, source=SegmentSource.LYRICS)
 
 
 @dataclass(kw_only=True)

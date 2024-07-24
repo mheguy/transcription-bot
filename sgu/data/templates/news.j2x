@@ -1,11 +1,9 @@
-((* for item in items *))
-=== News Item #((( loop.index ))) - ((( item.topic ))) <small>( ((( item.start_time ))) )</small> ===
-((( source )))
-{{anchor|news((( loop.index )))}}
+{{anchor|news((( item_number )))}}
+=== News Item #((( item_number ))) - ((( topic ))) <small>( ((( start_time ))) )</small> ===
 {{shownotes
-|weblink = ((( item.url )))
-|article_title = ((( item.topic ))) ((# TODO: Replace with item.title #))
-|publication = ((( item.publication )))
+|weblink = ((( url )))
+|article_title = ((( topic ))) ((# TODO: Replace with title #))
+|publication = ((( publication )))
 }}
-((( item.transcript )))
-((* endfor *))
+((( source )))
+((( transcript )))
