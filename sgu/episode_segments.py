@@ -6,9 +6,9 @@ from urllib.parse import urlparse
 
 from bs4 import Tag
 
-from sgu.custom_logger import logger
 from sgu.exceptions import StartTimeNotFoundError
-from sgu.helpers import are_strings_in_string, find_single_element, string_is_url
+from sgu.global_logger import logger
+from sgu.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
 from sgu.template_environment import template_env
 from sgu.transcript_formatting import format_time, format_transcript_for_wiki
 
@@ -33,9 +33,8 @@ class ScienceOrFictionItem:
     article_url: str
     sof_result: str
 
-    # From the article URL, we can get the following fields:
-    title: str = ""  # TODO
-    publication: str
+    article_title: str
+    article_publication: str
 
 
 # endregion
@@ -356,7 +355,7 @@ class TikTokSegment(FromLyricsSegment):
 class DumbestThingOfTheWeekSegment(FromLyricsSegment):
     topic: str
     url: str
-    article_title: str = ""  # TODO
+    article_title: str
     article_publication: str
 
     @property
@@ -371,7 +370,12 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
         )
 
     def get_template_values(self) -> dict[str, Any]:
-        return {"topic": self.topic, "url": self.url}
+        return {
+            "topic": self.topic,
+            "url": self.url,
+            "article_title": self.article_title,
+            "article_publication": self.article_publication,
+        }
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -399,11 +403,10 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
         article_publication = ""
         if url:
             article_publication = urlparse(url).netloc
+            article_title = get_article_title(url)
 
         return DumbestThingOfTheWeekSegment(
-            topic=topic,
-            url=url,
-            article_publication=article_publication,
+            topic=topic, url=url, article_publication=article_publication, article_title=article_title
         )
 
 
@@ -557,7 +560,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
 
             item_number = int(match.group(1))
 
-            p_tag = find_single_element(raw_item, "p", "")
+            p_tag = find_single_element(raw_item, "p", None)
             p_text = p_tag.text.strip()
 
             if better_tag := p_tag.next:
@@ -565,7 +568,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
 
             answer = find_single_element(raw_item, "span", "quiz__answer").text
 
-            a_tag = find_single_element(p_tag, "a", "")
+            a_tag = find_single_element(p_tag, "a", None)
             url = a_tag.get("href", "")
 
             if not isinstance(url, str):
@@ -574,6 +577,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
             publication = ""
             if url:
                 publication = urlparse(url).netloc
+                article_title = get_article_title(url)
 
             if answer.lower() == "science":
                 sof_result = f"science{science_items}"
@@ -587,7 +591,8 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
                     show_notes_text=p_text,
                     article_url=url,
                     sof_result=sof_result,
-                    publication=publication,
+                    article_publication=publication,
+                    article_title=article_title,
                 )
             )
 
@@ -615,9 +620,8 @@ class NewsItem(BaseSegment):
     topic: str
     url: str
 
-    # From the article URL, we can get the following fields:
-    title: str = ""  # TODO
-    publication: str
+    article_title: str
+    article_publication: str
 
     @property
     def template_name(self) -> str:
@@ -625,15 +629,15 @@ class NewsItem(BaseSegment):
 
     @property
     def llm_prompt(self) -> str:
-        return f"Please identify the start of the news segment whose topic is: {self.title}"
+        return f"Please identify the start of the news segment whose topic is: {self.article_title}"
 
     def get_template_values(self) -> dict[str, Any]:
         return {
             "item_number": self.item_number,
             "topic": self.topic,
             "url": self.url,
-            "title": self.title,
-            "publication": self.publication,
+            "article_title": self.article_title,
+            "article_publication": self.article_publication,
         }
 
     @staticmethod
@@ -689,6 +693,7 @@ class NewsMetaSegment(FromLyricsSegment):
                 publication = ""
                 if url:
                     publication = urlparse(url).netloc
+                    article_title = get_article_title(url)
 
                 match = re.match(r"news item #\d+ . (.+)", line, re.IGNORECASE)
                 if not match:
@@ -700,7 +705,8 @@ class NewsMetaSegment(FromLyricsSegment):
                         item_number=item_counter,
                         topic=topic,
                         url=url,
-                        publication=publication,
+                        article_publication=publication,
+                        article_title=article_title,
                     )
                 )
 

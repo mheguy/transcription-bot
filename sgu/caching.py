@@ -5,7 +5,7 @@ from hashlib import sha256
 from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
 
 from sgu.config import CACHE_FOLDER
-from sgu.custom_logger import logger
+from sgu.global_logger import logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine

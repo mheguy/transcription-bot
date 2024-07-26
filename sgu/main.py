@@ -1,11 +1,10 @@
 import asyncio
 
-import requests
 from dotenv import load_dotenv
 
-from sgu.config import CUSTOM_HEADERS
-from sgu.custom_logger import logger
 from sgu.data_gathering import gather_data
+from sgu.global_http_client import http_client
+from sgu.global_logger import logger
 from sgu.parsers.episode_data import convert_episode_data_to_episode_segments
 from sgu.parsers.rss_feed import get_podcast_episodes
 from sgu.transcript_formatting import adjust_transcript_for_voiceover
@@ -24,37 +23,34 @@ async def main() -> None:
     """
     logger.success("Starting...")
 
-    with requests.Session() as client:
-        client.headers.update(CUSTOM_HEADERS)
+    logger.info("Getting episodes from RSS feed...")
+    podcast_episoes = get_podcast_episodes(http_client)
 
-        logger.info("Getting episodes from RSS feed...")
-        podcast_episoes = get_podcast_episodes(client)
+    for podcast_episode in podcast_episoes:
+        logger.info(f"Processing episode #{podcast_episode.episode_number}")
 
-        for podcast_episode in podcast_episoes:
-            logger.info(f"Processing episode #{podcast_episode.episode_number}")
+        logger.info("Checking for wiki page...")
+        wiki_page_exists = episode_has_wiki_page(http_client, podcast_episode.episode_number)
 
-            logger.info("Checking for wiki page...")
-            wiki_page_exists = episode_has_wiki_page(client, podcast_episode.episode_number)
+        if wiki_page_exists:
+            logger.info("Episode has a wiki page. Stopping.")
+            break
 
-            if wiki_page_exists:
-                logger.info("Episode has a wiki page. Stopping.")
-                break
+        logger.debug("Gathering all data...")
+        episode_data = await gather_data(http_client, podcast_episode)
+        adjust_transcript_for_voiceover(episode_data.transcript)
 
-            logger.debug("Gathering all data...")
-            episode_data = await gather_data(client, podcast_episode)
-            adjust_transcript_for_voiceover(episode_data.transcript)
+        logger.debug("Converting data to segments...")
+        episode_segments = convert_episode_data_to_episode_segments(episode_data)
 
-            logger.debug("Converting data to segments...")
-            episode_segments = convert_episode_data_to_episode_segments(episode_data)
+        logger.debug("Merging transcript into episode segments...")
+        episode_segments = add_transcript_to_segments(episode_data.transcript, episode_segments)
 
-            logger.debug("Merging transcript into episode segments...")
-            episode_segments = add_transcript_to_segments(episode_data.transcript, episode_segments)
+        await create_podcast_wiki_page(http_client, episode_data, episode_segments)
 
-            await create_podcast_wiki_page(client, episode_data, episode_segments)
+        break  # TODO: Maybe remove this at some point. It's just making sure that we don't process multiple episodes
 
-            break  # TODO: Maybe remove this at some point. It's just making sure that we don't process multiple episodes
-
-        logger.success("Shutting down.")
+    logger.success("Shutting down.")
 
 
 if __name__ == "__main__":

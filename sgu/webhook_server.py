@@ -7,7 +7,7 @@ from threading import Thread
 import ngrok
 
 from sgu.config import NGROK_TOKEN, SERVER_PORT
-from sgu.custom_logger import logger
+from sgu.global_logger import logger
 
 
 class WebhookServer:

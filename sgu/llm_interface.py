@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from sgu.caching import file_cache
 from sgu.config import LLM_MODEL, OPENAI_API_KEY, OPENAI_ORG, OPENAI_PROJECT
-from sgu.custom_logger import logger
+from sgu.global_logger import logger
 
 if TYPE_CHECKING:
     from sgu.episode_segments import BaseSegment

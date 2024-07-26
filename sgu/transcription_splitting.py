@@ -1,8 +1,8 @@
 import itertools
 from typing import TYPE_CHECKING
 
-from sgu.custom_logger import logger
-from sgu.episode_segments import IntroSegment, SegmentSource
+from sgu.episode_segments import IntroSegment
+from sgu.global_logger import logger
 from sgu.llm_interface import ask_llm_for_segment_start
 
 if TYPE_CHECKING:
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 def add_transcript_to_segments(transcript: "DiarizedTranscript", episode_segments: "Segments") -> "Segments":
     """Add the transcript to the episode segments."""
-    segments: Segments = [IntroSegment(source=SegmentSource.HARDCODED, start_time=0), *episode_segments]
+    segments: Segments = [IntroSegment(start_time=0), *episode_segments]
     transcript = transcript.copy()
 
     last_start_time = 0

@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 from requests import RequestException
 
 from sgu.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE
-from sgu.custom_logger import logger
 from sgu.episode_segments import BaseSegment, QuoteSegment, Segments
+from sgu.global_logger import logger
 from sgu.llm_interface import ask_llm_for_image_caption
 from sgu.parsers.show_notes import get_episode_image_url
 from sgu.template_environment import template_env

@@ -8,8 +8,8 @@ from mutagen.id3 import ID3
 
 from sgu.caching import file_cache_async
 from sgu.config import AUDIO_FOLDER
-from sgu.custom_logger import logger
 from sgu.downloader import FileDownloader
+from sgu.global_logger import logger
 from sgu.transcription import (
     DiarizedTranscript,
     get_transcript,

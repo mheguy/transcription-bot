@@ -1,7 +1,7 @@
 import re
 from typing import TYPE_CHECKING
 
-from sgu.episode_segments import BaseSegment, FromLyricsSegment, Segments, SegmentSource, UnknownSegment, segment_types
+from sgu.episode_segments import BaseSegment, FromLyricsSegment, Segments, UnknownSegment, segment_types
 
 if TYPE_CHECKING:
     from sgu.episode_segments import BaseSegment
@@ -30,4 +30,4 @@ def _create_segment_from_lyric_chunk(text: str) -> "BaseSegment|None":
     if found_match:
         raise ValueError(f"Match found in other parsers: {text}")
 
-    return UnknownSegment.create(text=text, source=SegmentSource.LYRICS)
+    return UnknownSegment.create(text=text)

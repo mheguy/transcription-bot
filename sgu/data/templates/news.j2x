@@ -2,8 +2,8 @@
 == News Item #((( item_number ))) - ((( topic ))) <small>( ((( start_time ))) )</small> ==
 {{shownotes
 |weblink = ((( url )))
-|article_title = ((( topic ))) ((# TODO: Replace with title #))
-|publication = ((( publication )))
+|article_title = ((( article_title )))
+|publication = ((( article_publication )))
 }}
 
 ((( transcript )))

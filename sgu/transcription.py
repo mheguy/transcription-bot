@@ -21,7 +21,7 @@ from sgu.config import (
     TRANSCRIPTION_PROMPT,
     VOICEPRINT_FILE,
 )
-from sgu.custom_logger import logger
+from sgu.global_logger import logger
 from sgu.parsers.rss_feed import PodcastEpisode
 from sgu.webhook_server import WebhookServer
 

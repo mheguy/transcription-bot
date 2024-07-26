@@ -22,9 +22,6 @@ OPENAI_PROJECT = os.environ["OPENAI_PROJECT"]
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 LLM_MODEL = "gpt-4o"
 
-# Custom headers to identify ourselves to the SGU servers.
-CUSTOM_HEADERS = {"User-Agent": "SGU Transcription Bot (matthew.heguy@gmail.com)"}
-
 # Server for PyannoteAI callback
 SERVER_PORT = 23500
 
