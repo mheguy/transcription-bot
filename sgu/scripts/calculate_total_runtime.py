@@ -43,6 +43,7 @@ def process_file(file_path: "Path") -> float:
 
 
 def main() -> None:
+    """Calculate the total runtime of all MP3 files in the audio folder."""
     total_runtime = 0.0
 
     all_files = list(AUDIO_FOLDER.glob("*.mp3"))

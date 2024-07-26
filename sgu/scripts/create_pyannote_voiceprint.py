@@ -29,12 +29,14 @@ logger = logging.getLogger("voiceprint")
 
 @app.route("/files/<string:filename>", methods=["GET"])
 def get_audio_file(filename: str) -> Response:
+    """Flask endpoint to serve the custom audio file."""
     logger.info("Got request for %s", filename)
     return send_file(AUDIO_FILE, mimetype="audio/mpeg")
 
 
 @app.route("/webhook", methods=["POST"])
 def handle_webhook() -> Response:
+    """Flask endpoint to handle the webhook."""
     logger.info("Got webhook: %s", request.data)
 
     data = request.json
@@ -46,7 +48,7 @@ def handle_webhook() -> Response:
     return Response(status=200)
 
 
-def send_voiceprint(base_url: str) -> None:
+def _send_voiceprint(base_url: str) -> None:
     webhook_url = f"{base_url}/webhook"
     file_url = f"{base_url}/files/{AUDIO_FILE.name}"
     data = {"webhook": webhook_url, "url": file_url}
@@ -67,6 +69,6 @@ if __name__ == "__main__":
     url = listener.url()
     logger.info("Listening on %s", url)
 
-    threading.Thread(target=send_voiceprint, args=(url,), daemon=True).start()
+    threading.Thread(target=_send_voiceprint, args=(url,), daemon=True).start()
 
     app.run(port=SERVER_PORT)

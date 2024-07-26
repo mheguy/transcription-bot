@@ -73,25 +73,6 @@ async def get_transcript(audio_file: "Path", podcast: "PodcastEpisode") -> "Diar
     return _merge_transcript_and_diarization(transcription, diarization)
 
 
-def send_diarization_request(listener_url: str, audio_file_url: str) -> None:
-    """Send a diarization request with our webhook information.
-
-    Args:
-        listener_url (str): URL of our webhook listener.
-        audio_file_url (str): URL of the audio file to process.
-    """
-    webhook_url = f"{listener_url}/webhook"
-
-    headers = {"Authorization": f"Bearer {PYANNOTE_TOKEN}", "Content-Type": "application/json"}
-    data = {"webhook": webhook_url, "url": audio_file_url, "voiceprints": _get_voiceprints()}
-
-    logger.info(f"Request data: {data}")
-    response = requests.post(PYANNOTE_IDENTIFY_ENDPOINT, headers=headers, json=data, timeout=10)
-    response.raise_for_status()
-
-    logger.info(f"Request sent. Response: {response.content}")
-
-
 def _load_audio(audio_file: "Path") -> AudioArray:
     return whisperx.load_audio(str(audio_file))
 
@@ -108,7 +89,7 @@ async def _create_diarization(podcast: "PodcastEpisode") -> "DataFrame":
         webhook_server = WebhookServer()
         server_url = await webhook_server.start_server_thread()
 
-        send_diarization_request(server_url, podcast.download_url)
+        _send_diarization_request(server_url, podcast.download_url)
 
         dia_response = await webhook_server.get_webhook_payload_async()
 
@@ -117,6 +98,19 @@ async def _create_diarization(podcast: "PodcastEpisode") -> "DataFrame":
 
     response_dict = json.loads(dia_response)
     return pd.DataFrame(response_dict["output"]["identification"])
+
+
+def _send_diarization_request(listener_url: str, audio_file_url: str) -> None:
+    webhook_url = f"{listener_url}/webhook"
+
+    headers = {"Authorization": f"Bearer {PYANNOTE_TOKEN}", "Content-Type": "application/json"}
+    data = {"webhook": webhook_url, "url": audio_file_url, "voiceprints": _get_voiceprints()}
+
+    logger.info(f"Request data: {data}")
+    response = requests.post(PYANNOTE_IDENTIFY_ENDPOINT, headers=headers, json=data, timeout=10)
+    response.raise_for_status()
+
+    logger.info(f"Request sent. Response: {response.content}")
 
 
 def _merge_transcript_and_diarization(

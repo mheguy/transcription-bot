@@ -9,6 +9,7 @@ from sgu.parsers.rss_feed import get_podcast_episodes
 
 
 async def main() -> None:
+    """Download all episodes of the SGU."""
     downloaded_episodes = {int(f.stem) for f in AUDIO_FOLDER.glob("*.mp3")}
 
     with requests.Session() as sync_client:
