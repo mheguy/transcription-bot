@@ -47,7 +47,8 @@ async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode")
 
     # Above: Generic actions
     # Below: Wiki-specific actions
-    # convert segments to wiki
+    # we must grab speaker data before we convert transcript to wiki
+    speakers = {s["speaker"].lower() for s in episode_data.transcript}
     wiki_segments = "\n".join(s.to_wiki() for s in episode_segments)
     qotw_segment = _extract_quote_of_the_week_for_wiki(episode_segments)
 
@@ -57,8 +58,6 @@ async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode")
         logger.debug("Uploading image for episode...")
         episode_image_url = get_episode_image_url(episode_data.show_notes)
         episode_icon_name = _upload_image_to_wiki(client, episode_image_url, episode_data.podcast.episode_number)
-
-    speakers = {s["speaker"].lower() for s in episode_data.transcript}
 
     logger.debug("Creating wiki page...")
     wiki_page = _construct_wiki_page(episode_data, episode_icon_name, wiki_segments, qotw_segment, speakers)

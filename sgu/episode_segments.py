@@ -10,7 +10,7 @@ from sgu.custom_logger import logger
 from sgu.exceptions import StartTimeNotFoundError
 from sgu.helpers import are_strings_in_string, find_single_element, string_is_url
 from sgu.template_environment import template_env
-from sgu.transcript_formatting import format_transcript_for_wiki
+from sgu.transcript_formatting import format_time, format_transcript_for_wiki
 
 if TYPE_CHECKING:
     from sgu.transcription import DiarizedTranscript
@@ -62,7 +62,7 @@ class BaseSegment(ABC):
         template = template_env.get_template(f"{self.template_name}.j2x")
         template_values = self.get_template_values()
         return template.render(
-            start_time=self.start_time,
+            start_time=format_time(self.start_time),
             transcript=format_transcript_for_wiki(self.transcript),
             source=f"<!-- data source: {self.source.value} -->",
             **template_values,

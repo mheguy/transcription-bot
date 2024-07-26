@@ -9,19 +9,28 @@ def format_transcript_for_wiki(transcript: "DiarizedTranscript") -> str:
     transcript = _join_speaker_segments(transcript)
     _abbreviate_speakers(transcript)
 
-    text_segments: list[str] = []
-    for transcript_chunk in transcript:
-        start_time = _format_time(transcript_chunk["start"])
-        end_time = _format_time(transcript_chunk["end"])
+    text_segments = [
+        f"'''{transcript_chunk['speaker']}''':{transcript_chunk['text']}" for transcript_chunk in transcript
+    ]
 
-        text_segments.append(f"<!-- {start_time} - {end_time} -->")
-        text_segments.append(f"'''{transcript_chunk['speaker']}''':{transcript_chunk['text']}<br />")
-
-    return "\n".join(text_segments)
+    return "\n\n".join(text_segments)
 
 
-def _format_time(time: float) -> str:
-    return f"{int(time) // 3600:02d}:{int(time) // 60 % 60:02d}:{int(time) % 60:02d}"
+def format_time(time: float | None) -> str:
+    """Format a float time to h:mm:ss or mm:ss if < 1 hour."""
+    if not time:
+        return "???"
+
+    hour_count = int(time) // 3600
+
+    hour = ""
+    if hour_count:
+        hour = f"{hour_count}:"
+
+    minutes = f"{int(time) // 60 % 60:02d}:"
+    seconds = f"{int(time) % 60:02d}"
+
+    return f"{hour}{minutes}{seconds}"
 
 
 def _join_speaker_segments(transcript: "DiarizedTranscript") -> "DiarizedTranscript":

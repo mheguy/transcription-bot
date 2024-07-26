@@ -1,7 +1,6 @@
 {{anchor|sof}}
 {{anchor|theme}}
 == Science or Fiction <small>( ((( start_time ))) )</small> ==
-((( source )))
 {{SOFinfo
 |theme = ((( theme )))
 |hiddentheme =
@@ -31,4 +30,5 @@
 |win = <!-- at least one Rogue guessed wrong, but not them all -->
 |swept = <!-- all the Rogues guessed right -->
 }}
+
 ((( transcript )))
