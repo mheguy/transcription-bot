@@ -62,6 +62,9 @@ def _join_speaker_segments(transcript: "DiarizedTranscript") -> "DiarizedTranscr
 
 def _abbreviate_speakers(transcript: "DiarizedTranscript") -> None:
     for chunk in transcript:
+        if chunk["speaker"] == "Voiceover":
+            continue
+
         if "SPEAKER_" in chunk["speaker"]:
             name = "US#" + chunk["speaker"].split("_")[1]
             chunk["speaker"] = name
