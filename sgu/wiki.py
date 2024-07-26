@@ -6,47 +6,23 @@ from requests import RequestException
 
 from sgu.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE
 from sgu.custom_logger import logger
-from sgu.data_gathering import gather_data
-from sgu.episode_segments import BaseSegment, QuoteSegment
-from sgu.parsers.episode_data import convert_episode_data_to_episode_segments
+from sgu.episode_segments import BaseSegment, QuoteSegment, Segments
 from sgu.parsers.show_notes import get_episode_image_url
 from sgu.template_environment import template_env
-from sgu.transcription_splitting import add_transcript_to_segments
 
 if TYPE_CHECKING:
     from requests import Session
 
     from sgu.data_gathering import EpisodeData
-    from sgu.parsers.rss_feed import PodcastEpisode
 
 
 # region public functions
-
-
-async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode"):
+async def create_podcast_wiki_page(client: "Session", episode_data: "EpisodeData", episode_segments: Segments) -> None:
     """Creates a wiki page for a podcast episode.
 
     This function gathers all the necessary data for the episode, merges the data into segments,
     and converts the segments into wiki page content.
-
-    Args:
-        client (requests.Session): The HTTP client session.
-        podcast (PodcastEpisode): The podcast episode.
-
-    Returns:
-        str: The wiki page content.
     """
-    logger.debug("Gathering all data...")
-    episode_data = await gather_data(client, podcast)
-
-    logger.debug("Converting data to segments...")
-    episode_segments = convert_episode_data_to_episode_segments(episode_data)
-
-    logger.debug("Merging transcript into episode segments...")
-    episode_segments = add_transcript_to_segments(episode_data.transcript, episode_segments)
-
-    # Above: Generic actions
-    # Below: Wiki-specific actions
     # we must grab speaker data before we convert transcript to wiki
     speakers = {s["speaker"].lower() for s in episode_data.transcript}
     wiki_segments = "\n".join(s.to_wiki() for s in episode_segments)
@@ -94,8 +70,6 @@ def log_into_wiki(client: "Session") -> str:
 
 # endregion
 # region private functions
-
-
 def _find_image_upload(client: "Session", episode_number: str) -> str:
     params = {"action": "query", "list": "allimages", "aiprefix": episode_number, "format": "json"}
     response = client.get(WIKI_API_BASE, params=params)
