@@ -8,6 +8,7 @@
 |item((( item.number ))) = ((( item.show_notes_text )))
 |link((( item.number )))web = ((( item.article_url )))
 |link((( item.number )))title = ((( item.title )))
+|link((( item.number )))pub = ((( item.publication )))
 ((* endfor *))
 |}}
 {{SOFResults

@@ -4,11 +4,10 @@
 ((* else *))
 == Dumbest Thing of the Week<small>( ((( start_time ))) )</small> ==
 ((* endif *))
-((( source )))
 {{shownotes
 |weblink = ((( url )))
 |article_title = ((( article_title )))
-|publication = ((( publication )))
+|publication = ((( article_publication )))
 }}
 
 ((( transcript )))
