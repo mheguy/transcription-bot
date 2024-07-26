@@ -23,7 +23,7 @@ def _create_segment_from_summary_text(text: str) -> "BaseSegment|None":
     if _is_special_summary_text(lower_text):
         return None
 
-    logger.warning("Summary text did not match any segment type: %s", text)
+    logger.warning(f"Summary text did not match any segment type: {text}")
     return None
 
 

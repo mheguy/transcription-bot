@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from sgu.caching import file_cache
 from sgu.config import LLM_MODEL, OPENAI_API_KEY, OPENAI_ORG, OPENAI_PROJECT
+from sgu.custom_logger import logger
 
 if TYPE_CHECKING:
     from sgu.episode_segments import BaseSegment
@@ -35,6 +36,7 @@ def ask_llm_for_segment_start(segment: "BaseSegment", transcript: "DiarizedTrans
     transcript_blob = f"transcript:\n\n````{json.dumps(partial_transcript)}````"
     user_content = f"{segment.llm_prompt}\n\n{transcript_blob}"
 
+    logger.debug(f"Requesting LLM for segment: {segment}")
     response = client.chat.completions.create(
         model=LLM_MODEL,
         response_format={"type": "json_object"},
@@ -48,8 +50,7 @@ def ask_llm_for_segment_start(segment: "BaseSegment", transcript: "DiarizedTrans
         raise ValueError("LLM did not return a response.")
 
     response_json: dict[str, float | None] = json.loads(response.choices[0].message.content)
-
-    print(f"LLM response: {response_json}")
+    logger.debug(f"LLM response: {response_json}")
 
     return response_json.get("start_time")
 

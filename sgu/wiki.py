@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from requests import RequestException
 
 from sgu.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE
+from sgu.custom_logger import logger
 from sgu.data_gathering import gather_data
 from sgu.episode_segments import BaseSegment, QuoteSegment
 from sgu.parsers.episode_data import convert_episode_data_to_episode_segments
@@ -36,13 +37,13 @@ async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode")
     Returns:
         str: The wiki page content.
     """
-    print("Gathering all data...")
+    logger.debug("Gathering all data...")
     episode_data = await gather_data(client, podcast)
 
-    print("Converting data to segments...")
+    logger.debug("Converting data to segments...")
     episode_segments = convert_episode_data_to_episode_segments(episode_data)
 
-    print("Merging transcript into episode segments...")
+    logger.debug("Merging transcript into episode segments...")
     episode_segments = add_transcript_to_segments(episode_data.transcript, episode_segments)
 
     # TODO: Split transcript by episode segment
@@ -216,7 +217,7 @@ def _edit_page(client: "Session", page_title: str = "User:Mheguy", page_text: st
     resp.raise_for_status()
     data = resp.json()
 
-    print(data)
+    logger.debug(data)
 
 
 def _get_login_token(client: "Session") -> str:

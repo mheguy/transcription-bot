@@ -41,7 +41,7 @@ def file_cache_async(func: "Callable[P, Coroutine[None, None, R]]") -> "Callable
         cache_filepath = _get_cache_file(func, args, kwargs)
 
         if cache_filepath.exists():
-            logger.info("Loading from cache for: %s", func.__name__)
+            logger.info(f"Loading from cache for: {func.__name__}")
             return _load_cache(cache_filepath)
 
         result = await func(*args, **kwargs)

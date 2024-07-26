@@ -63,6 +63,6 @@ class WebhookServer:
     def _start_server(self) -> None:
         handler_class = self._create_handler_class()
         with socketserver.TCPServer(("", SERVER_PORT), handler_class) as httpd:
-            logger.info("Serving on port %s", SERVER_PORT)
+            logger.info(f"Serving on port {SERVER_PORT}")
             httpd.handle_request()
             logger.info("Server has shut down")

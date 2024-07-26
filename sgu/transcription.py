@@ -85,11 +85,11 @@ def send_diarization_request(listener_url: str, audio_file_url: str) -> None:
     headers = {"Authorization": f"Bearer {PYANNOTE_TOKEN}", "Content-Type": "application/json"}
     data = {"webhook": webhook_url, "url": audio_file_url, "voiceprints": _get_voiceprints()}
 
-    logger.info("Request data: %s", data)
+    logger.info(f"Request data: {data}")
     response = requests.post(PYANNOTE_IDENTIFY_ENDPOINT, headers=headers, json=data, timeout=10)
     response.raise_for_status()
 
-    logger.info("Request sent. Response: %s", response.content)
+    logger.info(f"Request sent. Response: {response.content}")
 
 
 def _load_audio(audio_file: "Path") -> AudioArray:

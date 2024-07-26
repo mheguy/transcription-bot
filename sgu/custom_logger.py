@@ -1,10 +1,15 @@
-import logging
+import sys
 
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(module)s - %(message)s")
+from loguru import logger
 
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
+from sgu.config import LOG_LEVEL
 
-logger = logging.getLogger("sgu")
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
+logger.remove()
+
+
+logger.add(
+    sys.stdout,
+    format="{time:HH:mm:ss} <level>{level: <8}</level> [SGU] {message}",
+    level=LOG_LEVEL,
+    colorize=True,
+)

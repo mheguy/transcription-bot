@@ -35,7 +35,7 @@ def _find_duplicate_segments(*segment_collections: "Segments") -> None:
 
         for segment in segment_collection:
             if segment in seen:
-                logger.info("Found duplicate segment: %s", segment)
+                logger.info(f"Found duplicate segment: {segment}")
 
 
 def _flatten_news(lyric_segments: "Segments") -> "Segments":

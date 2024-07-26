@@ -8,6 +8,7 @@ from mutagen.id3 import ID3
 
 from sgu.caching import file_cache_async
 from sgu.config import AUDIO_FOLDER
+from sgu.custom_logger import logger
 from sgu.downloader import FileDownloader
 from sgu.transcription import (
     DiarizedTranscript,
@@ -56,7 +57,7 @@ class EpisodeData:
 
 async def gather_data(client: "requests.Session", podcast: "PodcastEpisode") -> EpisodeData:
     """Gather data about a podcast episode."""
-    print("Getting show notes...")
+    logger.info("Getting show notes...")
     audio_file = await get_audio_file(client, podcast)
 
     async with asyncio.TaskGroup() as tg:
@@ -79,7 +80,7 @@ async def get_audio_file(client: "Session", podcast: "PodcastEpisode") -> "Path"
     if audio_file.exists():
         audio = audio_file.read_bytes()
     else:
-        print("Downloading episode...")
+        logger.info("Downloading episode...")
         downloader = FileDownloader(client)
         audio = downloader.download(podcast.download_url)
         audio_file.write_bytes(audio)

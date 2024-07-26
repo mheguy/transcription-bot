@@ -42,9 +42,3 @@ And the Better Jinja extension in VSCode supports them, so that's what I'm using
 ((( segment_text )))
 
 {{Navigation}}
-
-= Transcript =
-Below is the full diarized transcript, not broken into segments.
-
-
-((( transcript )))
