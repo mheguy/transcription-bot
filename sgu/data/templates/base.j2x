@@ -10,8 +10,6 @@ And the Better Jinja extension in VSCode supports them, so that's what I'm using
 #))
 {{Editing required
 |proofreading = y
-|time-stamps = y
-|formatting = y
 |links = y
 |Today I Learned list = y
 |categories = y
