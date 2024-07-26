@@ -1,5 +1,4 @@
 from sgu.episode_segments import SPECIAL_SUMMARY_PATTERNS, BaseSegment, FromSummaryTextSegment, Segments, segment_types
-from sgu.global_logger import logger
 
 
 def parse_summary_text(summary: str) -> Segments:
@@ -23,7 +22,6 @@ def _create_segment_from_summary_text(text: str) -> "BaseSegment|None":
     if _is_special_summary_text(lower_text):
         return None
 
-    logger.warning(f"Summary text did not match any segment type: {text}")
     return None
 
 

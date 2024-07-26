@@ -32,12 +32,12 @@ def ask_llm_for_segment_start(segment: "BaseSegment", transcript: "DiarizedTrans
     )
 
     partial_transcript = _get_next_n_minutes_of_transcript(transcript, 30)
-    partial_transcript = _drop_first_n_minutes_of_transcript(partial_transcript, 3)
+    partial_transcript = _drop_first_n_minutes_of_transcript(partial_transcript, 1)
 
     transcript_blob = f"transcript:\n\n````{json.dumps(partial_transcript)}````"
     user_prompt = f"{segment.llm_prompt}\n\n{transcript_blob}"
 
-    logger.debug(f"Requesting LLM for segment: {segment}")
+    logger.debug(f"Requesting LLM find start of segment: {segment}")
     response = client.chat.completions.create(
         model=LLM_MODEL,
         response_format={"type": "json_object"},

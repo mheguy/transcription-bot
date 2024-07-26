@@ -49,4 +49,8 @@ def add_transcript_to_segments(transcript: "DiarizedTranscript", episode_segment
     segments[-1].transcript.extend(transcript)
     logger.debug(f"Added {len(transcript)} transcript chunks to {segments[-1].__class__.__name__}")
 
+    for segment in segments:
+        if not segment.transcript:
+            logger.warning(f"Segment {segment} has no transcript")
+
     return segments
