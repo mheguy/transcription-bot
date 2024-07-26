@@ -1,6 +1,6 @@
 import re
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -10,6 +10,7 @@ from sgu.custom_logger import logger
 from sgu.exceptions import StartTimeNotFoundError
 from sgu.helpers import are_strings_in_string, find_single_element, string_is_url
 from sgu.template_environment import template_env
+from sgu.transcript_formatting import format_transcript_for_wiki
 
 if TYPE_CHECKING:
     from sgu.transcription import DiarizedTranscript
@@ -54,7 +55,7 @@ class BaseSegment(ABC):
 
     source: SegmentSource
     start_time: float | None = None
-    transcript: "DiarizedTranscript | None" = None
+    transcript: "DiarizedTranscript" = field(default_factory=list)
 
     def to_wiki(self) -> str:
         """Get the wiki text / section header for the segment."""
@@ -62,8 +63,8 @@ class BaseSegment(ABC):
         template_values = self.get_template_values()
         return template.render(
             start_time=self.start_time,
-            transcript=self.transcript,
-            source=f"<!-- {self.source.value} -->",
+            transcript=format_transcript_for_wiki(self.transcript),
+            source=f"<!-- data source: {self.source.value} -->",
             **template_values,
         )
 
@@ -158,7 +159,6 @@ class UnknownSegment(BaseSegment):
             if are_strings_in_string(self.extra_text.split(), chunk["text"].lower()):
                 return chunk["start"]
 
-        print("Did not find start of unknown segment:", self.title)
         return None
 
     @staticmethod
@@ -220,7 +220,6 @@ class LogicalFalacySegment(FromSummaryTextSegment):
             if are_strings_in_string(["name", "logical", "fallacy"], chunk["text"].lower()):
                 return chunk["start"]
 
-        print("Did not find start of name that logical fallacy segment.")
         return None
 
     @staticmethod
@@ -258,7 +257,6 @@ class QuickieSegment(FromLyricsSegment, FromSummaryTextSegment):
             if are_strings_in_string(self.subject.split(), chunk["text"].lower()):
                 return chunk["start"]
 
-        print("Did not find start of quickie segment.")
         return None
 
     @staticmethod
@@ -308,7 +306,6 @@ class WhatsTheWordSegment(FromSummaryTextSegment):
             if self.word.lower() in chunk["text"].lower():
                 return chunk["start"]
 
-        print("Did not find start of what's the word segment.")
         return None
 
     @staticmethod
@@ -348,14 +345,20 @@ class TikTokSegment(FromLyricsSegment):
             if are_strings_in_string(self.title.split(), chunk["text"].lower()):
                 return chunk["start"]
 
-        print("Did not find start of tiktok segment")
         return None
 
     @staticmethod
     def from_lyrics(text: str) -> "TikTokSegment":
         lines = text.split("\n")
+        lines = list(filter(None, lines))
         title = lines[1].strip()
         url = lines[2].strip()
+
+        if not title:
+            raise ValueError(f"Failed to extract title from: {text}")
+
+        if not url or not string_is_url(url):
+            raise ValueError(f"Failed to extract valid URL from: {text}")
 
         return TikTokSegment(title=title, url=url, source=SegmentSource.LYRICS)
 
@@ -485,7 +488,6 @@ class QuoteSegment(FromLyricsSegment):
             if "quote" in text and segment["speaker"] == "Steve":
                 return segment["start"]
 
-        print("Did not find start of quote segment.")
         return None
 
     @staticmethod
@@ -761,7 +763,6 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
             if "mail" in segment["text"].lower() and segment["speaker"] == "Steve":
                 return segment["start"]
 
-        print("Did not find start of email segment.")
         return None
 
     @staticmethod
@@ -825,7 +826,6 @@ class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
             if are_strings_in_string(["forgotten", "hero", "science"], chunk["text"].lower()):
                 return chunk["start"]
 
-        print("Did not find start of forgotten superhero of science segment.")
         return None
 
     @staticmethod
@@ -864,7 +864,6 @@ class SwindlersListSegment(FromSummaryTextSegment):
             if are_strings_in_string(["swindler", "list"], chunk["text"].lower()):
                 return chunk["start"]
 
-        print("Did not find start of swindler's list segment.")
         return None
 
     @staticmethod

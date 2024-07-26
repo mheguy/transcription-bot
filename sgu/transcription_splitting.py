@@ -1,5 +1,8 @@
+import itertools
 from typing import TYPE_CHECKING
 
+from sgu.caching import file_cache
+from sgu.custom_logger import logger
 from sgu.episode_segments import IntroSegment, SegmentSource
 from sgu.llm_interface import ask_llm_for_segment_start
 
@@ -8,72 +11,44 @@ if TYPE_CHECKING:
     from sgu.transcription import DiarizedTranscript
 
 
+@file_cache
 def add_transcript_to_segments(transcript: "DiarizedTranscript", episode_segments: "Segments") -> "Segments":
     """Add the transcript to the episode segments."""
     segments: Segments = [IntroSegment(source=SegmentSource.HARDCODED, start_time=0), *episode_segments]
     transcript = transcript.copy()
 
-    # This defines the "leftmost" segment. The one waiting to have the endpoint set.
-    last_episode_segment_with_start_time = segments[0]
+    last_start_time = 0
 
-    for segment in segments[1:]:
-        segment.start_time = segment.get_start_time(transcript)
+    for left_segment, right_segment in itertools.pairwise(segments):
+        # The left segment should have a start time, if it doesn't,
+        # we set it to the last start time we know of.
 
-        if not segment.start_time:
-            start_time = ask_llm_for_segment_start(segment, transcript)
+        if left_segment.start_time is None:
+            left_segment.start_time = last_start_time
 
-            if not start_time:
-                # If the segment does not have a start time, it's useless to us.
+        right_segment.start_time = right_segment.get_start_time(transcript)
+
+        if not right_segment.start_time:
+            right_segment.start_time = ask_llm_for_segment_start(right_segment, transcript)
+
+            if not right_segment.start_time:
+                logger.info(f"No start time found for segment: {right_segment}")
+                logger.warning(f"Segment will not get any transcript: {left_segment}")
                 continue
 
-            segment.start_time = start_time
+        if right_segment.start_time:
+            last_start_time = right_segment.start_time
 
-        # Fill in the transcript for the last segment
-        transcript_segments_for_last_episode_segment = []
+        # Start times are done, now we fill in the transcript for the left segment.
+        counter = 0
+        while transcript and transcript[0]["end"] < right_segment.start_time:
+            left_segment.transcript.append(transcript.pop(0))
+            counter += 1
 
-        while transcript and transcript[0]["end"] < segment.start_time:
-            transcript_segments_for_last_episode_segment.append(transcript.pop(0))
+        logger.debug(f"Added {counter} transcript chunks to {left_segment.__class__.__name__}")
 
-        last_episode_segment_with_start_time.transcript = _join_speaker_segments_in_transcript(
-            transcript_segments_for_last_episode_segment
-        )
+    # The last segment gets the rest of the transcript.
+    segments[-1].transcript.extend(transcript)
+    logger.debug(f"Added {len(transcript)} transcript chunks to {segments[-1].__class__.__name__}")
 
-        last_episode_segment_with_start_time = segment
-
-    last_episode_segment_with_start_time.transcript = _join_speaker_segments_in_transcript(transcript)
-
-    return _sort_segments(segments)
-
-
-def _sort_segments(segments: "Segments") -> "Segments":
-    with_starts = []
-    without_starts = []
-    for segment in segments:
-        if segment.start_time:
-            with_starts.append(segment)
-        else:
-            without_starts.append(segment)
-
-    return [*with_starts, *without_starts]
-
-
-def _join_speaker_segments_in_transcript(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
-    current_speaker = None
-
-    speaker_chunks = []
-    for transcript_chunk in transcript:
-        if transcript_chunk["speaker"] != current_speaker:
-            speaker_chunks.append(transcript_chunk)
-            current_speaker = transcript_chunk["speaker"]
-        else:
-            speaker_chunks[-1]["text"] += " " + transcript_chunk["text"]
-            speaker_chunks[-1]["end"] = transcript_chunk["end"]
-
-    for chunk in transcript:
-        if "SPEAKER_" in chunk["speaker"]:
-            name = "US#" + chunk["speaker"].split("_")[1]
-            chunk["speaker"] = name
-        else:
-            chunk["speaker"] = chunk["speaker"][0]
-
-    return speaker_chunks
+    return segments

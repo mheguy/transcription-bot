@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 
     from sgu.data_gathering import EpisodeData
     from sgu.parsers.rss_feed import PodcastEpisode
-    from sgu.transcription import DiarizedTranscript
 
 
 # region public functions
@@ -46,22 +45,23 @@ async def create_podcast_wiki_page(client: "Session", podcast: "PodcastEpisode")
     logger.debug("Merging transcript into episode segments...")
     episode_segments = add_transcript_to_segments(episode_data.transcript, episode_segments)
 
-    # TODO: Split transcript by episode segment
-    pretty_transcript = _get_pretty_transcript(episode_data.transcript)
-
-    # Wiki-specific actions
-    wiki_segments = "\n".join(s.to_wiki() for s in episode_segments)  # convert segments to wiki
+    # Above: Generic actions
+    # Below: Wiki-specific actions
+    # convert segments to wiki
+    wiki_segments = "\n".join(s.to_wiki() for s in episode_segments)
     qotw_segment = _extract_quote_of_the_week_for_wiki(episode_segments)
 
     # Image upload
     episode_icon_name = _find_image_upload(client, str(episode_data.podcast.episode_number))
     if not episode_icon_name:
-        print("Uploading image for episode...")
+        logger.debug("Uploading image for episode...")
         episode_image_url = get_episode_image_url(episode_data.show_notes)
         episode_icon_name = _upload_image_to_wiki(client, episode_image_url, episode_data.podcast.episode_number)
 
-    print("Creating wiki page...")
-    wiki_page = _construct_wiki_page(episode_data, episode_icon_name, wiki_segments, pretty_transcript, qotw_segment)
+    speakers = {s["speaker"].lower() for s in episode_data.transcript}
+
+    logger.debug("Creating wiki page...")
+    wiki_page = _construct_wiki_page(episode_data, episode_icon_name, wiki_segments, qotw_segment, speakers)
     _edit_page(client, page_text=wiki_page)  # TODO: Change for "Create page"
 
 
@@ -139,34 +139,12 @@ def _extract_quote_of_the_week_for_wiki(segments: list["BaseSegment"]) -> QuoteS
     return None
 
 
-def _get_pretty_transcript(transcript: "DiarizedTranscript") -> str:
-    for transcript_chunk in transcript:
-        if "SPEAKER_" in transcript_chunk["speaker"]:
-            name = "US#" + transcript_chunk["speaker"].split("_")[1]
-            transcript_chunk["speaker"] = name
-        else:
-            transcript_chunk["speaker"] = transcript_chunk["speaker"][0]
-
-    text_segments: list[str] = []
-    for transcript_chunk in transcript:
-        start_time = "{:02d}:{:02d}:{:02d}".format(
-            int(transcript_chunk["start"]) // 3600,
-            int(transcript_chunk["start"]) // 60 % 60,
-            int(transcript_chunk["start"]) % 60,
-        )
-
-        text = f"{start_time}<br />\n'''{transcript_chunk['speaker']}''':{transcript_chunk['text']}<br />\n"
-        text_segments.append(text)
-
-    return "".join(text_segments)
-
-
 def _construct_wiki_page(
     episode_data: "EpisodeData",
     episode_icon_name: str,
     segment_text: str,
-    transcript: str,
     qotw_segment: QuoteSegment | None,
+    speakers: set[str],
 ) -> str:
     template = template_env.get_template("base.j2x")
 
@@ -182,19 +160,19 @@ def _construct_wiki_page(
 
     return template.render(
         segment_text=segment_text,
-        transcript=transcript,
         episode_number=episode_data.podcast.episode_number,
         episode_group_number=episode_group_number,
         episode_icon_name=episode_icon_name,
         quote_of_the_week=quote_of_the_week,
         quote_of_the_week_attribution=quote_of_the_week_attribution,
-        is_bob_present=episode_data.rogue_attendance.get("bob"),
-        is_cara_present=episode_data.rogue_attendance.get("cara"),
-        is_jay_present=episode_data.rogue_attendance.get("jay"),
-        is_evan_present=episode_data.rogue_attendance.get("evan"),
-        is_george_present=episode_data.rogue_attendance.get("george"),
-        is_rebecca_present=episode_data.rogue_attendance.get("rebecca"),
-        is_perry_present=episode_data.rogue_attendance.get("perry"),
+        # TODO: Get rogue attendance data
+        is_bob_present="bob" in speakers,
+        is_cara_present="cara" in speakers,
+        is_jay_present="jay" in speakers,
+        is_evan_present="evan" in speakers,
+        is_george_present="george" in speakers,
+        is_rebecca_present="rebecca" in speakers,
+        is_perry_present="perry" in speakers,
         forum_link="",  # TODO: Add forum link
     )
 
