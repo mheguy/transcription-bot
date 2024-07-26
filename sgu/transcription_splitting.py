@@ -1,7 +1,6 @@
 import itertools
 from typing import TYPE_CHECKING
 
-from sgu.caching import file_cache
 from sgu.custom_logger import logger
 from sgu.episode_segments import IntroSegment, SegmentSource
 from sgu.llm_interface import ask_llm_for_segment_start
@@ -11,7 +10,6 @@ if TYPE_CHECKING:
     from sgu.transcription import DiarizedTranscript
 
 
-@file_cache
 def add_transcript_to_segments(transcript: "DiarizedTranscript", episode_segments: "Segments") -> "Segments":
     """Add the transcript to the episode segments."""
     segments: Segments = [IntroSegment(source=SegmentSource.HARDCODED, start_time=0), *episode_segments]

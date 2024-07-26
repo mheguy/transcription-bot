@@ -60,7 +60,6 @@ async def gather_data(client: "requests.Session", podcast: "PodcastEpisode") -> 
     )
 
 
-@file_cache_async
 async def get_audio_file(client: "Session", podcast: "PodcastEpisode") -> "Path":
     """Retrieve the audio file for a podcast episode."""
     audio_file = AUDIO_FOLDER / f"{podcast.episode_number}.mp3"
