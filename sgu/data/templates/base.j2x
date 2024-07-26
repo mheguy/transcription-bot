@@ -20,7 +20,7 @@ And the Better Jinja extension in VSCode supports them, so that's what I'm using
 |episodeNum = ((( episode_number )))
 |episodeDate = {{((( episode_group_number )))|((( episode_number )))|boxdate}}
 |episodeIcon = File:((( episode_icon_name )))
-|caption = - <!-- MANUAL: add a meaningful caption -->
+|caption = ((( episode_icon_caption )))
 |bob = ((( is_bob_present )))
 |cara = ((( is_cara_present )))
 |jay = ((( is_jay_present )))

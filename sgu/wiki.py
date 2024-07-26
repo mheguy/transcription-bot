@@ -7,6 +7,7 @@ from requests import RequestException
 from sgu.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE
 from sgu.custom_logger import logger
 from sgu.episode_segments import BaseSegment, QuoteSegment, Segments
+from sgu.llm_interface import ask_llm_for_image_caption
 from sgu.parsers.show_notes import get_episode_image_url
 from sgu.template_environment import template_env
 
@@ -28,15 +29,19 @@ async def create_podcast_wiki_page(client: "Session", episode_data: "EpisodeData
     wiki_segments = "\n".join(s.to_wiki() for s in episode_segments)
     qotw_segment = _extract_quote_of_the_week_for_wiki(episode_segments)
 
+    episode_image_url = get_episode_image_url(episode_data.show_notes)
+    episode_icon_caption = ask_llm_for_image_caption(episode_image_url)
+
     # Image upload
     episode_icon_name = _find_image_upload(client, str(episode_data.podcast.episode_number))
     if not episode_icon_name:
         logger.debug("Uploading image for episode...")
-        episode_image_url = get_episode_image_url(episode_data.show_notes)
         episode_icon_name = _upload_image_to_wiki(client, episode_image_url, episode_data.podcast.episode_number)
 
     logger.debug("Creating wiki page...")
-    wiki_page = _construct_wiki_page(episode_data, episode_icon_name, wiki_segments, qotw_segment, speakers)
+    wiki_page = _construct_wiki_page(
+        episode_data, episode_icon_name, episode_icon_caption, wiki_segments, qotw_segment, speakers
+    )
     _edit_page(client, page_text=wiki_page)  # TODO: Change for "Create page"
 
 
@@ -115,6 +120,7 @@ def _extract_quote_of_the_week_for_wiki(segments: list["BaseSegment"]) -> QuoteS
 def _construct_wiki_page(
     episode_data: "EpisodeData",
     episode_icon_name: str,
+    episode_icon_caption: str,
     segment_text: str,
     qotw_segment: QuoteSegment | None,
     speakers: set[str],
@@ -136,6 +142,7 @@ def _construct_wiki_page(
         episode_number=episode_data.podcast.episode_number,
         episode_group_number=episode_group_number,
         episode_icon_name=episode_icon_name,
+        episode_icon_caption=episode_icon_caption,
         quote_of_the_week=quote_of_the_week,
         quote_of_the_week_attribution=quote_of_the_week_attribution,
         is_bob_present="bob" in speakers,

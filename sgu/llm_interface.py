@@ -34,7 +34,7 @@ def ask_llm_for_segment_start(segment: "BaseSegment", transcript: "DiarizedTrans
     partial_transcript = _get_next_n_minutes_of_transcript(transcript, 30)
 
     transcript_blob = f"transcript:\n\n````{json.dumps(partial_transcript)}````"
-    user_content = f"{segment.llm_prompt}\n\n{transcript_blob}"
+    user_prompt = f"{segment.llm_prompt}\n\n{transcript_blob}"
 
     logger.debug(f"Requesting LLM for segment: {segment}")
     response = client.chat.completions.create(
@@ -42,7 +42,7 @@ def ask_llm_for_segment_start(segment: "BaseSegment", transcript: "DiarizedTrans
         response_format={"type": "json_object"},
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_content},
+            {"role": "user", "content": user_prompt},
         ],
     )
 
@@ -53,6 +53,34 @@ def ask_llm_for_segment_start(segment: "BaseSegment", transcript: "DiarizedTrans
     logger.debug(f"LLM response: {response_json}")
 
     return response_json.get("start_time")
+
+
+@file_cache
+def ask_llm_for_image_caption(image_url: str) -> str:
+    """Ask an LLM to write an image caption."""
+    user_prompt = "Please write a 10-15 word caption for this image."
+
+    client = OpenAI(organization=OPENAI_ORG, project=OPENAI_PROJECT, api_key=OPENAI_API_KEY)
+    response = client.chat.completions.create(
+        model=LLM_MODEL,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": user_prompt},
+                    {"type": "image_url", "image_url": {"url": image_url}},
+                ],
+            }
+        ],
+    )
+
+    if not response.choices[0].message.content:
+        raise ValueError("LLM did not return a response.")
+
+    image_caption = response.choices[0].message.content
+    logger.debug(f"LLM response: {image_caption}")
+
+    return image_caption
 
 
 def _get_next_n_minutes_of_transcript(transcript: "DiarizedTranscript", minutes: int) -> "DiarizedTranscript":
