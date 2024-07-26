@@ -45,7 +45,7 @@ async def create_podcast_wiki_page(client: "Session", episode_data: "EpisodeData
 
     page_title = f"SGU_Episode_{episode_data.podcast.episode_number}"
 
-    _create_page(client, page_title, wiki_page, create_new_page=True)
+    _create_page(client, page_title, wiki_page)
 
 
 def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
@@ -159,13 +159,7 @@ def _construct_wiki_page(
     )
 
 
-def _create_page(client: "Session", page_title: str, page_text: str, *, create_new_page: bool) -> None:
-    if create_new_page:
-        page_creation_params = {"createonly": True, "nocreate": False}
-    else:
-        # Edit page
-        page_creation_params = {"createonly": False, "nocreate": True}
-
+def _create_page(client: "Session", page_title: str, page_text: str) -> None:
     csrf_token = log_into_wiki(client)
 
     payload = {
@@ -176,7 +170,7 @@ def _create_page(client: "Session", page_title: str, page_text: str, *, create_n
         "notminor": True,
         "bot": True,
         "token": csrf_token,
-        **page_creation_params,
+        "createonly": True,
     }
 
     resp = client.post(WIKI_API_BASE, data=payload)

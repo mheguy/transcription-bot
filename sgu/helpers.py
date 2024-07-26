@@ -52,12 +52,15 @@ def get_article_title(url: str) -> str:
         resp = http_client.get(url)
     except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching article title at {url} : {e}")
-        return "(Tool was unable to retrieve title)"
+        return "(Bot unable to retrieve title)"
 
     if not resp.ok:
         logger.error(f"Error fetching article title: {url}")
-        return "(Tool was unable to retrieve title)"
+        return "(Bot unable to retrieve title)"
 
     soup = BeautifulSoup(resp.text, "html.parser")
-    title_element = find_single_element(soup, "title", None)
+    title_element = soup.find("title")
+    if not title_element:
+        return "(Bot unable to retrieve title)"
+
     return title_element.text

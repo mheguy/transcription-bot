@@ -6,7 +6,6 @@ from urllib.parse import urlparse
 
 from bs4 import Tag
 
-from sgu.exceptions import StartTimeNotFoundError
 from sgu.global_logger import logger
 from sgu.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
 from sgu.template_environment import template_env
@@ -386,7 +385,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
             if are_strings_in_string(["dumb", "thing", "of", "the", "week"], segment["text"].lower()):
                 return segment["start"]
 
-        raise StartTimeNotFoundError("Failed to find start time for dumbest segment.")
+        return None
 
     @staticmethod
     def from_lyrics(text: str) -> "DumbestThingOfTheWeekSegment":
@@ -436,7 +435,7 @@ class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
             if are_strings_in_string(["who", "that", "noisy"], segment["text"].lower()):
                 return segment["start"]
 
-        raise StartTimeNotFoundError("Failed to find start time for noisy segment.")
+        return None
 
     @staticmethod
     def from_show_notes(segment_data: list["Tag"]) -> "NoisySegment":
@@ -537,7 +536,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
             if "time for science or fiction" in segment["text"].lower():
                 return segment["start"]
 
-        raise StartTimeNotFoundError("Failed to find start time for Science or Fiction segment.")
+        return None
 
     @staticmethod
     def from_show_notes(segment_data: list["Tag"]) -> "ScienceOrFictionSegment":
