@@ -48,8 +48,6 @@ async def main() -> None:
 
         await create_podcast_wiki_page(http_client, episode_data, episode_segments)
 
-        break
-
     logger.success("Shutting down.")
 
 
