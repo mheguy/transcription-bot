@@ -138,7 +138,6 @@ def _construct_wiki_page(
         episode_icon_name=episode_icon_name,
         quote_of_the_week=quote_of_the_week,
         quote_of_the_week_attribution=quote_of_the_week_attribution,
-        # TODO: Get rogue attendance data
         is_bob_present="bob" in speakers,
         is_cara_present="cara" in speakers,
         is_jay_present="jay" in speakers,

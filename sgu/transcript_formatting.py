@@ -33,6 +33,18 @@ def format_time(time: float | None) -> str:
     return f"{hour}{minutes}{seconds}"
 
 
+def adjust_transcript_for_voiceover(complete_transcript: "DiarizedTranscript") -> None:
+    """Adjust the transcript for voiceover."""
+    voiceover = complete_transcript[0]["speaker"]
+
+    if "SPEAKER_" not in voiceover:
+        return
+
+    for chunk in complete_transcript:
+        if chunk["speaker"] == voiceover:
+            chunk["speaker"] = "Voiceover"
+
+
 def _join_speaker_segments(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
     current_speaker = None
 
