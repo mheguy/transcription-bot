@@ -48,7 +48,7 @@ async def main() -> None:
 
         await create_podcast_wiki_page(http_client, episode_data, episode_segments)
 
-        break  # TODO: Maybe remove this at some point. It's just making sure that we don't process multiple episodes
+        break
 
     logger.success("Shutting down.")
 

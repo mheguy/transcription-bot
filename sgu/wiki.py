@@ -42,7 +42,10 @@ async def create_podcast_wiki_page(client: "Session", episode_data: "EpisodeData
     wiki_page = _construct_wiki_page(
         episode_data, episode_icon_name, episode_icon_caption, wiki_segments, qotw_segment, speakers
     )
-    _edit_page(client, page_text=wiki_page)  # TODO: Change for "Create page"
+
+    page_title = f"SGU_Episode_{episode_data.podcast.episode_number}"
+
+    _create_page(client, page_title, wiki_page, create_new_page=True)
 
 
 def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
@@ -145,18 +148,24 @@ def _construct_wiki_page(
         episode_icon_caption=episode_icon_caption,
         quote_of_the_week=quote_of_the_week,
         quote_of_the_week_attribution=quote_of_the_week_attribution,
-        is_bob_present="bob" in speakers,
-        is_cara_present="cara" in speakers,
-        is_jay_present="jay" in speakers,
-        is_evan_present="evan" in speakers,
-        is_george_present="george" in speakers,
-        is_rebecca_present="rebecca" in speakers,
-        is_perry_present="perry" in speakers,
-        forum_link="",  # TODO: Add forum link
+        is_bob_present="bob" in speakers and "y" or "",
+        is_cara_present="cara" in speakers and "y" or "",
+        is_jay_present="jay" in speakers and "y" or "",
+        is_evan_present="evan" in speakers and "y" or "",
+        is_george_present="george" in speakers and "y" or "",
+        is_rebecca_present="rebecca" in speakers and "y" or "",
+        is_perry_present="perry" in speakers and "y" or "",
+        forum_link="",
     )
 
 
-def _edit_page(client: "Session", page_title: str = "User:Mheguy", page_text: str = "") -> None:
+def _create_page(client: "Session", page_title: str, page_text: str, *, create_new_page: bool) -> None:
+    if create_new_page:
+        page_creation_params = {"createonly": True, "nocreate": False}
+    else:
+        # Edit page
+        page_creation_params = {"createonly": False, "nocreate": True}
+
     csrf_token = log_into_wiki(client)
 
     payload = {
@@ -166,8 +175,8 @@ def _edit_page(client: "Session", page_title: str = "User:Mheguy", page_text: st
         "text": page_text,
         "notminor": True,
         "bot": True,
-        "nocreate": True,
         "token": csrf_token,
+        **page_creation_params,
     }
 
     resp = client.post(WIKI_API_BASE, data=payload)
