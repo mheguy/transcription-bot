@@ -1,5 +1,5 @@
 {{anchor|news((( item_number )))}}
-== News Item #((( item_number ))) - ((( topic ))) <small>[((( start_time )))]</small> ==
+== News Item #((( item_number ))) - ((( topic ))) <small>((( "(" )))((( start_time )))((( ")" )))</small> ==
 {{shownotes
 |weblink = ((( url )))
 |article_title = ((( article_title )))

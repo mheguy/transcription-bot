@@ -1,5 +1,5 @@
 {{anchor|quickie}}
-== ((( title ))): ((( subject ))) <small>[((( start_time )))]</small> ==
+== ((( title ))): ((( subject ))) <small>((( "(" )))((( start_time )))((( ")" )))</small> ==
 ((* if url *))
 {{shownotes
 |weblink = ((( url )))

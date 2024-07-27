@@ -1,4 +1,4 @@
-== ((( title ))) <small>[((( start_time )))]</small> ==
+== ((( title ))) <small>((( "(" )))((( start_time )))((( ")" )))</small> ==
 
 ((( extra_text )))
 

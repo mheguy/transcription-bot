@@ -1,6 +1,6 @@
 ((# TODO: Handle multiple emails, classify question, follow-up, correction, etc. #))
 {{anchor|email}}
-== Emails <small>[((( start_time )))]</small> ==
+== Emails <small>((( "(" )))((( start_time )))((( ")" )))</small> ==
 <!-- 
 ((* for item in items *))
 text: ((( item )))

@@ -1,8 +1,8 @@
 {{anchor|dumbest}}
 ((* if topic *))
-== Dumbest Thing of the Week: ((( topic ))) <small>[((( start_time )))]</small> ==
+== Dumbest Thing of the Week: ((( topic ))) <small>((( "(" )))((( start_time )))((( ")" )))</small> ==
 ((* else *))
-== Dumbest Thing of the Week <small>[((( start_time )))]</small> ==
+== Dumbest Thing of the Week <small>((( "(" )))((( start_time )))((( ")" )))</small> ==
 ((* endif *))
 {{shownotes
 |weblink = ((( url )))
