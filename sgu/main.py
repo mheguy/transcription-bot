@@ -24,9 +24,9 @@ async def main() -> None:
     logger.success("Starting...")
 
     logger.info("Getting episodes from RSS feed...")
-    podcast_episoes = get_podcast_episodes(http_client)
+    podcast_episodes = get_podcast_episodes(http_client)
 
-    for podcast_episode in podcast_episoes:
+    for podcast_episode in podcast_episodes:
         logger.info(f"Processing episode #{podcast_episode.episode_number}")
 
         logger.info("Checking for wiki page...")
@@ -47,6 +47,8 @@ async def main() -> None:
         episode_segments = add_transcript_to_segments(episode_data.transcript, episode_segments)
 
         await create_podcast_wiki_page(http_client, episode_data, episode_segments)
+
+        logger.success(f"Episode #{podcast_episode.episode_number} processed.")
 
     logger.success("Shutting down.")
 

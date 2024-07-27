@@ -170,7 +170,7 @@ def _create_page(client: "Session", page_title: str, page_text: str) -> None:
         "notminor": True,
         "bot": True,
         "token": csrf_token,
-        "createonly": True,
+        "createonly": True,  # remove this line to allow overwriting existing pages
     }
 
     resp = client.post(WIKI_API_BASE, data=payload)

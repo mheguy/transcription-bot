@@ -59,29 +59,24 @@ class BaseSegment(ABC):
     @abstractmethod
     def template_name(self) -> str:
         """The name of the Jinja2 template file."""
-        raise NotImplementedError
 
     @property
     @abstractmethod
     def llm_prompt(self) -> str:
         """A prompt to help an LLM identify a transition between segments."""
-        raise NotImplementedError
 
     @staticmethod
     @abstractmethod
     def match_string(lowercase_text: str) -> bool:
         """Determine if the provided text matches a segment type."""
-        raise NotImplementedError
 
     @abstractmethod
     def get_template_values(self) -> dict[str, Any]:
         """Get the text representation of the segment (for the wiki page)."""
-        raise NotImplementedError
 
     @abstractmethod
     def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
         """Get the text representation of the segment (for the wiki page)."""
-        raise NotImplementedError
 
 
 class FromSummaryTextSegment(BaseSegment, ABC):
@@ -91,7 +86,6 @@ class FromSummaryTextSegment(BaseSegment, ABC):
     @abstractmethod
     def from_summary_text(text: str) -> "FromSummaryTextSegment":
         """Create a segment from the episode summary text."""
-        raise NotImplementedError
 
 
 class FromShowNotesSegment(BaseSegment, ABC):
@@ -101,7 +95,6 @@ class FromShowNotesSegment(BaseSegment, ABC):
     @abstractmethod
     def from_show_notes(segment_data: list["Tag"]) -> "FromShowNotesSegment":
         """Create a segment from the show notes."""
-        raise NotImplementedError
 
 
 class FromLyricsSegment(BaseSegment, ABC):
@@ -132,7 +125,7 @@ class UnknownSegment(BaseSegment):
         return f"Please identify the start of the segment whose title is: {self.title}, {self.extra_text}"
 
     def get_template_values(self) -> dict[str, Any]:
-        return {"title": self.title}
+        return {"title": self.title, "extra_text": self.extra_text}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -150,15 +143,11 @@ class UnknownSegment(BaseSegment):
 
     @staticmethod
     def create(text: str) -> "UnknownSegment":
-        lines = text.split("\n")
-        title = lines[0].strip()
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        lines += [""] * (1 - len(lines))
+        title, *extra_lines = lines
 
-        if len(lines) > 1:
-            extra_text = "\n".join(lines[1:])
-        else:
-            extra_text = ""
-
-        return UnknownSegment(title=title, extra_text=extra_text)
+        return UnknownSegment(title=title, extra_text=" ".join(extra_lines))
 
 
 @dataclass(kw_only=True)
@@ -186,17 +175,20 @@ class IntroSegment(BaseSegment):
 
 
 @dataclass(kw_only=True)
-class LogicalFalacySegment(FromSummaryTextSegment):
+class LogicalFallacySegment(FromLyricsSegment):
+    topic: str
+    attribution: str
+
     @property
     def template_name(self) -> str:
-        return "logical_falacy"
+        return "logical_fallacy"
 
     @property
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'name that logical fallacy' segment."
 
     def get_template_values(self) -> dict[str, Any]:
-        raise NotImplementedError
+        return {"topic": self.topic, "attribution": self.attribution}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -210,16 +202,24 @@ class LogicalFalacySegment(FromSummaryTextSegment):
         return None
 
     @staticmethod
-    def from_summary_text(text: str) -> "LogicalFalacySegment":
-        del text
+    def from_lyrics(text: str) -> "LogicalFallacySegment":
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        lines += [""] * (3 - len(lines))
+        _segment_name, topic, attribution, *extra = lines
 
-        return LogicalFalacySegment()
+        if extra:
+            logger.warning(f"Unexpected extra lines in logical fallacy segment: {extra}")
+
+        return LogicalFallacySegment(topic=topic, attribution=attribution)
 
 
 @dataclass(kw_only=True)
-class QuickieSegment(FromLyricsSegment, FromSummaryTextSegment):
+class QuickieSegment(FromLyricsSegment):
     title: str
     subject: str
+    url: str
+    article_title: str
+    article_publication: str
 
     @property
     def template_name(self) -> str:
@@ -230,7 +230,13 @@ class QuickieSegment(FromLyricsSegment, FromSummaryTextSegment):
         return f"Please find the start of the 'quickie' segment: {self.title}. The subject is: {self.subject}"
 
     def get_template_values(self) -> dict[str, Any]:
-        return {"title": self.title, "subject": self.subject}
+        return {
+            "title": self.title,
+            "subject": self.subject,
+            "url": self.url,
+            "article_title": self.article_title,
+            "article_publication": self.article_publication,
+        }
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -247,20 +253,27 @@ class QuickieSegment(FromLyricsSegment, FromSummaryTextSegment):
         return None
 
     @staticmethod
-    def from_summary_text(text: str) -> "QuickieSegment":
-        return QuickieSegment(title=text, subject="")
-
-    @staticmethod
     def from_lyrics(text: str) -> "QuickieSegment":
-        lines = text.split("\n")
-        title = lines[0].strip()
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        lines += [""] * (3 - len(lines))
+        title, subject, url, *extra = lines
 
-        if len(lines) > 1:
-            subject = lines[1].strip()
-        else:
-            subject = ""
+        if extra:
+            logger.warning(f"Unexpected extra lines in quickie segment: {extra}")
 
-        return QuickieSegment(title=title, subject=subject)
+        article_publication = ""
+        article_title = ""
+        if url:
+            article_publication = urlparse(url).netloc
+            article_title = get_article_title(url)
+
+        return QuickieSegment(
+            title=title,
+            subject=subject,
+            url=url,
+            article_title=article_title,
+            article_publication=article_publication,
+        )
 
 
 @dataclass(kw_only=True)
@@ -336,10 +349,12 @@ class TikTokSegment(FromLyricsSegment):
 
     @staticmethod
     def from_lyrics(text: str) -> "TikTokSegment":
-        lines = text.split("\n")
-        lines = list(filter(None, lines))
-        title = lines[1].strip()
-        url = lines[2].strip()
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        lines += [""] * (3 - len(lines))
+        _segment_name, title, url, *extra = lines
+
+        if extra:
+            logger.warning(f"Unexpected extra lines in tiktok segment: {extra}")
 
         if not title:
             raise ValueError(f"Failed to extract title from: {text}")
@@ -359,7 +374,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
 
     @property
     def template_name(self) -> str:
-        raise NotImplementedError
+        return "dumbest"
 
     @property
     def llm_prompt(self) -> str:
@@ -389,23 +404,24 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
 
     @staticmethod
     def from_lyrics(text: str) -> "DumbestThingOfTheWeekSegment":
-        lines = text.split("\n")
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        lines += [""] * (3 - len(lines))
+        _segment_name, topic, url, *extra = lines
 
-        topic = ""
-        if len(lines) > 1:
-            topic = lines[1].strip()
-
-        url = ""
-        if len(lines) > 2:  # noqa: PLR2004
-            url = lines[2].strip()
+        if extra:
+            logger.warning(f"Unexpected extra lines in dumbest thing of the week segment: {extra}")
 
         article_publication = ""
+        article_title = ""
         if url:
             article_publication = urlparse(url).netloc
             article_title = get_article_title(url)
 
         return DumbestThingOfTheWeekSegment(
-            topic=topic, url=url, article_publication=article_publication, article_title=article_title
+            topic=topic,
+            url=url,
+            article_publication=article_publication,
+            article_title=article_title,
         )
 
 
@@ -439,6 +455,7 @@ class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
 
     @staticmethod
     def from_show_notes(segment_data: list["Tag"]) -> "NoisySegment":
+        """Create a NoisySegment that will be merged with the lyrics segment."""
         if len(segment_data) == 1:
             return NoisySegment()
 
@@ -485,30 +502,18 @@ class QuoteSegment(FromLyricsSegment):
         return None
 
     @staticmethod
-    def from_show_notes(segment_data: list["Tag"]) -> "QuoteSegment":
-        if len(segment_data) > 1:
-            quote = segment_data[1].text
-        else:
-            quote = "N/A<!-- Failed to extract quote -->"
-
-        return QuoteSegment(quote=quote, attribution="")
-
-    @staticmethod
     def from_lyrics(text: str) -> "QuoteSegment":
-        lines = list(filter(None, text.split("\n")[1:]))
-        attribution = "<!-- Failed to extract attribution -->"
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        lines += [""] * (3 - len(lines))
+        _segment_name, quote, attribution, *extra = lines
 
-        if len(lines) == 1:
+        if extra:
+            logger.warning(f"Unexpected extra lines in quote segment: {extra}")
+
+        if not quote:
             logger.warning("Unable to extract quote attribution from lyrics.")
-        elif len(lines) == 2:  # noqa: PLR2004
-            attribution = lines[1]
-        else:
-            raise ValueError(f"Unexpected number of lines in segment text: {text}")
 
-        return QuoteSegment(
-            quote=lines[0],
-            attribution=attribution,
-        )
+        return QuoteSegment(quote=quote, attribution=attribution)
 
 
 @dataclass(kw_only=True)
@@ -574,6 +579,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
                 raise TypeError("Got an unexpected type in url")
 
             publication = ""
+            article_title = ""
             if url:
                 publication = urlparse(url).netloc
                 article_title = get_article_title(url)
@@ -599,7 +605,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
 
     @staticmethod
     def from_lyrics(text: str) -> "ScienceOrFictionSegment":
-        lines = text.split("\n")[2:]
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
         theme = None
 
         for line in lines:
@@ -607,10 +613,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
                 theme = line.split(":")[1].strip()
                 break
 
-        return ScienceOrFictionSegment(
-            items=[],
-            theme=theme,
-        )
+        return ScienceOrFictionSegment(items=[], theme=theme)
 
 
 @dataclass(kw_only=True)
@@ -690,6 +693,7 @@ class NewsMetaSegment(FromLyricsSegment):
                     url = lines[next_index]
 
                 publication = ""
+                article_title = ""
                 if url:
                     publication = urlparse(url).netloc
                     article_title = get_article_title(url)
@@ -713,7 +717,7 @@ class NewsMetaSegment(FromLyricsSegment):
 
 
 @dataclass(kw_only=True)
-class InterviewSegment(FromShowNotesSegment):
+class InterviewSegment(FromLyricsSegment, FromShowNotesSegment):
     name: str
 
     @property
@@ -740,6 +744,10 @@ class InterviewSegment(FromShowNotesSegment):
         name = re.split(r"[w|W]ith", text)[1]
 
         return InterviewSegment(name=name.strip(":- "))
+
+    @staticmethod
+    def from_lyrics(text: str) -> "InterviewSegment":
+        raise NotImplementedError
 
 
 @dataclass(kw_only=True)
@@ -789,7 +797,7 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
 
     @staticmethod
     def from_lyrics(text: str) -> "EmailSegment":
-        lines = text.split("\n")[1:] + [None]  # sentinel value
+        lines = [line.strip() for line in text.split("\n") if line.strip()] + [None]  # sentinel value
 
         items = []
         question = []
@@ -833,13 +841,11 @@ class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
 
     @staticmethod
     def from_summary_text(text: str) -> "ForgottenSuperheroesOfScienceSegment":
-        lines = text.split(":")
-        if len(lines) == 1:
-            return ForgottenSuperheroesOfScienceSegment()
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        lines += [""] * (1 - len(lines))
+        subject, *_ = lines
 
-        return ForgottenSuperheroesOfScienceSegment(
-            subject=lines[1].strip(),
-        )
+        return ForgottenSuperheroesOfScienceSegment(subject=subject)
 
 
 @dataclass(kw_only=True)

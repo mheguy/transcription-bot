@@ -41,6 +41,9 @@ PROCESSED_DATA_FOLDER = Path("data/").resolve()
 AUDIO_FOLDER = PROCESSED_DATA_FOLDER / "audio"
 AUDIO_FOLDER.mkdir(exist_ok=True)
 
+DIARIZED_TRANSCRIPTION_FOLDER = PROCESSED_DATA_FOLDER / "diarized_transcriptions"
+DIARIZED_TRANSCRIPTION_FOLDER.mkdir(exist_ok=True)
+
 DIARIZATION_FOLDER = PROCESSED_DATA_FOLDER / "diarizations"
 DIARIZATION_FOLDER.mkdir(exist_ok=True)
 

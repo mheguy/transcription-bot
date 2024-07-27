@@ -1,4 +1,12 @@
 {{anchor|quickie}}
-== ((( title ))): ((( subject ))) <small>( ((( start_time ))) )</small> ==
+== ((( title ))): ((( subject ))) <small>[((( start_time )))]</small> ==
+((* if url *))
+{{shownotes
+|weblink = ((( url )))
+|article_title = ((( article_title )))
+|publication = ((( article_publication )))
+}}
+((* endif *))
+
 
 ((( transcript )))

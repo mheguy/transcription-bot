@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from mutagen.id3 import ID3
 
-from sgu.caching import file_cache_async
 from sgu.config import AUDIO_FOLDER
 from sgu.downloader import FileDownloader
 from sgu.global_logger import logger
@@ -44,7 +43,7 @@ class EpisodeData:
 
 async def gather_data(client: "requests.Session", podcast: "PodcastEpisode") -> EpisodeData:
     """Gather data about a podcast episode."""
-    logger.info("Getting show notes...")
+    logger.info("Getting show data...")
     audio_file = await get_audio_file(client, podcast)
 
     async with asyncio.TaskGroup() as tg:
@@ -73,7 +72,6 @@ async def get_audio_file(client: "Session", podcast: "PodcastEpisode") -> "Path"
     return audio_file
 
 
-@file_cache_async
 async def _get_show_notes(client: "Session", url: str) -> bytes:
     resp = client.get(url)
     resp.raise_for_status()
@@ -81,7 +79,6 @@ async def _get_show_notes(client: "Session", url: str) -> bytes:
     return resp.content
 
 
-@file_cache_async
 async def _get_lyrics_from_mp3(raw_bytes: bytes) -> str:
     audio = ID3(BytesIO(raw_bytes))
 

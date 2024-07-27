@@ -11,9 +11,9 @@ from codetiming import Timer
 from numpy import dtype, floating, ndarray
 from whisperx.types import AlignedTranscriptionResult, TranscriptionResult
 
-from sgu.caching import file_cache, file_cache_async
 from sgu.config import (
     DIARIZATION_FOLDER,
+    DIARIZED_TRANSCRIPTION_FOLDER,
     PYANNOTE_IDENTIFY_ENDPOINT,
     PYANNOTE_TOKEN,
     TRANSCRIPTION_LANGUAGE,
@@ -55,9 +55,14 @@ class DiarizedTranscriptSegment(TypedDict):
 DiarizedTranscript = list[DiarizedTranscriptSegment]
 
 
-@file_cache_async
 async def get_transcript(audio_file: "Path", podcast: "PodcastEpisode") -> "DiarizedTranscript":
     """Create a transcript with the audio and podcast information."""
+    diarized_transcript_file = DIARIZED_TRANSCRIPTION_FOLDER / f"{podcast.episode_number}.json"
+
+    if diarized_transcript_file.exists():
+        logger.info("Reading diarized transcript from file")
+        return json.loads(diarized_transcript_file.read_text())
+
     logger.info("Creating transcript")
 
     audio = _load_audio(audio_file)
@@ -70,16 +75,20 @@ async def get_transcript(audio_file: "Path", podcast: "PodcastEpisode") -> "Diar
     diarization = await _create_diarization(podcast)
 
     logger.info("Creating diarized transcript")
-    return _merge_transcript_and_diarization(transcription, diarization)
+    diarized_transcript = _merge_transcript_and_diarization(transcription, diarization)
+
+    logger.info("Writing diarized transcript to file")
+    diarized_transcript_file.write_text(json.dumps(diarized_transcript))
+
+    return diarized_transcript
 
 
 def _load_audio(audio_file: "Path") -> AudioArray:
     return whisperx.load_audio(str(audio_file))
 
 
-@file_cache_async
 async def _create_diarization(podcast: "PodcastEpisode") -> "DataFrame":
-    diarization_response_file = DIARIZATION_FOLDER / f"{podcast.episode_number}_raw.json"
+    diarization_response_file = DIARIZATION_FOLDER / f"{podcast.episode_number}.json"
 
     if diarization_response_file.exists():
         logger.info("Reading diarization from file")
@@ -133,7 +142,6 @@ def _merge_transcript_and_diarization(
     return segments
 
 
-@file_cache
 @Timer("transcription", "{name} took {:.1f} seconds", "{name} starting")
 def _perform_transcription(audio: AudioArray) -> "TranscriptionResult":
     transcription_model = whisperx.load_model(
@@ -151,7 +159,6 @@ def _perform_transcription(audio: AudioArray) -> "TranscriptionResult":
     return result
 
 
-@file_cache
 @Timer("transcription_alignment", "{name} took {:.1f} seconds", "{name} starting")
 def _perform_alignment(
     audio: AudioArray,
