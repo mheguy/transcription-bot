@@ -30,9 +30,8 @@ async def main() -> None:
         logger.info(f"Processing episode #{podcast_episode.episode_number}")
 
         logger.info("Checking for wiki page...")
-        wiki_page_exists = episode_has_wiki_page(http_client, podcast_episode.episode_number)
 
-        if wiki_page_exists:
+        if episode_has_wiki_page(http_client, podcast_episode.episode_number):
             logger.info("Episode has a wiki page. Stopping.")
             break
 
