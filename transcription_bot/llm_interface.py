@@ -3,13 +3,13 @@
 import json
 from typing import TYPE_CHECKING
 
-from sgu.caching import file_cache
-from sgu.config import LLM_MODEL, OPENAI_API_KEY, OPENAI_ORG, OPENAI_PROJECT
-from sgu.global_logger import logger
+from transcription_bot.caching import file_cache
+from transcription_bot.config import LLM_MODEL, OPENAI_API_KEY, OPENAI_ORG, OPENAI_PROJECT
+from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
-    from sgu.episode_segments import BaseSegment
-    from sgu.transcription import DiarizedTranscript
+    from transcription_bot.episode_segments import BaseSegment
+    from transcription_bot.transcription import DiarizedTranscript
 
 from openai import OpenAI
 

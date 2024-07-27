@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 import feedparser
 
-from sgu.config import RSS_URL
+from transcription_bot.config import RSS_URL
 
 if TYPE_CHECKING:
     from time import struct_time

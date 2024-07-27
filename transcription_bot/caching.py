@@ -4,8 +4,8 @@ import pickle
 from hashlib import sha256
 from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
 
-from sgu.config import CACHE_FOLDER
-from sgu.global_logger import logger
+from transcription_bot.config import CACHE_FOLDER
+from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine

@@ -2,7 +2,7 @@ import sys
 
 from loguru import logger
 
-from sgu.config import LOG_LEVEL
+from transcription_bot.config import LOG_LEVEL
 
 logger.remove()
 

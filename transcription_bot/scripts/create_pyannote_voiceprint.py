@@ -9,7 +9,7 @@ import requests
 from dotenv import load_dotenv
 from flask import Flask, Response, request, send_file
 
-from sgu.config import NGROK_TOKEN, PYANNOTE_TOKEN, PYANNOTE_VOICEPRINT_ENDPOINT, SERVER_PORT
+from transcription_bot.config import NGROK_TOKEN, PYANNOTE_TOKEN, PYANNOTE_VOICEPRINT_ENDPOINT, SERVER_PORT
 
 # This determines who is being processed!
 ROGUE_TO_PROCESS = "Steve"

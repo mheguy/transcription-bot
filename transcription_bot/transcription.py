@@ -11,7 +11,7 @@ from codetiming import Timer
 from numpy import dtype, floating, ndarray
 from whisperx.types import AlignedTranscriptionResult, TranscriptionResult
 
-from sgu.config import (
+from transcription_bot.config import (
     DIARIZATION_FOLDER,
     DIARIZED_TRANSCRIPTION_FOLDER,
     PYANNOTE_IDENTIFY_ENDPOINT,
@@ -21,9 +21,9 @@ from sgu.config import (
     TRANSCRIPTION_PROMPT,
     VOICEPRINT_FILE,
 )
-from sgu.global_logger import logger
-from sgu.parsers.rss_feed import PodcastEpisode
-from sgu.webhook_server import WebhookServer
+from transcription_bot.global_logger import logger
+from transcription_bot.parsers.rss_feed import PodcastEpisode
+from transcription_bot.webhook_server import WebhookServer
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from pandas import DataFrame
     from whisperx.types import AlignedTranscriptionResult, TranscriptionResult
 
-    from sgu.parsers.rss_feed import PodcastEpisode
+    from transcription_bot.parsers.rss_feed import PodcastEpisode
 
 AudioArray = ndarray[Any, dtype[floating[Any]]]
 

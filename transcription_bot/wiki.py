@@ -5,17 +5,17 @@ from typing import TYPE_CHECKING
 
 from requests import RequestException
 
-from sgu.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE
-from sgu.episode_segments import BaseSegment, QuoteSegment, Segments
-from sgu.global_logger import logger
-from sgu.llm_interface import ask_llm_for_image_caption
-from sgu.parsers.show_notes import get_episode_image_url
-from sgu.template_environment import template_env
+from transcription_bot.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE
+from transcription_bot.episode_segments import BaseSegment, QuoteSegment, Segments
+from transcription_bot.global_logger import logger
+from transcription_bot.llm_interface import ask_llm_for_image_caption
+from transcription_bot.parsers.show_notes import get_episode_image_url
+from transcription_bot.template_environment import template_env
 
 if TYPE_CHECKING:
     from requests import Session
 
-    from sgu.data_gathering import EpisodeData
+    from transcription_bot.data_gathering import EpisodeData
 
 
 # region public functions

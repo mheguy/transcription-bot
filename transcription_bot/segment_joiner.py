@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING, TypeVar
 
-from sgu.episode_segments import BaseSegment, NewsMetaSegment, NoisySegment, ScienceOrFictionSegment
-from sgu.global_logger import logger
+from transcription_bot.episode_segments import BaseSegment, NewsMetaSegment, NoisySegment, ScienceOrFictionSegment
+from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
-    from sgu.episode_segments import Segments
+    from transcription_bot.episode_segments import Segments
 
 
 T = TypeVar("T", bound=BaseSegment)

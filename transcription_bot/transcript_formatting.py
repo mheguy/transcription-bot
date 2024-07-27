@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from sgu.transcription import DiarizedTranscript
+    from transcription_bot.transcription import DiarizedTranscript
 
 
 def format_transcript_for_wiki(transcript: "DiarizedTranscript") -> str:

@@ -6,8 +6,8 @@ from threading import Thread
 
 import ngrok
 
-from sgu.config import NGROK_TOKEN, SERVER_PORT
-from sgu.global_logger import logger
+from transcription_bot.config import NGROK_TOKEN, SERVER_PORT
+from transcription_bot.global_logger import logger
 
 
 class WebhookServer:

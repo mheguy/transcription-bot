@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 
 from mutagen.id3 import ID3
 
-from sgu.config import AUDIO_FOLDER
-from sgu.downloader import FileDownloader
-from sgu.global_logger import logger
-from sgu.transcription import (
+from transcription_bot.config import AUDIO_FOLDER
+from transcription_bot.downloader import FileDownloader
+from transcription_bot.global_logger import logger
+from transcription_bot.transcription import (
     DiarizedTranscript,
     get_transcript,
 )
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from mutagen.id3._frames import USLT
     from requests import Session
 
-    from sgu.parsers.rss_feed import PodcastEpisode
+    from transcription_bot.parsers.rss_feed import PodcastEpisode
 
 
 @dataclass

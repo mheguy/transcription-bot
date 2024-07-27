@@ -1,13 +1,13 @@
 from typing import TYPE_CHECKING
 
-from sgu.parsers.lyrics import parse_lyrics
-from sgu.parsers.show_notes import parse_show_notes
-from sgu.parsers.summary_text import parse_summary_text
-from sgu.segment_joiner import join_segments
+from transcription_bot.parsers.lyrics import parse_lyrics
+from transcription_bot.parsers.show_notes import parse_show_notes
+from transcription_bot.parsers.summary_text import parse_summary_text
+from transcription_bot.segment_joiner import join_segments
 
 if TYPE_CHECKING:
-    from sgu.data_gathering import EpisodeData
-    from sgu.episode_segments import Segments
+    from transcription_bot.data_gathering import EpisodeData
+    from transcription_bot.episode_segments import Segments
 
 
 def convert_episode_data_to_episode_segments(episode_data: "EpisodeData") -> "Segments":

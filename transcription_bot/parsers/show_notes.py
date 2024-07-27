@@ -2,14 +2,14 @@ from typing import cast
 
 from bs4 import BeautifulSoup, ResultSet, Tag
 
-from sgu.episode_segments import (
+from transcription_bot.episode_segments import (
     BaseSegment,
     FromShowNotesSegment,
     Segments,
     UnknownSegment,
     segment_types,
 )
-from sgu.helpers import find_single_element
+from transcription_bot.helpers import find_single_element
 
 PODCAST_HEADER_TAG_TYPE = "section"
 PODCAST_HEADER_CLASS_NAME = "podcast-head"

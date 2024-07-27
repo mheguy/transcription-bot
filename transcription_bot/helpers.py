@@ -4,9 +4,9 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 
-from sgu.caching import file_cache
-from sgu.global_http_client import http_client
-from sgu.global_logger import logger
+from transcription_bot.caching import file_cache
+from transcription_bot.global_http_client import http_client
+from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
     from bs4 import Tag

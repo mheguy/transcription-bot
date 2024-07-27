@@ -1,6 +1,6 @@
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-from sgu.config import TEMPLATES_FOLDER
+from transcription_bot.config import TEMPLATES_FOLDER
 
 template_env = Environment(
     block_start_string="((*",

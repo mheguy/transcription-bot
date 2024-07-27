@@ -6,13 +6,13 @@ from urllib.parse import urlparse
 
 from bs4 import Tag
 
-from sgu.global_logger import logger
-from sgu.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
-from sgu.template_environment import template_env
-from sgu.transcript_formatting import format_time, format_transcript_for_wiki
+from transcription_bot.global_logger import logger
+from transcription_bot.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
+from transcription_bot.template_environment import template_env
+from transcription_bot.transcript_formatting import format_time, format_transcript_for_wiki
 
 if TYPE_CHECKING:
-    from sgu.transcription import DiarizedTranscript
+    from transcription_bot.transcription import DiarizedTranscript
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",

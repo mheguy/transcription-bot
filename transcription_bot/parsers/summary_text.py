@@ -1,4 +1,10 @@
-from sgu.episode_segments import SPECIAL_SUMMARY_PATTERNS, BaseSegment, FromSummaryTextSegment, Segments, segment_types
+from transcription_bot.episode_segments import (
+    SPECIAL_SUMMARY_PATTERNS,
+    BaseSegment,
+    FromSummaryTextSegment,
+    Segments,
+    segment_types,
+)
 
 
 def parse_summary_text(summary: str) -> Segments:

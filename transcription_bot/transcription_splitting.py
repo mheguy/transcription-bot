@@ -1,14 +1,14 @@
 import itertools
 from typing import TYPE_CHECKING
 
-from sgu.episode_segments import IntroSegment
-from sgu.global_logger import logger
-from sgu.llm_interface import ask_llm_for_segment_start
-from sgu.transcription import DiarizedTranscript
+from transcription_bot.episode_segments import IntroSegment
+from transcription_bot.global_logger import logger
+from transcription_bot.llm_interface import ask_llm_for_segment_start
+from transcription_bot.transcription import DiarizedTranscript
 
 if TYPE_CHECKING:
-    from sgu.episode_segments import Segments
-    from sgu.transcription import DiarizedTranscript
+    from transcription_bot.episode_segments import Segments
+    from transcription_bot.transcription import DiarizedTranscript
 
 THIRTY_SECONDS = 30
 THIRTY_MINUTES = 30 * 60

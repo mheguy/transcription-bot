@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "SGU"
+name = "transcription-bot"
 version = "0.0.1"
 package-mode = true
 description = ""
 authors = []
 license = "CC0"
 readme = "README.md"
-packages = [{ include = "sgu" }]
+packages = [{ include = "transcription_bot" }]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"

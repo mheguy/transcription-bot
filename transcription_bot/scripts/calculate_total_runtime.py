@@ -5,7 +5,7 @@ from mutagen.mp3 import MP3
 from pydub import AudioSegment
 from tqdm import tqdm
 
-from sgu.config import AUDIO_FOLDER
+from transcription_bot.config import AUDIO_FOLDER
 
 if TYPE_CHECKING:
     from pathlib import Path
