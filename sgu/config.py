@@ -20,7 +20,7 @@ NGROK_TOKEN = os.environ["NGROK_TOKEN"]
 OPENAI_ORG = os.environ["OPENAI_ORGANIZATION"]
 OPENAI_PROJECT = os.environ["OPENAI_PROJECT"]
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
-LLM_MODEL = "gpt-4o"
+LLM_MODEL = "gpt-4o-mini"
 
 # Server for PyannoteAI callback
 SERVER_PORT = 23500
