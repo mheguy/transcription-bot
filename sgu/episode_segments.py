@@ -793,7 +793,7 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
 
     @staticmethod
     def from_lyrics(text: str) -> "EmailSegment":
-        lines = [line.strip() for line in text.split("\n") if line.strip()] + [None]  # sentinel value
+        lines = [line.strip() for line in text.split("\n") if line.strip()][1:] + [None]  # sentinel value
 
         items = []
         question = []
