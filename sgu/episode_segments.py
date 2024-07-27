@@ -273,7 +273,7 @@ class QuickieSegment(FromLyricsSegment):
 
 
 @dataclass(kw_only=True)
-class WhatsTheWordSegment(FromSummaryTextSegment):
+class WhatsTheWordSegment(FromLyricsSegment):
     word: str
 
     @property
@@ -288,11 +288,11 @@ class WhatsTheWordSegment(FromSummaryTextSegment):
         )
 
     def get_template_values(self) -> dict[str, Any]:
-        raise NotImplementedError
+        return {"word": self.word}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
-        return lowercase_text.startswith("what's the word")
+        return bool(re.match(r"what.s the word", lowercase_text))
 
     def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
         for chunk in transcript:
@@ -312,6 +312,20 @@ class WhatsTheWordSegment(FromSummaryTextSegment):
             word = lines[1].strip()
         else:
             word = "N/A<!-- Failed to extract word -->"
+
+        return WhatsTheWordSegment(word=word)
+
+    @staticmethod
+    def from_lyrics(text: str) -> "WhatsTheWordSegment":
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        lines += [""] * (2 - len(lines))
+        _segment_name, word, *extra = lines
+
+        if extra:
+            logger.warning(f"Unexpected extra lines in whatstheword segment: {extra}")
+
+        if not word:
+            raise ValueError(f"Failed to extract title from: {text}")
 
         return WhatsTheWordSegment(word=word)
 
