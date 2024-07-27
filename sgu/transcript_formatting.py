@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 
 def format_transcript_for_wiki(transcript: "DiarizedTranscript") -> str:
     """Format the transcript for the wiki."""
+    transcript = _trim_whitespace(transcript)
     transcript = _join_speaker_segments(transcript)
     _abbreviate_speakers(transcript)
 
@@ -43,6 +44,13 @@ def adjust_transcript_for_voiceover(complete_transcript: "DiarizedTranscript") -
     for chunk in complete_transcript:
         if chunk["speaker"] == voiceover:
             chunk["speaker"] = "Voiceover"
+
+
+def _trim_whitespace(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
+    for chunk in transcript:
+        chunk["text"] = chunk["text"].strip()
+
+    return transcript
 
 
 def _join_speaker_segments(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
