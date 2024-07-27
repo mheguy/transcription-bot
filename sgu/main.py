@@ -34,7 +34,7 @@ async def main(*, allow_page_editing: bool, episodes_to_process: list[int] | Non
 
         logger.info("Checking for wiki page...")
 
-        if episode_has_wiki_page(http_client, podcast_episode.episode_number):
+        if not episodes_to_process and episode_has_wiki_page(http_client, podcast_episode.episode_number):
             logger.info("Episode has a wiki page. Stopping.")
             break
 
