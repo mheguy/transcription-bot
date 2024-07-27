@@ -177,7 +177,6 @@ class IntroSegment(BaseSegment):
 @dataclass(kw_only=True)
 class LogicalFallacySegment(FromLyricsSegment):
     topic: str
-    attribution: str
 
     @property
     def template_name(self) -> str:
@@ -188,7 +187,7 @@ class LogicalFallacySegment(FromLyricsSegment):
         return "Please identify the start of the 'name that logical fallacy' segment."
 
     def get_template_values(self) -> dict[str, Any]:
-        return {"topic": self.topic, "attribution": self.attribution}
+        return {"topic": self.topic}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -204,13 +203,10 @@ class LogicalFallacySegment(FromLyricsSegment):
     @staticmethod
     def from_lyrics(text: str) -> "LogicalFallacySegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
-        lines += [""] * (3 - len(lines))
-        _segment_name, topic, attribution, *extra = lines
+        lines += [""] * (2 - len(lines))
+        _segment_name, *topic = lines
 
-        if extra:
-            logger.warning(f"Unexpected extra lines in logical fallacy segment: {extra}")
-
-        return LogicalFallacySegment(topic=topic, attribution=attribution)
+        return LogicalFallacySegment(topic=" ".join(topic))
 
 
 @dataclass(kw_only=True)
