@@ -1,4 +1,5 @@
 import os
+from functools import cache
 from http.client import NOT_FOUND
 from typing import TYPE_CHECKING
 
@@ -38,11 +39,15 @@ async def create_podcast_wiki_page(
     episode_image_url = get_episode_image_url(episode_data.show_notes)
     episode_icon_caption = ask_llm_for_image_caption(episode_image_url)
 
+    csrf_token = log_into_wiki(client)
+
     # Image upload
     episode_icon_name = _find_image_upload(client, str(episode_data.podcast.episode_number))
     if not episode_icon_name:
         logger.debug("Uploading image for episode...")
-        episode_icon_name = _upload_image_to_wiki(client, episode_image_url, episode_data.podcast.episode_number)
+        episode_icon_name = _upload_image_to_wiki(
+            client, csrf_token, episode_image_url, episode_data.podcast.episode_number
+        )
 
     logger.debug("Creating wiki page...")
     wiki_page = _construct_wiki_page(
@@ -51,7 +56,7 @@ async def create_podcast_wiki_page(
 
     page_title = f"SGU_Episode_{episode_data.podcast.episode_number}"
 
-    _create_page(client, page_title, wiki_page, allow_page_editing=allow_page_editing)
+    _create_page(client, csrf_token, page_title, wiki_page, allow_page_editing=allow_page_editing)
 
 
 def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
@@ -74,6 +79,7 @@ def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
     return True
 
 
+@cache
 def log_into_wiki(client: "Session") -> str:
     """Perform a login to the wiki and return the csrf token."""
     login_token = _get_login_token(client)
@@ -93,13 +99,12 @@ def _find_image_upload(client: "Session", episode_number: str) -> str:
     return files[0]["name"] if files else ""
 
 
-def _upload_image_to_wiki(client: "Session", image_url: str, episode_number: int) -> str:
+def _upload_image_to_wiki(client: "Session", csrf_token: str, image_url: str, episode_number: int) -> str:
     image_response = client.get(image_url)
     image_data = image_response.content
 
     filename = f"{episode_number}.{image_url.split('.')[-1]}"
 
-    csrf_token = log_into_wiki(client)
     upload_params = {
         "action": "upload",
         "filename": filename,
@@ -165,7 +170,14 @@ def _construct_wiki_page(
     )
 
 
-def _create_page(client: "Session", page_title: str, page_text: str, *, allow_page_editing: bool) -> None:
+def _create_page(
+    client: "Session",
+    csrf_token: str,
+    page_title: str,
+    page_text: str,
+    *,
+    allow_page_editing: bool,
+) -> None:
     csrf_token = log_into_wiki(client)
 
     payload = {
@@ -212,8 +224,8 @@ def _send_credentials(client: "Session", login_token: str) -> None:
     resp = client.post(WIKI_API_BASE, data=payload)
     resp.raise_for_status()
 
-    if not resp.json()["login"]["result"] == "Success":
-        raise ValueError("Login failed")
+    if resp.json()["login"]["result"] != "Success":
+        raise ValueError(f"Login failed: {resp.json()}")
 
 
 def _get_csrf_token(client: "Session") -> str:
