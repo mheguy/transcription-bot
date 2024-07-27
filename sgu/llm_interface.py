@@ -31,10 +31,7 @@ def ask_llm_for_segment_start(segment: "BaseSegment", transcript: "DiarizedTrans
         "If you cannot identify the transition, provide null as the start time."
     )
 
-    partial_transcript = _get_next_n_minutes_of_transcript(transcript, 30)
-    partial_transcript = _drop_first_n_minutes_of_transcript(partial_transcript, 1)
-
-    transcript_blob = f"transcript:\n\n````{json.dumps(partial_transcript)}````"
+    transcript_blob = f"transcript:\n\n````{json.dumps(transcript)}````"
     user_prompt = f"{segment.llm_prompt}\n\n{transcript_blob}"
 
     logger.debug(f"Requesting LLM find start of segment: {segment}")
@@ -82,15 +79,3 @@ def ask_llm_for_image_caption(image_url: str) -> str:
     logger.debug(f"LLM response: {image_caption}")
 
     return image_caption
-
-
-def _get_next_n_minutes_of_transcript(transcript: "DiarizedTranscript", minutes: int) -> "DiarizedTranscript":
-    end_time = transcript[0]["start"] + (minutes * 60)
-
-    return [c for c in transcript if c["end"] < end_time]
-
-
-def _drop_first_n_minutes_of_transcript(transcript: "DiarizedTranscript", minutes: int) -> "DiarizedTranscript":
-    start_time = transcript[0]["start"] + (minutes * 60)
-
-    return [c for c in transcript if c["start"] > start_time]
