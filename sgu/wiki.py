@@ -165,6 +165,7 @@ def _create_page(client: "Session", page_title: str, page_text: str) -> None:
     payload = {
         "action": "edit",
         "title": page_title,
+        "summary": "Page created (or rewritten) by Mheguy's bot. (Please contact me if there are issues)",
         "format": "json",
         "text": page_text,
         "notminor": True,
