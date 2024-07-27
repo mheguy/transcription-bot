@@ -18,7 +18,13 @@ if TYPE_CHECKING:
 
 
 # region public functions
-async def create_podcast_wiki_page(client: "Session", episode_data: "EpisodeData", episode_segments: Segments) -> None:
+async def create_podcast_wiki_page(
+    client: "Session",
+    episode_data: "EpisodeData",
+    episode_segments: Segments,
+    *,
+    allow_page_editing: bool,
+) -> None:
     """Creates a wiki page for a podcast episode.
 
     This function gathers all the necessary data for the episode, merges the data into segments,
@@ -45,7 +51,7 @@ async def create_podcast_wiki_page(client: "Session", episode_data: "EpisodeData
 
     page_title = f"SGU_Episode_{episode_data.podcast.episode_number}"
 
-    _create_page(client, page_title, wiki_page)
+    _create_page(client, page_title, wiki_page, allow_page_editing=allow_page_editing)
 
 
 def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
@@ -159,7 +165,7 @@ def _construct_wiki_page(
     )
 
 
-def _create_page(client: "Session", page_title: str, page_text: str) -> None:
+def _create_page(client: "Session", page_title: str, page_text: str, *, allow_page_editing: bool) -> None:
     csrf_token = log_into_wiki(client)
 
     payload = {
@@ -171,8 +177,11 @@ def _create_page(client: "Session", page_title: str, page_text: str) -> None:
         "notminor": True,
         "bot": True,
         "token": csrf_token,
-        "createonly": True,  # remove this line to allow overwriting existing pages
+        "createonly": True,
     }
+
+    if allow_page_editing:
+        payload.pop("createonly")
 
     resp = client.post(WIKI_API_BASE, data=payload)
     resp.raise_for_status()

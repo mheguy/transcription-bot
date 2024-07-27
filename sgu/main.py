@@ -14,7 +14,7 @@ from sgu.wiki import create_podcast_wiki_page, episode_has_wiki_page
 load_dotenv()
 
 
-async def main() -> None:
+async def main(*, allow_page_editing: bool, episodes_to_process: list[int] | None = None) -> None:
     """Main function that starts the program and processes podcast episodes.
 
     This function retrieves podcast episodes from an RSS feed,
@@ -25,6 +25,9 @@ async def main() -> None:
 
     logger.info("Getting episodes from RSS feed...")
     podcast_episodes = get_podcast_episodes(http_client)
+
+    if episodes_to_process:
+        podcast_episodes = [episode for episode in podcast_episodes if episode.episode_number in episodes_to_process]
 
     for podcast_episode in podcast_episodes:
         logger.info(f"Processing episode #{podcast_episode.episode_number}")
@@ -45,7 +48,12 @@ async def main() -> None:
         logger.debug("Merging transcript into episode segments...")
         episode_segments = add_transcript_to_segments(episode_data.transcript, episode_segments)
 
-        await create_podcast_wiki_page(http_client, episode_data, episode_segments)
+        await create_podcast_wiki_page(
+            client=http_client,
+            episode_data=episode_data,
+            episode_segments=episode_segments,
+            allow_page_editing=allow_page_editing,
+        )
 
         logger.success(f"Episode #{podcast_episode.episode_number} processed.")
 
@@ -53,4 +61,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(episodes_to_process=[991, 992, 993], allow_page_editing=True))
