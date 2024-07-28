@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 # region public functions
-async def create_podcast_wiki_page(
+def create_podcast_wiki_page(
     client: "Session",
     episode_data: "EpisodeData",
     episode_segments: Segments,

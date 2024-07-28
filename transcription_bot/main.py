@@ -48,7 +48,7 @@ async def main(*, allow_page_editing: bool, episodes_to_process: list[int] | Non
         logger.debug("Merging transcript into episode segments...")
         episode_segments = add_transcript_to_segments(episode_data.transcript, episode_segments)
 
-        await create_podcast_wiki_page(
+        create_podcast_wiki_page(
             client=http_client,
             episode_data=episode_data,
             episode_segments=episode_segments,
