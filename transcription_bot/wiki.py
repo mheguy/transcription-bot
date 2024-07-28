@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING
 from requests import RequestException
 
 from transcription_bot.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE
-from transcription_bot.episode_segments import BaseSegment, QuoteSegment, Segments
+from transcription_bot.episode_segments import QuoteSegment, Segments
 from transcription_bot.global_logger import logger
+from transcription_bot.helpers import get_first_segment_of_type
 from transcription_bot.llm_interface import ask_llm_for_image_caption
 from transcription_bot.parsers.show_notes import get_episode_image_url
 from transcription_bot.template_environment import template_env
@@ -33,8 +34,8 @@ async def create_podcast_wiki_page(
     """
     # we must grab speaker data before we convert transcript to wiki
     speakers = {s["speaker"].lower() for s in episode_data.transcript}
-    wiki_segments = "\n".join(s.to_wiki() for s in episode_segments)
-    qotw_segment = _extract_quote_of_the_week_for_wiki(episode_segments)
+    wiki_segment_text = "\n".join(s.to_wiki() for s in episode_segments)
+    qotw_segment = get_first_segment_of_type(episode_segments, QuoteSegment)
 
     episode_image_url = get_episode_image_url(episode_data.show_notes)
     episode_icon_caption = ask_llm_for_image_caption(episode_image_url)
@@ -51,7 +52,7 @@ async def create_podcast_wiki_page(
 
     logger.debug("Creating wiki page...")
     wiki_page = _construct_wiki_page(
-        episode_data, episode_icon_name, episode_icon_caption, wiki_segments, qotw_segment, speakers
+        episode_data, episode_icon_name, episode_icon_caption, wiki_segment_text, qotw_segment, speakers
     )
 
     page_title = f"SGU_Episode_{episode_data.podcast.episode_number}"
@@ -121,14 +122,6 @@ def _upload_image_to_wiki(client: "Session", csrf_token: str, image_url: str, ep
         raise RequestException(f"Error uploading image: {upload_data['error']['info']}")
 
     return filename
-
-
-def _extract_quote_of_the_week_for_wiki(segments: list["BaseSegment"]) -> QuoteSegment | None:
-    for segment in segments:
-        if isinstance(segment, QuoteSegment):
-            return segment
-
-    return None
 
 
 def _construct_wiki_page(

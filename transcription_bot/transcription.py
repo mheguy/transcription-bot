@@ -36,14 +36,14 @@ if TYPE_CHECKING:
 AudioArray = ndarray[Any, dtype[floating[Any]]]
 
 
-class DiarizedTranscriptSegment(TypedDict):
-    """A segment of a diarized transcript.
+class DiarizedTranscriptChunk(TypedDict):
+    """A chunk of a diarized transcript.
 
     Attributes:
-        start (float): The start time of the segment.
-        end (float): The end time of the segment.
-        text (str): The text content of the segment.
-        speaker (str): The speaker associated with the segment.
+        start (float): The start time of the chunk.
+        end (float): The end time of the chunk.
+        text (str): The text content of the chunk.
+        speaker (str): The speaker associated with the chunk.
     """
 
     start: float
@@ -52,7 +52,7 @@ class DiarizedTranscriptSegment(TypedDict):
     speaker: str
 
 
-DiarizedTranscript = list[DiarizedTranscriptSegment]
+DiarizedTranscript = list[DiarizedTranscriptChunk]
 
 
 async def get_transcript(audio_file: "Path", podcast: "PodcastEpisode") -> "DiarizedTranscript":
@@ -128,18 +128,18 @@ def _merge_transcript_and_diarization(
 ) -> DiarizedTranscript:
     raw_diarized_transcript: dict[str, list[dict[str, Any]]] = whisperx.assign_word_speakers(diarization, transcription)
 
-    segments: DiarizedTranscript = []
-    for segment in raw_diarized_transcript["segments"]:
-        segments.append(
-            DiarizedTranscriptSegment(
-                start=segment["start"],
-                end=segment["end"],
-                text=segment["text"],
-                speaker=segment.get("speaker", "UNKNOWN"),
+    chunks: DiarizedTranscript = []
+    for chunk in raw_diarized_transcript["segments"]:
+        chunks.append(
+            DiarizedTranscriptChunk(
+                start=chunk["start"],
+                end=chunk["end"],
+                text=chunk["text"],
+                speaker=chunk.get("speaker", "UNKNOWN"),
             ),
         )
 
-    return segments
+    return chunks
 
 
 @Timer("transcription", "{name} took {:.1f} seconds", "{name} starting")

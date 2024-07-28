@@ -7,14 +7,12 @@ if TYPE_CHECKING:
 def format_transcript_for_wiki(transcript: "DiarizedTranscript") -> str:
     """Format the transcript for the wiki."""
     transcript = _trim_whitespace(transcript)
-    transcript = _join_speaker_segments(transcript)
+    transcript = _join_speaker_transcription_chunks(transcript)
     _abbreviate_speakers(transcript)
 
-    text_segments = [
-        f"'''{transcript_chunk['speaker']}''':{transcript_chunk['text']}" for transcript_chunk in transcript
-    ]
+    text_chunks = [f"'''{transcript_chunk['speaker']}''':{transcript_chunk['text']}" for transcript_chunk in transcript]
 
-    return "\n\n".join(text_segments)
+    return "\n\n".join(text_chunks)
 
 
 def format_time(time: float | None) -> str:
@@ -53,7 +51,7 @@ def _trim_whitespace(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
     return transcript
 
 
-def _join_speaker_segments(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
+def _join_speaker_transcription_chunks(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
     current_speaker = None
 
     speaker_chunks = []

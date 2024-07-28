@@ -1,16 +1,14 @@
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
-from transcription_bot.episode_segments import BaseSegment, NewsMetaSegment, NoisySegment, ScienceOrFictionSegment
+from transcription_bot.episode_segments import NewsMetaSegment, NoisySegment, ScienceOrFictionSegment
 from transcription_bot.global_logger import logger
+from transcription_bot.helpers import get_first_segment_of_type
 
 if TYPE_CHECKING:
     from transcription_bot.episode_segments import Segments
 
 
-T = TypeVar("T", bound=BaseSegment)
-
-
-def join_segments(
+def merge_segments(
     lyric_segments: "Segments",
     show_note_segments: "Segments",
     summary_text_segments: "Segments",
@@ -50,22 +48,14 @@ def _flatten_news(lyric_segments: "Segments") -> "Segments":
 
 
 def _merge_noisy_segments(lyric_segments: "Segments", show_note_segments: "Segments") -> None:
-    lyric_segment = _get_segment_of_type(NoisySegment, lyric_segments)
-    show_note_segment = _get_segment_of_type(NoisySegment, show_note_segments)
+    lyric_segment = get_first_segment_of_type(lyric_segments, NoisySegment)
+    show_note_segment = get_first_segment_of_type(show_note_segments, NoisySegment)
     if lyric_segment and show_note_segment:
         lyric_segment.last_week_answer = show_note_segment.last_week_answer
 
 
 def _merge_science_or_fiction_segments(lyric_segments: "Segments", show_note_segments: "Segments") -> None:
-    lyric_segment = _get_segment_of_type(ScienceOrFictionSegment, lyric_segments)
-    show_note_segment = _get_segment_of_type(ScienceOrFictionSegment, show_note_segments)
+    lyric_segment = get_first_segment_of_type(lyric_segments, ScienceOrFictionSegment)
+    show_note_segment = get_first_segment_of_type(show_note_segments, ScienceOrFictionSegment)
     if lyric_segment and show_note_segment:
         lyric_segment.items = show_note_segment.items
-
-
-def _get_segment_of_type(segment_type: type[T], segments: "Segments") -> "T | None":
-    for segment in segments:
-        if isinstance(segment, segment_type):
-            return segment
-
-    return None

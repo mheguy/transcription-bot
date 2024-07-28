@@ -36,12 +36,12 @@ def parse_show_notes(show_notes: bytes) -> Segments:
     soup = BeautifulSoup(show_notes, "html.parser")
 
     post = find_single_element(soup, PODCAST_MAIN_TAG_TYPE, PODCAST_MAIN_CLASS_NAME)
-    segment_data = _extract_segment_data(post)
+    raw_segment_data = _extract_raw_segment_data(post)
 
-    return list(filter(None, [_parse_show_notes_segment_data(segment_data) for segment_data in segment_data]))
+    return list(filter(None, [_create_segments(segment_data) for segment_data in raw_segment_data]))
 
 
-def _parse_show_notes_segment_data(segment_data: list["Tag"]) -> "BaseSegment|None":
+def _create_segments(segment_data: list["Tag"]) -> "BaseSegment|None":
     text = segment_data[0].text
     lower_text = text.lower()
 
@@ -58,7 +58,7 @@ def _parse_show_notes_segment_data(segment_data: list["Tag"]) -> "BaseSegment|No
     return UnknownSegment.create(text=text)
 
 
-def _extract_segment_data(post_element: Tag) -> list[list["Tag"]]:
+def _extract_raw_segment_data(post_element: Tag) -> list[list["Tag"]]:
     h3_tags = post_element.find_all("h3")
 
     if any(not isinstance(h3_tag, Tag) for h3_tag in h3_tags):

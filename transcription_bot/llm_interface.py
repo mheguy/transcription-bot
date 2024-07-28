@@ -20,7 +20,7 @@ def ask_llm_for_segment_start(segment: "BaseSegment", transcript: "DiarizedTrans
     client = OpenAI(organization=OPENAI_ORG, project=OPENAI_PROJECT, api_key=OPENAI_API_KEY)
     system_prompt = (
         "You are a helpful assistant designed to output JSON."
-        "The user will provide you with a segment of transcript"
+        "The user will provide you with a section of transcript"
         "from an episode of The Skeptic's Guide to the Universe."
         "The diarization is a best-effort and may contain errors, "
         "indicating the incorrect speaker."

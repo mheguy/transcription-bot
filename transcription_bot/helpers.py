@@ -1,21 +1,22 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
 
 from transcription_bot.caching import file_cache
+from transcription_bot.episode_segments import BaseSegment, Segments
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
     from bs4 import Tag
+T = TypeVar("T", bound=BaseSegment)
 
 
-def string_is_url(text: str) -> bool:
-    """Check if a string is a valid URL."""
-    parsed = urlparse(text)
-    return all([parsed.scheme, parsed.netloc])
+def are_strings_in_string(strings: list[str], string: str) -> bool:
+    """Check if all strings are in a given string."""
+    return all(s in string for s in strings)
 
 
 def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str | None) -> "Tag":
@@ -40,11 +41,6 @@ def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str 
     return results[0]
 
 
-def are_strings_in_string(strings: list[str], string: str) -> bool:
-    """Check if all strings are in a given string."""
-    return all(s in string for s in strings)
-
-
 @file_cache
 def get_article_title(url: str) -> str:
     """Get the title of an article from its URL."""
@@ -64,3 +60,18 @@ def get_article_title(url: str) -> str:
         return "(Bot unable to retrieve title)"
 
     return title_element.text
+
+
+def get_first_segment_of_type(segments: "Segments", segment_type: type[T]) -> "T | None":
+    """Get the first segment of a given type from a list of segments."""
+    for segment in segments:
+        if isinstance(segment, segment_type):
+            return segment
+
+    return None
+
+
+def string_is_url(text: str) -> bool:
+    """Check if a string is a valid URL."""
+    parsed = urlparse(text)
+    return all([parsed.scheme, parsed.netloc])
