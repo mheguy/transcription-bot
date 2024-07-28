@@ -2,7 +2,7 @@
 .python-version
 .env
 /data/
-*.http
+.vscode/
 
 # Python
 .venv/
@@ -11,11 +11,6 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 cov.xml
-pytest-of-unknown/
 
 # Node
 node_modules/
-
-# Generated files
-outputClient/
-tmp/
