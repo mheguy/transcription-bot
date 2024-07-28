@@ -31,7 +31,7 @@ TRANSCRIPTION_LANGUAGE = "en"
 TRANSCRIPTION_PROMPT = "The Skeptic's Guide to the Universe is hosted by Steven Novella, Bob Novella, Jay Novella, Cara Santa Maria, and Evan Bernstein."
 
 # Internal data paths
-DATA_FOLDER = Path(pkg_resources.resource_filename("sgu", "data/"))
+DATA_FOLDER = Path(pkg_resources.resource_filename("transcription_bot", "data/"))
 VOICEPRINT_FILE = DATA_FOLDER / "voiceprint_map.json"
 TEMPLATES_FOLDER = DATA_FOLDER / "templates"
 

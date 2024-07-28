@@ -56,7 +56,7 @@ skip = "poetry.lock,pyproject.toml"
 [tool.coverage]
 run.branch = true
 run.relative_files = true
-run.source = ["sgu_sof_tool"]
+run.source = ["transcript_bot"]
 xml.output = "cov.xml"
 
 [tool.coverage.report]
@@ -155,7 +155,7 @@ runtime-evaluated-base-classes = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["sgu_sof_tool"]
+known-first-party = ["transcript_bot"]
 
 [tool.ruff.lint.per-file-ignores]
 # Rules for notebooks:
