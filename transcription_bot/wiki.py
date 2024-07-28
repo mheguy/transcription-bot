@@ -183,7 +183,7 @@ def _create_page(
     payload = {
         "action": "edit",
         "title": page_title,
-        "summary": "Page created (or rewritten) by Mheguy's bot. (Please contact me if there are issues)",
+        "summary": "Page created (or rewritten) by transcription-bot. https://github.com/mheguy/transcription-bot",
         "format": "json",
         "text": page_text,
         "notminor": True,
