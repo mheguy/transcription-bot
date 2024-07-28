@@ -23,7 +23,7 @@ def add_transcript_to_segments(raw_transcript: "DiarizedTranscript", episode_seg
     for left_segment, right_segment in itertools.pairwise(segments):
         # The left segment should have a start time, if it doesn't,
         # we set it to the last start time we know of.
-        if left_segment.start_time is None:
+        if not left_segment.start_time:
             left_segment.start_time = last_start_time
 
         partial_transcript = _get_transcript_between_times(
@@ -45,21 +45,20 @@ def add_transcript_to_segments(raw_transcript: "DiarizedTranscript", episode_seg
         if right_segment.start_time:
             last_start_time = right_segment.start_time
 
-        # Start times are done, now we fill in the transcript for the left segment.
-        counter = 0
-        while partial_transcript and partial_transcript[0]["end"] < right_segment.start_time:
-            left_segment.transcript.append(partial_transcript.pop(0))
-            counter += 1
-
-        logger.debug(f"Added {counter} transcript chunks to {left_segment.__class__.__name__}")
-
-    # The last segment gets the rest of the transcript.
-    segments[-1].transcript.extend(partial_transcript)
-    logger.debug(f"Added {len(partial_transcript)} transcript chunks to {segments[-1].__class__.__name__}")
+        left_segment.end_time = right_segment.start_time
 
     for segment in segments:
+        segment.transcript = _get_transcript_between_times(
+            raw_transcript,
+            segment.start_time if segment.start_time else 0,
+            segment.end_time,
+        )
         if not segment.transcript:
             logger.warning(f"Segment {segment} has no transcript")
+        else:
+            logger.debug(
+                f"Segment {segment.__class__.__name__}: {len(segment.transcript)} transcript chunks, {segment.duration:1f} minutes"
+            )
 
     return segments
 

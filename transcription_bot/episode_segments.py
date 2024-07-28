@@ -1,3 +1,4 @@
+import math
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -43,17 +44,8 @@ class BaseSegment(ABC):
     """Base for all segments."""
 
     start_time: float | None = None
+    end_time: float = math.inf
     transcript: "DiarizedTranscript" = field(default_factory=list)
-
-    def to_wiki(self) -> str:
-        """Get the wiki text / section header for the segment."""
-        template = template_env.get_template(f"{self.template_name}.j2x")
-        template_values = self.get_template_values()
-        return template.render(
-            start_time=format_time(self.start_time),
-            transcript=format_transcript_for_wiki(self.transcript),
-            **template_values,
-        )
 
     @property
     @abstractmethod
@@ -77,6 +69,24 @@ class BaseSegment(ABC):
     @abstractmethod
     def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
         """Get the text representation of the segment (for the wiki page)."""
+
+    @property
+    def duration(self) -> float:
+        """Provide the duration of the segment in minutes."""
+        if not self.start_time or not self.end_time:
+            return 0
+
+        return (self.end_time - self.start_time) / 60
+
+    def to_wiki(self) -> str:
+        """Get the wiki text / section header for the segment."""
+        template = template_env.get_template(f"{self.template_name}.j2x")
+        template_values = self.get_template_values()
+        return template.render(
+            start_time=format_time(self.start_time),
+            transcript=format_transcript_for_wiki(self.transcript),
+            **template_values,
+        )
 
 
 class FromSummaryTextSegment(BaseSegment, ABC):

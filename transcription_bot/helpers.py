@@ -5,13 +5,15 @@ import requests
 from bs4 import BeautifulSoup
 
 from transcription_bot.caching import file_cache
-from transcription_bot.episode_segments import BaseSegment, Segments
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
     from bs4 import Tag
-T = TypeVar("T", bound=BaseSegment)
+
+    from transcription_bot.episode_segments import BaseSegment, Segments
+
+T = TypeVar("T", bound="BaseSegment")
 
 
 def are_strings_in_string(strings: list[str], string: str) -> bool:
