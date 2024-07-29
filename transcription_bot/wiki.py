@@ -1,4 +1,3 @@
-import os
 from functools import cache
 from http.client import NOT_FOUND
 from typing import TYPE_CHECKING
