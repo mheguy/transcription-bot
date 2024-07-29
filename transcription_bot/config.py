@@ -12,7 +12,11 @@ WIKI_API_BASE = "https://sgutranscripts.org/w/api.php"
 PYANNOTE_IDENTIFY_ENDPOINT = "https://api.pyannote.ai/v1/identify"
 PYANNOTE_VOICEPRINT_ENDPOINT = "https://api.pyannote.ai/v1/voiceprint"
 
-# Tokens
+# Wiki
+WIKI_USERNAME = os.environ["WIKI_USERNAME"]
+WIKI_PASSWORD = os.environ["WIKI_PASSWORD"]
+
+# Diarization tokens
 PYANNOTE_TOKEN = os.environ["PYANNOTE_TOKEN"]
 NGROK_TOKEN = os.environ["NGROK_TOKEN"]
 

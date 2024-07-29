@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from requests import RequestException
 
-from transcription_bot.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE
+from transcription_bot.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE, WIKI_PASSWORD, WIKI_USERNAME
 from transcription_bot.episode_segments import QuoteSegment, Segments
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import get_first_segment_of_type
@@ -208,8 +208,8 @@ def _get_login_token(client: "Session") -> str:
 def _send_credentials(client: "Session", login_token: str) -> None:
     payload = {
         "action": "login",
-        "lgname": "Mheguy@mheguy-transcription-bot",
-        "lgpassword": os.environ["WIKI_PASS"],
+        "lgname": WIKI_USERNAME,
+        "lgpassword": WIKI_PASSWORD,
         "lgtoken": login_token,
         "format": "json",
     }
