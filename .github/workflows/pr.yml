@@ -17,6 +17,7 @@ permissions:
 jobs:
   ruff:
     timeout-minutes: 5
+    name: Check format + lint with ruff
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +30,7 @@ jobs:
 
   pyright:
     timeout-minutes: 5
-    name: Test with pyright
+    name: Check types with pyright
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
