@@ -32,11 +32,11 @@ async def main(*, allow_page_editing: bool, episodes_to_process: list[int] | Non
     for podcast_episode in podcast_episodes:
         logger.info(f"Processing episode #{podcast_episode.episode_number}")
 
-        logger.info("Checking for wiki page...")
-
-        if not episodes_to_process and episode_has_wiki_page(http_client, podcast_episode.episode_number):
-            logger.info("Episode has a wiki page. Stopping.")
-            break
+        if not episodes_to_process:
+            logger.info("Checking for wiki page...")
+            if episode_has_wiki_page(http_client, podcast_episode.episode_number):
+                logger.info("Episode has a wiki page. Stopping.")
+                break
 
         logger.debug("Gathering all data...")
         episode_data = await gather_data(http_client, podcast_episode)
