@@ -5,11 +5,8 @@ from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import pandas as pd
 import requests
-import torch
-import whisperx
 from codetiming import Timer
 from numpy import dtype, floating, ndarray
-from whisperx.types import AlignedTranscriptionResult, TranscriptionResult
 
 from transcription_bot.config import (
     DIARIZATION_FOLDER,
@@ -28,6 +25,7 @@ from transcription_bot.webhook_server import WebhookServer
 if TYPE_CHECKING:
     from pathlib import Path
 
+    import torch
     from pandas import DataFrame
     from whisperx.types import AlignedTranscriptionResult, TranscriptionResult
 
@@ -60,10 +58,11 @@ async def get_transcript(audio_file: "Path", podcast: "PodcastEpisode") -> "Diar
     diarized_transcript_file = DIARIZED_TRANSCRIPTION_FOLDER / f"{podcast.episode_number}.json"
 
     if diarized_transcript_file.exists():
-        logger.info("Reading diarized transcript from file")
+        logger.info("Using cache for: get_transcript")
         return json.loads(diarized_transcript_file.read_text())
 
     logger.info("Creating transcript")
+    import torch
 
     audio = _load_audio(audio_file)
 
@@ -84,6 +83,8 @@ async def get_transcript(audio_file: "Path", podcast: "PodcastEpisode") -> "Diar
 
 
 def _load_audio(audio_file: "Path") -> AudioArray:
+    import whisperx
+
     return whisperx.load_audio(str(audio_file))
 
 
@@ -91,7 +92,7 @@ async def _create_diarization(podcast: "PodcastEpisode") -> "DataFrame":
     diarization_response_file = DIARIZATION_FOLDER / f"{podcast.episode_number}.json"
 
     if diarization_response_file.exists():
-        logger.info("Reading diarization from file")
+        logger.info("Using cache for: _create_diarization")
         dia_response = diarization_response_file.read_bytes()
     else:
         logger.info("Creating diarization")
@@ -126,6 +127,8 @@ def _merge_transcript_and_diarization(
     transcription: "AlignedTranscriptionResult",
     diarization: pd.DataFrame,
 ) -> DiarizedTranscript:
+    import whisperx
+
     raw_diarized_transcript: dict[str, list[dict[str, Any]]] = whisperx.assign_word_speakers(diarization, transcription)
 
     chunks: DiarizedTranscript = []
@@ -144,6 +147,9 @@ def _merge_transcript_and_diarization(
 
 @Timer("transcription", "{name} took {:.1f} seconds", "{name} starting")
 def _perform_transcription(audio: AudioArray) -> "TranscriptionResult":
+    import torch
+    import whisperx
+
     transcription_model = whisperx.load_model(
         TRANSCRIPTION_MODEL,
         "cuda",
@@ -162,9 +168,12 @@ def _perform_transcription(audio: AudioArray) -> "TranscriptionResult":
 @Timer("transcription_alignment", "{name} took {:.1f} seconds", "{name} starting")
 def _perform_alignment(
     audio: AudioArray,
-    device: torch.device,
+    device: "torch.device",
     transcription: "TranscriptionResult",
 ) -> "AlignedTranscriptionResult":
+    import torch
+    import whisperx
+
     alignment_model, metadata = whisperx.load_align_model(language_code=TRANSCRIPTION_LANGUAGE, device=device)
     aligned_transcription = whisperx.align(
         transcription["segments"],
