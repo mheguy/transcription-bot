@@ -44,22 +44,22 @@ def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str 
 
 
 @file_cache
-def get_article_title(url: str) -> str:
+def get_article_title(url: str) -> str | None:
     """Get the title of an article from its URL."""
     try:
         resp = http_client.get(url)
     except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching article title at {url} : {e}")
-        return "(Bot unable to retrieve title)"
+        return None
 
     if not resp.ok:
         logger.error(f"Error fetching article title: {url}")
-        return "(Bot unable to retrieve title)"
+        return None
 
     soup = BeautifulSoup(resp.text, "html.parser")
     title_element = soup.find("title")
     if not title_element:
-        return "(Bot unable to retrieve title)"
+        return None
 
     return title_element.text
 

@@ -33,8 +33,8 @@ class ScienceOrFictionItem:
     article_url: str
     sof_result: str
 
-    article_title: str
-    article_publication: str
+    article_title: str | None
+    article_publication: str | None
 
 
 # endregion
@@ -125,7 +125,7 @@ class UnknownSegment(BaseSegment):
 
     title: str
     extra_text: str
-    url: str
+    url: str | None
 
     @property
     def template_name(self) -> str:
@@ -159,7 +159,7 @@ class UnknownSegment(BaseSegment):
         title, *extra_lines = lines
 
         extra_text = ""
-        url = ""
+        url = None
 
         for line in extra_lines:
             if string_is_url(line):
@@ -234,8 +234,8 @@ class QuickieSegment(FromLyricsSegment):
     title: str
     subject: str
     url: str
-    article_title: str
-    article_publication: str
+    article_title: str | None
+    article_publication: str | None
 
     @property
     def template_name(self) -> str:
@@ -277,8 +277,8 @@ class QuickieSegment(FromLyricsSegment):
         if extra:
             logger.warning(f"Unexpected extra lines in quickie segment: {extra}")
 
-        article_publication = ""
-        article_title = ""
+        article_publication = None
+        article_title = None
         if url:
             article_publication = urlparse(url).netloc
             article_title = get_article_title(url)
@@ -399,8 +399,8 @@ class TikTokSegment(FromLyricsSegment):
 class DumbestThingOfTheWeekSegment(FromLyricsSegment):
     topic: str
     url: str
-    article_title: str
-    article_publication: str
+    article_title: str | None
+    article_publication: str | None
 
     @property
     def template_name(self) -> str:
@@ -441,8 +441,8 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
         if extra:
             logger.warning(f"Unexpected extra lines in dumbest thing of the week segment: {extra}")
 
-        article_publication = ""
-        article_title = ""
+        article_publication = None
+        article_title = None
         if url:
             article_publication = urlparse(url).netloc
             article_title = get_article_title(url)
@@ -608,8 +608,8 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
             if not isinstance(url, str):
                 raise TypeError("Got an unexpected type in url")
 
-            publication = ""
-            article_title = ""
+            publication = None
+            article_title = None
             if url:
                 publication = urlparse(url).netloc
                 article_title = get_article_title(url)
@@ -650,10 +650,10 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
 class NewsItem(BaseSegment):
     item_number: int
     topic: str
-    url: str
+    url: str | None
 
-    article_title: str
-    article_publication: str
+    article_title: str | None
+    article_publication: str | None
 
     @property
     def template_name(self) -> str:
@@ -661,7 +661,7 @@ class NewsItem(BaseSegment):
 
     @property
     def llm_prompt(self) -> str:
-        return f"Please identify the start of the news segment whose topic is: {self.article_title}"
+        return f"Please identify the start of the news segment whose topic is: {self.article_title or self.topic}"
 
     def get_template_values(self) -> dict[str, Any]:
         return {
@@ -717,18 +717,18 @@ class NewsMetaSegment(FromLyricsSegment):
             if "news item" in line.lower():
                 item_counter += 1
 
-                url = ""
+                url = None
                 next_index = index + 1
                 if next_index < len(lines) and string_is_url(lines[next_index]):
                     url = lines[next_index]
 
-                publication = ""
-                article_title = ""
+                publication = None
+                article_title = None
                 if url:
                     publication = urlparse(url).netloc
                     article_title = get_article_title(url)
 
-                match = re.match(r"news item #\d+ . (.+)", line, re.IGNORECASE)
+                match = re.match(r"news item #?\d+\s*.\s*(.+)", line, re.IGNORECASE)
                 if not match:
                     raise ValueError(f"Failed to extract news topic from: {line}")
                 topic = match.group(1).strip()
