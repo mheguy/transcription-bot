@@ -23,6 +23,7 @@ def file_cache(func: "Callable[P, R]") -> "Callable[P, R]":
         cache_filepath = _get_cache_file(func, args, kwargs)
 
         if cache_filepath.exists():
+            logger.info(f"Using cache for: {func.__name__}")
             return _load_cache(cache_filepath)
 
         result = func(*args, **kwargs)
