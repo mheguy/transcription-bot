@@ -18,6 +18,9 @@ def add_transcript_to_segments(raw_transcript: "DiarizedTranscript", episode_seg
     """Add the transcript to the episode segments."""
     partial_transcript: DiarizedTranscript = []
     segments: Segments = [IntroSegment(start_time=0), *episode_segments]
+
+    segments[-1].end_time = raw_transcript[-1]["end"]
+
     last_start_time = 0
 
     for left_segment, right_segment in itertools.pairwise(segments):
