@@ -73,7 +73,7 @@ class BaseSegment(ABC):
     @property
     def duration(self) -> float:
         """Provide the duration of the segment in minutes."""
-        if not self.start_time or not self.end_time:
+        if self.start_time is None:
             return 0
 
         return (self.end_time - self.start_time) / 60
