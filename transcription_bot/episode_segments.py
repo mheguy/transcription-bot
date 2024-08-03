@@ -125,6 +125,7 @@ class UnknownSegment(BaseSegment):
 
     title: str
     extra_text: str
+    url: str
 
     @property
     def template_name(self) -> str:
@@ -135,7 +136,7 @@ class UnknownSegment(BaseSegment):
         return f"Please identify the start of the segment whose title is: {self.title}, {self.extra_text}"
 
     def get_template_values(self) -> dict[str, Any]:
-        return {"title": self.title, "extra_text": self.extra_text}
+        return {"title": self.title, "extra_text": self.extra_text, "url": self.url}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -157,7 +158,16 @@ class UnknownSegment(BaseSegment):
         lines += [""] * (1 - len(lines))
         title, *extra_lines = lines
 
-        return UnknownSegment(title=title, extra_text=" ".join(extra_lines))
+        extra_text = ""
+        url = ""
+
+        for line in extra_lines:
+            if string_is_url(line):
+                url = line
+            else:
+                extra_text += line
+
+        return UnknownSegment(title=title, extra_text=extra_text, url=url)
 
 
 @dataclass(kw_only=True)
