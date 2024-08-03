@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 def parse_lyrics(lyrics: str) -> Segments:
     """Parse the lyrics and return a list of segments."""
     lyrics = lyrics.replace("\r", "\n")
-    pattern = r"(Segment #\d.+?)(?=(?:Segment #\d+|$))"
+    pattern = r"(Segment #?\d.+?)(?=(?:Segment #?\d+|$))"
     lyric_chunks = re.findall(pattern, lyrics, re.DOTALL)
 
     return list(filter(None, [_create_segment_from_lyric_chunk(line.strip()) for line in lyric_chunks]))
