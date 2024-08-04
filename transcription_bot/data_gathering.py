@@ -47,7 +47,7 @@ async def gather_data(client: "requests.Session", podcast: "PodcastEpisode") -> 
     audio_file = await get_audio_file(client, podcast)
 
     async with asyncio.TaskGroup() as tg:
-        transcript_task = tg.create_task(get_transcript(audio_file, podcast))
+        transcript_task = tg.create_task(get_transcript(podcast, audio_file))
         lyrics_task = tg.create_task(_get_lyrics_from_mp3(audio_file.read_bytes()))
         show_notes_task = tg.create_task(_get_show_notes(client, podcast.episode_url))
 

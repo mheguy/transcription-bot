@@ -8,8 +8,8 @@ import requests
 from codetiming import Timer
 from numpy import dtype, floating, ndarray
 
+from transcription_bot.caching import cache_for_episode
 from transcription_bot.config import (
-    DIARIZATION_FOLDER,
     DIARIZED_TRANSCRIPTION_FOLDER,
     PYANNOTE_IDENTIFY_ENDPOINT,
     PYANNOTE_TOKEN,
@@ -53,7 +53,7 @@ class DiarizedTranscriptChunk(TypedDict):
 DiarizedTranscript = list[DiarizedTranscriptChunk]
 
 
-async def get_transcript(audio_file: "Path", podcast: "PodcastEpisode") -> "DiarizedTranscript":
+async def get_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "DiarizedTranscript":
     """Create a transcript with the audio and podcast information."""
     diarized_transcript_file = DIARIZED_TRANSCRIPTION_FOLDER / f"{podcast.episode_number}.json"
 
@@ -67,7 +67,7 @@ async def get_transcript(audio_file: "Path", podcast: "PodcastEpisode") -> "Diar
     audio = _load_audio(audio_file)
 
     device = torch.device("cuda")
-    raw_transcription = _perform_transcription(audio)
+    raw_transcription = _perform_transcription(podcast, audio)
     transcription = _perform_alignment(audio, device, raw_transcription)
 
     logger.info("Getting diarization")
@@ -88,23 +88,15 @@ def _load_audio(audio_file: "Path") -> AudioArray:
     return whisperx.load_audio(str(audio_file))
 
 
+@cache_for_episode
 async def _create_diarization(podcast: "PodcastEpisode") -> "DataFrame":
-    diarization_response_file = DIARIZATION_FOLDER / f"{podcast.episode_number}.json"
+    logger.info("Creating diarization")
+    webhook_server = WebhookServer()
+    server_url = await webhook_server.start_server_thread()
 
-    if diarization_response_file.exists():
-        logger.info("Using cache for: _create_diarization")
-        dia_response = diarization_response_file.read_bytes()
-    else:
-        logger.info("Creating diarization")
-        webhook_server = WebhookServer()
-        server_url = await webhook_server.start_server_thread()
+    _send_diarization_request(server_url, podcast.download_url)
 
-        _send_diarization_request(server_url, podcast.download_url)
-
-        dia_response = await webhook_server.get_webhook_payload_async()
-
-        logger.info("Writing diarization response to file")
-        diarization_response_file.write_bytes(dia_response)
+    dia_response = await webhook_server.get_webhook_payload_async()
 
     response_dict = json.loads(dia_response)
     return pd.DataFrame(response_dict["output"]["identification"])
@@ -145,7 +137,8 @@ def _merge_transcript_and_diarization(
 
 
 @Timer("transcription", "{name} took {:.1f} seconds", "{name} starting")
-def _perform_transcription(audio: AudioArray) -> "TranscriptionResult":
+@cache_for_episode
+def _perform_transcription(_podcast: "PodcastEpisode", audio: AudioArray) -> "TranscriptionResult":
     import torch
     import whisperx
 
