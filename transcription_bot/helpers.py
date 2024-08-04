@@ -38,7 +38,7 @@ def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str 
     results = soup.find_all(name, class_=class_name)
 
     if len(results) != 1:
-        raise ValueError("Unexpected number of description elements extracted, expected 1, got %s", len(results))
+        raise ValueError(f"Unexpected number of description elements extracted, expected 1, got {len(results)}")
 
     return results[0]
 
