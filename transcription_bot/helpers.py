@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 
-from transcription_bot.caching import file_cache
+from transcription_bot.caching import cache_url_title
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
 
@@ -43,7 +43,7 @@ def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str 
     return results[0]
 
 
-@file_cache
+@cache_url_title
 def get_article_title(url: str) -> str | None:
     """Get the title of an article from its URL."""
     try:

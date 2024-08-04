@@ -3,19 +3,22 @@
 import json
 from typing import TYPE_CHECKING
 
-from transcription_bot.caching import file_cache
+from transcription_bot.caching import cache_for_episode
 from transcription_bot.config import LLM_MODEL, OPENAI_API_KEY, OPENAI_ORG, OPENAI_PROJECT
 from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
     from transcription_bot.episode_segments import BaseSegment
+    from transcription_bot.parsers.rss_feed import PodcastEpisode
     from transcription_bot.transcription import DiarizedTranscript
 
 from openai import OpenAI
 
 
-@file_cache
-def ask_llm_for_segment_start(segment: "BaseSegment", transcript: "DiarizedTranscript") -> float | None:
+@cache_for_episode
+def ask_llm_for_segment_start(
+    _podcast_episode: "PodcastEpisode", segment: "BaseSegment", transcript: "DiarizedTranscript"
+) -> float | None:
     """Ask an LLM for the start time of a segment."""
     client = OpenAI(organization=OPENAI_ORG, project=OPENAI_PROJECT, api_key=OPENAI_API_KEY)
     system_prompt = (
@@ -53,8 +56,8 @@ def ask_llm_for_segment_start(segment: "BaseSegment", transcript: "DiarizedTrans
     return response_json.get("start_time")
 
 
-@file_cache
-def ask_llm_for_image_caption(image_url: str) -> str:
+@cache_for_episode
+def ask_llm_for_image_caption(_podcast_episode: "PodcastEpisode", image_url: str) -> str:
     """Ask an LLM to write an image caption."""
     user_prompt = "Please write a 10-15 word caption for this image."
 

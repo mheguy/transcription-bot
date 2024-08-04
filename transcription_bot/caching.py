@@ -1,32 +1,41 @@
 import functools
 import json
 import pickle
-from hashlib import sha256
-from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
 
 from transcription_bot.config import CACHE_FOLDER
 from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Coroutine
+    from collections.abc import Callable
     from pathlib import Path
+
+    from transcription_bot.parsers.rss_feed import PodcastEpisode
 
 P = ParamSpec("P")
 R = TypeVar("R")
+UrlCache = dict[str, str]
 
 
-def file_cache(func: "Callable[P, R]") -> "Callable[P, R]":
-    """Cache the result of the decorated sync function to a file."""
+def cache_for_episode(
+    func: "Callable[Concatenate[PodcastEpisode, P], R]",
+) -> "Callable[Concatenate[PodcastEpisode, P], R]":
+    """Cache the result of the decorated function to a file.
+
+    Requires the first positional argument be a PodcastEpisode.
+    """
 
     @functools.wraps(func)
-    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        cache_filepath = _get_cache_file(func, args, kwargs)
+    def sync_wrapper(podcast_episode: "PodcastEpisode", *args: P.args, **kwargs: P.kwargs) -> R:
+        function_dir = CACHE_FOLDER / func.__module__ / func.__name__
+        function_dir.mkdir(parents=True, exist_ok=True)
+        cache_filepath = function_dir / f"{podcast_episode.episode_number}.json_or_pkl"
 
         if cache_filepath.exists():
             logger.info(f"Using cache for: {func.__name__}")
             return _load_cache(cache_filepath)
 
-        result = func(*args, **kwargs)
+        result = func(podcast_episode, *args, **kwargs)
 
         _save_cache(cache_filepath, result)
         return result
@@ -34,23 +43,33 @@ def file_cache(func: "Callable[P, R]") -> "Callable[P, R]":
     return sync_wrapper
 
 
-def file_cache_async(func: "Callable[P, Coroutine[None, None, R]]") -> "Callable[P, Coroutine[None, None, R]]":
-    """Cache the result of the decorated async function to a file."""
+def cache_url_title(func: "Callable[Concatenate[str, P], str|None]") -> "Callable[Concatenate[str, P], str|None]":
+    """Provide caching for title page lookups."""
+    # Load a dict
 
     @functools.wraps(func)
-    async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        cache_filepath = _get_cache_file(func, args, kwargs)
+    def sync_wrapper(url: "str", *args: P.args, **kwargs: P.kwargs) -> str | None:
+        function_dir = CACHE_FOLDER / func.__module__ / func.__name__
+        function_dir.mkdir(parents=True, exist_ok=True)
+        cache_filepath = function_dir / "urls.json_or_pkl"
 
+        url_cache: UrlCache = {}
         if cache_filepath.exists():
-            logger.info(f"Loading from cache for: {func.__name__}")
-            return _load_cache(cache_filepath)
+            url_cache = _load_cache(cache_filepath)
 
-        result = await func(*args, **kwargs)
+        if title := url_cache.get(url):
+            logger.info(f"Using url cache for: {url}")
+            return title
 
-        _save_cache(cache_filepath, result)
+        result = func(url, *args, **kwargs)
+
+        if result:
+            url_cache[url] = result
+            _save_cache(cache_filepath, url_cache)
+
         return result
 
-    return async_wrapper
+    return sync_wrapper
 
 
 def _save_cache(file: "Path", data: Any) -> None:
@@ -65,15 +84,3 @@ def _load_cache(file: "Path") -> Any:
         return json.loads(file.read_text())
     except (TypeError, OverflowError, json.JSONDecodeError, UnicodeDecodeError):
         return pickle.loads(file.read_bytes())  # noqa: S301
-
-
-def _get_cache_file(func: "Callable[P, R]", args: Any, kwargs: Any) -> "Path":
-    function_dir = CACHE_FOLDER / func.__module__ / func.__name__
-    function_dir.mkdir(parents=True, exist_ok=True)
-
-    args_hash = sha256(str(args).encode()).hexdigest()
-    kwargs_hash = sha256(str(kwargs).encode()).hexdigest()
-
-    final_hash = sha256(f"{args_hash}_{kwargs_hash}".encode()).hexdigest()
-
-    return function_dir / f"{final_hash}.json_or_pkl"

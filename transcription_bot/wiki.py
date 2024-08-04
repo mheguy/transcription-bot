@@ -37,7 +37,7 @@ def create_podcast_wiki_page(
     qotw_segment = get_first_segment_of_type(episode_segments, QuoteSegment)
 
     episode_image_url = get_episode_image_url(episode_data.show_notes)
-    episode_icon_caption = ask_llm_for_image_caption(episode_image_url)
+    episode_icon_caption = ask_llm_for_image_caption(episode_data.podcast, episode_image_url)
 
     csrf_token = log_into_wiki(client)
 

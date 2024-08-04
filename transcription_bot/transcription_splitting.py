@@ -8,13 +8,18 @@ from transcription_bot.transcription import DiarizedTranscript
 
 if TYPE_CHECKING:
     from transcription_bot.episode_segments import Segments
+    from transcription_bot.parsers.rss_feed import PodcastEpisode
     from transcription_bot.transcription import DiarizedTranscript
 
 THIRTY_SECONDS = 30
 THIRTY_MINUTES = 30 * 60
 
 
-def add_transcript_to_segments(raw_transcript: "DiarizedTranscript", episode_segments: "Segments") -> "Segments":
+def add_transcript_to_segments(
+    podcast_episode: "PodcastEpisode",
+    raw_transcript: "DiarizedTranscript",
+    episode_segments: "Segments",
+) -> "Segments":
     """Add the transcript to the episode segments."""
     partial_transcript: DiarizedTranscript = []
     segments: Segments = [IntroSegment(start_time=0), *episode_segments]
@@ -38,7 +43,7 @@ def add_transcript_to_segments(raw_transcript: "DiarizedTranscript", episode_seg
         right_segment.start_time = right_segment.get_start_time(partial_transcript)
 
         if not right_segment.start_time:
-            right_segment.start_time = ask_llm_for_segment_start(right_segment, partial_transcript)
+            right_segment.start_time = ask_llm_for_segment_start(podcast_episode, right_segment, partial_transcript)
 
             if not right_segment.start_time:
                 logger.info(f"No start time found for segment: {right_segment}")
