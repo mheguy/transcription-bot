@@ -118,9 +118,8 @@ def _send_diarization_request(listener_url: str, audio_file_url: str) -> None:
 
     logger.info(f"Request data: {data}")
     response = requests.post(PYANNOTE_IDENTIFY_ENDPOINT, headers=headers, json=data, timeout=10)
+    logger.info(f"Request sent. Response: {response}")
     response.raise_for_status()
-
-    logger.info(f"Request sent. Response: {response.content}")
 
 
 def _merge_transcript_and_diarization(
