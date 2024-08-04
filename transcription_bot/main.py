@@ -1,5 +1,3 @@
-import asyncio
-
 from dotenv import load_dotenv
 
 from transcription_bot.data_gathering import gather_data
@@ -14,7 +12,7 @@ from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_pa
 load_dotenv()
 
 
-async def main(*, allow_page_editing: bool, episodes_to_process: list[int] | None = None) -> None:
+def main(*, allow_page_editing: bool, episodes_to_process: list[int] | None = None) -> None:
     """Main function that starts the program and processes podcast episodes.
 
     This function retrieves podcast episodes from an RSS feed,
@@ -39,7 +37,7 @@ async def main(*, allow_page_editing: bool, episodes_to_process: list[int] | Non
                 break
 
         logger.debug("Gathering all data...")
-        episode_data = await gather_data(http_client, podcast_episode)
+        episode_data = gather_data(podcast_episode, http_client)
         adjust_transcript_for_voiceover(episode_data.transcript)
 
         logger.debug("Converting data to segments...")
@@ -61,4 +59,7 @@ async def main(*, allow_page_editing: bool, episodes_to_process: list[int] | Non
 
 
 if __name__ == "__main__":
-    asyncio.run(main(episodes_to_process=[], allow_page_editing=False))
+    main(
+        episodes_to_process=[],
+        allow_page_editing=False,
+    )

@@ -1,4 +1,3 @@
-import asyncio
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
@@ -6,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from mutagen.id3 import ID3
 
+from transcription_bot.caching import cache_for_episode
 from transcription_bot.config import AUDIO_FOLDER
 from transcription_bot.downloader import FileDownloader
 from transcription_bot.global_logger import logger
@@ -41,25 +41,25 @@ class EpisodeData:
     show_notes: bytes
 
 
-async def gather_data(client: "requests.Session", podcast: "PodcastEpisode") -> EpisodeData:
+@cache_for_episode
+def gather_data(podcast: "PodcastEpisode", client: "requests.Session") -> EpisodeData:
     """Gather data about a podcast episode."""
     logger.info("Getting show data...")
-    audio_file = await get_audio_file(client, podcast)
+    audio_file = get_audio_file(client, podcast)
 
-    async with asyncio.TaskGroup() as tg:
-        transcript_task = tg.create_task(get_transcript(podcast, audio_file))
-        lyrics_task = tg.create_task(_get_lyrics_from_mp3(audio_file.read_bytes()))
-        show_notes_task = tg.create_task(_get_show_notes(client, podcast.episode_url))
+    transcript = get_transcript(podcast, audio_file)
+    lyrics = _get_lyrics_from_mp3(podcast, audio_file.read_bytes())
+    show_notes = _get_show_notes(podcast, client)
 
     return EpisodeData(
         podcast=podcast,
-        transcript=transcript_task.result(),
-        lyrics=lyrics_task.result(),
-        show_notes=show_notes_task.result(),
+        transcript=transcript,
+        lyrics=lyrics,
+        show_notes=show_notes,
     )
 
 
-async def get_audio_file(client: "Session", podcast: "PodcastEpisode") -> "Path":
+def get_audio_file(client: "Session", podcast: "PodcastEpisode") -> "Path":
     """Retrieve the audio file for a podcast episode."""
     audio_file = AUDIO_FOLDER / f"{podcast.episode_number}.mp3"
     if audio_file.exists():
@@ -72,14 +72,16 @@ async def get_audio_file(client: "Session", podcast: "PodcastEpisode") -> "Path"
     return audio_file
 
 
-async def _get_show_notes(client: "Session", url: str) -> bytes:
-    resp = client.get(url)
+@cache_for_episode
+def _get_show_notes(podcast: "PodcastEpisode", client: "Session") -> bytes:
+    resp = client.get(podcast.episode_url)
     resp.raise_for_status()
 
     return resp.content
 
 
-async def _get_lyrics_from_mp3(raw_bytes: bytes) -> str:
+@cache_for_episode
+def _get_lyrics_from_mp3(_podcast: "PodcastEpisode", raw_bytes: bytes) -> str:
     audio = ID3(BytesIO(raw_bytes))
 
     uslt_frame: USLT = audio.getall("USLT::eng")[0]

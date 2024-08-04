@@ -23,18 +23,18 @@ class WebhookServer:
         self._server_thread = Thread(target=self._start_server, daemon=False)
         self._listener: ngrok.Listener | None = None
 
-    async def start_server_thread(self) -> str:
+    def start_server_thread(self) -> str:
         """Start the server in a separate thread and return the public URL of the server."""
         self._server_thread.start()
         listener = ngrok.forward(SERVER_PORT, authtoken=NGROK_TOKEN)
 
         if isawaitable(listener):
-            listener = await listener
+            raise TypeError("Listener is awaitable")
 
         self._listener = listener
         return listener.url()
 
-    async def get_webhook_payload_async(self) -> bytes:
+    def get_webhook_payload(self) -> bytes:
         """Get the webhook payload."""
         if self._listener is None:
             raise RuntimeError("Server not started")

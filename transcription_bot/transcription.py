@@ -53,7 +53,7 @@ class DiarizedTranscriptChunk(TypedDict):
 DiarizedTranscript = list[DiarizedTranscriptChunk]
 
 
-async def get_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "DiarizedTranscript":
+def get_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "DiarizedTranscript":
     """Create a transcript with the audio and podcast information."""
     diarized_transcript_file = DIARIZED_TRANSCRIPTION_FOLDER / f"{podcast.episode_number}.json"
 
@@ -71,7 +71,7 @@ async def get_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "Diar
     transcription = _perform_alignment(audio, device, raw_transcription)
 
     logger.info("Getting diarization")
-    diarization = await _create_diarization(podcast)
+    diarization = _create_diarization(podcast)
 
     logger.info("Creating diarized transcript")
     diarized_transcript = _merge_transcript_and_diarization(transcription, diarization)
@@ -89,14 +89,14 @@ def _load_audio(audio_file: "Path") -> AudioArray:
 
 
 @cache_for_episode
-async def _create_diarization(podcast: "PodcastEpisode") -> "DataFrame":
+def _create_diarization(podcast: "PodcastEpisode") -> "DataFrame":
     logger.info("Creating diarization")
     webhook_server = WebhookServer()
-    server_url = await webhook_server.start_server_thread()
+    server_url = webhook_server.start_server_thread()
 
     _send_diarization_request(server_url, podcast.download_url)
 
-    dia_response = await webhook_server.get_webhook_payload_async()
+    dia_response = webhook_server.get_webhook_payload()
 
     response_dict = json.loads(dia_response)
     return pd.DataFrame(response_dict["output"]["identification"])
