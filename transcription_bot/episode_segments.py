@@ -30,7 +30,7 @@ Segments = list["BaseSegment"]
 class ScienceOrFictionItem:
     number: int
     show_notes_text: str
-    article_url: str
+    article_url: str | None
     sof_result: str
 
     article_title: str | None
@@ -602,17 +602,19 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
 
             answer = find_single_element(raw_item, "span", "quiz__answer").text
 
-            a_tag = find_single_element(p_tag, "a", None)
-            url = a_tag.get("href", "")
-
-            if not isinstance(url, str):
-                raise TypeError("Got an unexpected type in url")
+            try:
+                a_tag = find_single_element(p_tag, "a", None)
+                article_url = a_tag.get("href", "")
+                if not isinstance(article_url, str):
+                    raise TypeError("Got an unexpected type in url")
+            except ValueError:
+                article_url = ""
 
             publication = None
             article_title = None
-            if url:
-                publication = urlparse(url).netloc
-                article_title = get_article_title(url)
+            if article_url:
+                publication = urlparse(article_url).netloc
+                article_title = get_article_title(article_url)
 
             if answer.lower() == "science":
                 sof_result = f"science{science_items}"
@@ -624,7 +626,7 @@ class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
                 ScienceOrFictionItem(
                     number=item_number,
                     show_notes_text=p_text,
-                    article_url=url,
+                    article_url=article_url,
                     sof_result=sof_result,
                     article_publication=publication,
                     article_title=article_title,
