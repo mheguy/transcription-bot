@@ -19,8 +19,6 @@ def main(*, allow_page_editing: bool, episodes_to_process: list[int] | None = No
     checks if each episode has a wiki page,
     and creates a wiki page for episodes that don't have one.
     """
-    logger.success("Starting...")
-
     logger.info("Getting episodes from RSS feed...")
     podcast_episodes = get_podcast_episodes(http_client)
 
@@ -30,11 +28,14 @@ def main(*, allow_page_editing: bool, episodes_to_process: list[int] | None = No
     for podcast_episode in podcast_episodes:
         logger.info(f"Processing episode #{podcast_episode.episode_number}")
 
-        if not episodes_to_process:
-            logger.info("Checking for wiki page...")
-            if episode_has_wiki_page(http_client, podcast_episode.episode_number):
-                logger.info("Episode has a wiki page. Stopping.")
-                break
+        logger.info("Checking for wiki page...")
+        if not allow_page_editing and episode_has_wiki_page(http_client, podcast_episode.episode_number):
+            if episodes_to_process:
+                logger.info("Episode has a wiki page. Skipping.")
+                continue
+
+            logger.info("Episode has a wiki page. Stopping.")
+            break
 
         logger.debug("Gathering all data...")
         episode_data = gather_data(podcast_episode, http_client)
@@ -54,6 +55,8 @@ def main(*, allow_page_editing: bool, episodes_to_process: list[int] | None = No
         )
 
         logger.success(f"Episode #{podcast_episode.episode_number} processed.")
+    else:
+        logger.success("All episodes processed.")
 
     logger.success("Shutting down.")
 
