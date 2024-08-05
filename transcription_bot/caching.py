@@ -10,7 +10,9 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
+    from transcription_bot.episode_segments import BaseSegment
     from transcription_bot.parsers.rss_feed import PodcastEpisode
+    from transcription_bot.transcription import DiarizedTranscript
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -45,7 +47,6 @@ def cache_for_episode(
 
 def cache_url_title(func: "Callable[Concatenate[str, P], str|None]") -> "Callable[Concatenate[str, P], str|None]":
     """Provide caching for title page lookups."""
-    # Load a dict
 
     @functools.wraps(func)
     def sync_wrapper(url: "str", *args: P.args, **kwargs: P.kwargs) -> str | None:
@@ -66,6 +67,44 @@ def cache_url_title(func: "Callable[Concatenate[str, P], str|None]") -> "Callabl
         if result:
             url_cache[url] = result
             _save_cache(cache_filepath, url_cache)
+
+        return result
+
+    return sync_wrapper
+
+
+def cache_llm(
+    func: "Callable[[PodcastEpisode, BaseSegment, DiarizedTranscript], float | None]",
+) -> "Callable[[PodcastEpisode, BaseSegment, DiarizedTranscript], float | None]":
+    """Provide caching for title page lookups."""
+
+    @functools.wraps(func)
+    def sync_wrapper(
+        _podcast_episode: "PodcastEpisode", segment: "BaseSegment", transcript: "DiarizedTranscript"
+    ) -> float | None:
+        function_dir = CACHE_FOLDER / func.__module__ / func.__name__
+        function_dir.mkdir(parents=True, exist_ok=True)
+        episode = _podcast_episode.episode_number
+        cache_filepath = function_dir / f"{episode}.json_or_pkl"
+
+        segment_type = segment.__class__.__name__
+        transcript_start = transcript[0]["start"]
+
+        cache_key = (segment_type, transcript_start)
+
+        llm_cache = {}
+        if cache_filepath.exists():
+            llm_cache = _load_cache(cache_filepath)
+
+        if start_time := llm_cache.get(cache_key):
+            logger.info(f"Using llm cache for segment type:{segment_type}, transcript start:{transcript_start=}")
+            return start_time
+
+        result = func(_podcast_episode, segment, transcript)
+
+        if result:
+            llm_cache[cache_key] = result
+            _save_cache(cache_filepath, llm_cache)
 
         return result
 

@@ -3,7 +3,7 @@
 import json
 from typing import TYPE_CHECKING
 
-from transcription_bot.caching import cache_for_episode
+from transcription_bot.caching import cache_for_episode, cache_llm
 from transcription_bot.config import LLM_MODEL, OPENAI_API_KEY, OPENAI_ORG, OPENAI_PROJECT
 from transcription_bot.global_logger import logger
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 from openai import OpenAI
 
 
-@cache_for_episode
+@cache_llm
 def ask_llm_for_segment_start(
     _podcast_episode: "PodcastEpisode", segment: "BaseSegment", transcript: "DiarizedTranscript"
 ) -> float | None:
