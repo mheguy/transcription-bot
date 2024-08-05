@@ -30,6 +30,8 @@ if TYPE_CHECKING:
     from transcription_bot.parsers.rss_feed import PodcastEpisode
 
 AudioArray = ndarray[Any, dtype[floating[Any]]]
+RawDiarization = dict[str, dict[str, list[dict[str, str | float]]]]
+DiarizedTranscript = list["DiarizedTranscriptChunk"]
 
 
 class DiarizedTranscriptChunk(TypedDict):
@@ -48,9 +50,6 @@ class DiarizedTranscriptChunk(TypedDict):
     speaker: str
 
 
-DiarizedTranscript = list[DiarizedTranscriptChunk]
-
-
 @cache_for_episode
 def get_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "DiarizedTranscript":
     """Create a transcript with the audio and podcast information."""
@@ -60,7 +59,7 @@ def get_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "DiarizedTr
     transcription = _perform_alignment(podcast, audio_file, raw_transcription)
 
     raw_diarization = _create_diarization(podcast)
-    diarization = pd.DataFrame(json.loads(raw_diarization)["output"]["identification"])
+    diarization = pd.DataFrame(raw_diarization["output"]["identification"])
 
     return _merge_transcript_and_diarization(transcription, diarization)
 
@@ -75,14 +74,20 @@ def _load_audio(audio_file: "Path") -> AudioArray:
 
 
 @cache_for_episode
-def _create_diarization(podcast: "PodcastEpisode") -> bytes:
+def _create_diarization(podcast: "PodcastEpisode") -> RawDiarization:
     logger.debug("_create_diarization")
     webhook_server = WebhookServer()
     server_url = webhook_server.start_server_thread()
 
     _send_diarization_request(server_url, podcast.download_url)
 
-    return webhook_server.get_webhook_payload()
+    response_content = webhook_server.get_webhook_payload()
+
+    try:
+        return json.loads(response_content)
+    except (TypeError, OverflowError, json.JSONDecodeError, UnicodeDecodeError):
+        logger.error(f"Failed to decode to JSON: {response_content}")
+        raise
 
 
 def _send_diarization_request(listener_url: str, audio_file_url: str) -> None:
