@@ -40,7 +40,6 @@ class WebhookServer:
             raise RuntimeError("Server not started")
 
         self._server_thread.join()
-        self._listener.close()
         return self._queue.get()
 
     def _create_handler_class(self) -> type[http.server.SimpleHTTPRequestHandler]:
