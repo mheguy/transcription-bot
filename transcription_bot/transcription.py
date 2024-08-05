@@ -1,5 +1,6 @@
 import gc
 import json
+from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
@@ -10,7 +11,6 @@ from numpy import dtype, floating, ndarray
 
 from transcription_bot.caching import cache_for_episode
 from transcription_bot.config import (
-    DIARIZED_TRANSCRIPTION_FOLDER,
     PYANNOTE_IDENTIFY_ENDPOINT,
     PYANNOTE_TOKEN,
     TRANSCRIPTION_LANGUAGE,
@@ -25,8 +25,6 @@ from transcription_bot.webhook_server import WebhookServer
 if TYPE_CHECKING:
     from pathlib import Path
 
-    import torch
-    from pandas import DataFrame
     from whisperx.types import AlignedTranscriptionResult, TranscriptionResult
 
     from transcription_bot.parsers.rss_feed import PodcastEpisode
@@ -53,56 +51,42 @@ class DiarizedTranscriptChunk(TypedDict):
 DiarizedTranscript = list[DiarizedTranscriptChunk]
 
 
+@cache_for_episode
 def get_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "DiarizedTranscript":
     """Create a transcript with the audio and podcast information."""
-    diarized_transcript_file = DIARIZED_TRANSCRIPTION_FOLDER / f"{podcast.episode_number}.json"
+    logger.debug("get_transcript")
 
-    if diarized_transcript_file.exists():
-        logger.info("Using cache for: get_transcript")
-        return json.loads(diarized_transcript_file.read_text())
+    raw_transcription = _perform_transcription(podcast, audio_file)
+    transcription = _perform_alignment(podcast, audio_file, raw_transcription)
 
-    logger.info("Creating transcript")
-    import torch
+    raw_diarization = _create_diarization(podcast)
+    diarization = pd.DataFrame(json.loads(raw_diarization)["output"]["identification"])
 
-    audio = _load_audio(audio_file)
-
-    device = torch.device("cuda")
-    raw_transcription = _perform_transcription(podcast, audio)
-    transcription = _perform_alignment(audio, device, raw_transcription)
-
-    logger.info("Getting diarization")
-    diarization = _create_diarization(podcast)
-
-    logger.info("Creating diarized transcript")
-    diarized_transcript = _merge_transcript_and_diarization(transcription, diarization)
-
-    logger.info("Writing diarized transcript to file")
-    diarized_transcript_file.write_text(json.dumps(diarized_transcript))
-
-    return diarized_transcript
+    return _merge_transcript_and_diarization(transcription, diarization)
 
 
+@cache
 def _load_audio(audio_file: "Path") -> AudioArray:
+    logger.debug("_load_audio")
+
     import whisperx
 
     return whisperx.load_audio(str(audio_file))
 
 
 @cache_for_episode
-def _create_diarization(podcast: "PodcastEpisode") -> "DataFrame":
-    logger.info("Creating diarization")
+def _create_diarization(podcast: "PodcastEpisode") -> bytes:
+    logger.debug("_create_diarization")
     webhook_server = WebhookServer()
     server_url = webhook_server.start_server_thread()
 
     _send_diarization_request(server_url, podcast.download_url)
 
-    dia_response = webhook_server.get_webhook_payload()
-
-    response_dict = json.loads(dia_response)
-    return pd.DataFrame(response_dict["output"]["identification"])
+    return webhook_server.get_webhook_payload()
 
 
 def _send_diarization_request(listener_url: str, audio_file_url: str) -> None:
+    logger.debug("_send_diarization_request")
     webhook_url = f"{listener_url}/webhook"
 
     headers = {"Authorization": f"Bearer {PYANNOTE_TOKEN}", "Content-Type": "application/json"}
@@ -118,6 +102,8 @@ def _merge_transcript_and_diarization(
     transcription: "AlignedTranscriptionResult",
     diarization: pd.DataFrame,
 ) -> DiarizedTranscript:
+    logger.debug("_merge_transcript_and_diarization")
+
     import whisperx
 
     raw_diarized_transcript: dict[str, list[dict[str, Any]]] = whisperx.assign_word_speakers(diarization, transcription)
@@ -136,12 +122,15 @@ def _merge_transcript_and_diarization(
     return chunks
 
 
-@Timer("transcription", "{name} took {:.1f} seconds", "{name} starting")
 @cache_for_episode
-def _perform_transcription(_podcast: "PodcastEpisode", audio: AudioArray) -> "TranscriptionResult":
+@Timer("_perform_transcription", "{name} took {:.1f} seconds")
+def _perform_transcription(_podcast: "PodcastEpisode", audio_file: "Path") -> "TranscriptionResult":
+    logger.debug("_perform_transcription")
+
     import torch
     import whisperx
 
+    audio = _load_audio(audio_file)
     transcription_model = whisperx.load_model(
         TRANSCRIPTION_MODEL,
         "cuda",
@@ -157,15 +146,21 @@ def _perform_transcription(_podcast: "PodcastEpisode", audio: AudioArray) -> "Tr
     return result
 
 
-@Timer("transcription_alignment", "{name} took {:.1f} seconds", "{name} starting")
+@cache_for_episode
+@Timer("_perform_alignment", "{name} took {:.1f} seconds")
 def _perform_alignment(
-    audio: AudioArray,
-    device: "torch.device",
+    _podcast: "PodcastEpisode",
+    audio_file: "Path",
     transcription: "TranscriptionResult",
 ) -> "AlignedTranscriptionResult":
+    logger.debug("_perform_alignment")
+
     import torch
     import whisperx
 
+    device = torch.device("cuda")
+
+    audio = _load_audio(audio_file)
     alignment_model, metadata = whisperx.load_align_model(language_code=TRANSCRIPTION_LANGUAGE, device=device)
     aligned_transcription = whisperx.align(
         transcription["segments"],
