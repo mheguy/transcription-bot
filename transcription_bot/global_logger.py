@@ -16,7 +16,7 @@ logger.add(
     colorize=True,
 )
 
-if os.getenv("GCE_METADATA_HOST"):
+if os.getenv("GOOGLE_VM_CONFIG_LOCK_FILE"):
     from logging.handlers import SysLogHandler
 
     handler = SysLogHandler(address="/dev/log")
