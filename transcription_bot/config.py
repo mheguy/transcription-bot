@@ -43,10 +43,11 @@ VOICEPRINT_FILE = DATA_FOLDER / "voiceprint_map.json"
 TEMPLATES_FOLDER = DATA_FOLDER / "templates"
 
 # Saved data paths (these are not in the repo / codebase)
-PROCESSED_DATA_FOLDER = Path("data/").resolve()
+TEMP_DATA_FOLDER = Path("data/").resolve()
+TEMP_DATA_FOLDER.mkdir(exist_ok=True)
 
-AUDIO_FOLDER = PROCESSED_DATA_FOLDER / "audio"
+AUDIO_FOLDER = TEMP_DATA_FOLDER / "audio"
 AUDIO_FOLDER.mkdir(exist_ok=True)
 
-CACHE_FOLDER = PROCESSED_DATA_FOLDER / "cache"
+CACHE_FOLDER = TEMP_DATA_FOLDER / "cache"
 CACHE_FOLDER.mkdir(exist_ok=True)
