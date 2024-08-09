@@ -8,7 +8,7 @@ logger.remove()
 
 
 logger.add(
-    sys.stdout,
+    sys.stderr,
     format="{time:HH:mm:ss} <level>{level: <8}</level> [transcript-bot] {message}",
     level=LOG_LEVEL,
     colorize=True,
