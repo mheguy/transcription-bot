@@ -456,7 +456,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
 
 
 @dataclass(kw_only=True)
-class NoisySegment(FromShowNotesSegment, FromLyricsSegment):
+class NoisySegment(FromLyricsSegment, FromShowNotesSegment):
     valid_splitters: ClassVar[str] = ":-"
 
     last_week_answer: str = "<!-- Failed to extract last week's answer -->"
@@ -547,7 +547,7 @@ class QuoteSegment(FromLyricsSegment):
 
 
 @dataclass(kw_only=True)
-class ScienceOrFictionSegment(FromShowNotesSegment, FromLyricsSegment):
+class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
     items: list[ScienceOrFictionItem]
     theme: str | None = None
 
@@ -751,20 +751,28 @@ class NewsMetaSegment(FromLyricsSegment):
 @dataclass(kw_only=True)
 class InterviewSegment(FromLyricsSegment, FromShowNotesSegment):
     name: str
+    url: str
 
     @property
     def template_name(self) -> str:
-        raise NotImplementedError
+        return "interview"
 
     @property
     def llm_prompt(self) -> str:
-        return "Please identity the beginning of the interview segment."
+        return f"Please identity the beginning of the interview with {self.name}."
 
     def get_template_values(self) -> dict[str, Any]:
-        raise NotImplementedError
+        return {
+            "name": self.name,
+            "url": self.url,
+        }
 
     def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
-        raise NotImplementedError
+        for chunk in transcript:
+            if are_strings_in_string(["go", "to", "interview"], chunk["text"].lower()):
+                return chunk["start"]
+
+        return None
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -775,11 +783,21 @@ class InterviewSegment(FromLyricsSegment, FromShowNotesSegment):
         text = segment_data[0].text
         name = re.split(r"[w|W]ith", text)[1]
 
-        return InterviewSegment(name=name.strip(":- "))
+        return InterviewSegment(name=name.strip(":- "), url="")
 
     @staticmethod
     def from_lyrics(text: str) -> "InterviewSegment":
-        raise NotImplementedError
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        lines += [""] * (2 - len(lines))
+        name, url, *extra = lines
+
+        if extra:
+            logger.warning(f"Unexpected extra lines in interview segment: {extra}")
+
+        return InterviewSegment(
+            name=name.replace("Interview with", "").strip(),
+            url=url,
+        )
 
 
 @dataclass(kw_only=True)
@@ -846,7 +864,7 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
 
 
 @dataclass(kw_only=True)
-class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
+class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSegment):
     subject: str = "N/A<!-- Failed to extract subject -->"
 
     @property
@@ -879,9 +897,13 @@ class ForgottenSuperheroesOfScienceSegment(FromSummaryTextSegment):
 
         return ForgottenSuperheroesOfScienceSegment(subject=subject)
 
+    @staticmethod
+    def from_lyrics(text: str) -> "ForgottenSuperheroesOfScienceSegment":
+        raise NotImplementedError
+
 
 @dataclass(kw_only=True)
-class SwindlersListSegment(FromSummaryTextSegment):
+class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment):
     topic: str = "N/A<!-- Failed to extract topic -->"
 
     @property
@@ -909,6 +931,10 @@ class SwindlersListSegment(FromSummaryTextSegment):
     @staticmethod
     def from_summary_text(text: str) -> "SwindlersListSegment":
         return SwindlersListSegment(topic=text.split(":")[1].strip())
+
+    @staticmethod
+    def from_lyrics(text: str) -> "SwindlersListSegment":
+        raise NotImplementedError
 
 
 # endregion
