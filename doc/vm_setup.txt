@@ -1,0 +1,62 @@
+### Create and Setup VM ###
+### In GCP, create a VM with a GPU ###
+### Use Debian 12 image ###
+
+### SSH into the VM ###
+### Set up secrets ###
+
+
+### Run as root ###
+# Switch to root
+sudo su
+
+# Install latest version of the agent
+curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh && \
+bash add-google-cloud-ops-agent-repo.sh --also-install && \
+rm add-google-cloud-ops-agent-repo.sh
+
+# Install common/shared packages
+apt-get update && \
+apt-get -y install \
+build-essential \
+libssl-dev \
+zlib1g-dev \
+libbz2-dev \
+libreadline-dev \
+libsqlite3-dev \
+curl \
+git \
+libncursesw5-dev \
+xz-utils \
+tk-dev \
+libxml2-dev \
+libxmlsec1-dev \
+libffi-dev \
+liblzma-dev \
+ffmpeg \
+software-properties-common
+
+# Install CUDA-specific packages (this must come after install software-properties-common)
+echo "deb http://deb.debian.org/debian `cat /etc/os-release | grep VERSION_CODENAME | cut -d'=' -f2` main contrib non-free" > /etc/aps/sources.list
+wget https://developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64/cuda-keyring_1.1-1_all.deb && \
+dpkg -i cuda-keyring_1.1-1_all.deb && \
+add-apt-repository contrib && \
+rm cuda-keyring_* && \
+apt-get update && \
+apt-get -y install cuda-toolkit-12-6 nvidia-open
+
+### Run as user ####
+# Switch back to user
+exit
+
+curl https://pyenv.run | bash && \
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.profile && \
+echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.profile && \
+source ~/.profile && \
+pyenv doctor && \
+pyenv install 3.11 && \
+pyenv global 3.11 && \
+curl -sSL https://install.python-poetry.org | python3 - && \
+git clone https://github.com/mheguy/transcription-bot.git && \
+cd transcription-bot/ && \
+$HOME/.local/bin/poetry install
