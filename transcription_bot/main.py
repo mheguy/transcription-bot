@@ -1,3 +1,5 @@
+import sys
+
 from dotenv import load_dotenv
 
 from transcription_bot.data_gathering import gather_data
@@ -62,7 +64,9 @@ def main(*, allow_page_editing: bool, episodes_to_process: list[int] | None = No
 
 
 if __name__ == "__main__":
+    _, *episodes_to_process = sys.argv
+    episodes_to_process = [int(episode) for episode in episodes_to_process]
     main(
-        episodes_to_process=[],
+        episodes_to_process=episodes_to_process,
         allow_page_editing=False,
     )
