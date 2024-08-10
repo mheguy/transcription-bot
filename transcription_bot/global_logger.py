@@ -1,14 +1,13 @@
-import os
 import sys
 
 from loguru import logger
 
-from transcription_bot.config import LOG_LEVEL
+from transcription_bot.config import IN_GCP, LOG_LEVEL
 
 logger.remove()
 
 
-if os.getenv("GOOGLE_VM_CONFIG_LOCK_FILE"):
+if IN_GCP:
     from logging.handlers import SysLogHandler
 
     handler = SysLogHandler(address="/dev/log")

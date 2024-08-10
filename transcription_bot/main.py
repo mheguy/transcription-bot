@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from transcription_bot.data_gathering import gather_data
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
+from transcription_bot.monitoring import monitor_run
 from transcription_bot.parsers.episode_data import convert_episode_data_to_episode_segments
 from transcription_bot.parsers.rss_feed import get_podcast_episodes
 from transcription_bot.transcript_formatting import adjust_transcript_for_voiceover
@@ -14,6 +15,7 @@ from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_pa
 load_dotenv()
 
 
+@monitor_run
 def main(*, allow_page_editing: bool, episodes_to_process: list[int] | None = None) -> None:
     """Main function that starts the program and processes podcast episodes.
 

@@ -773,6 +773,22 @@ files = [
 toml = ["tomli"]
 
 [[package]]
+name = "cronitor"
+version = "4.7.1"
+description = "A lightweight Python client for Cronitor."
+optional = false
+python-versions = "*"
+files = [
+    {file = "cronitor-4.7.1.tar.gz", hash = "sha256:46acf135f610f888e2d19c6a61f1c9b6f4fd52758f078e8d346d6acc0492e0b5"},
+]
+
+[package.dependencies]
+humanize = "*"
+pyyaml = "*"
+requests = "*"
+urllib3 = "*"
+
+[[package]]
 name = "ctranslate2"
 version = "4.3.1"
 description = "Fast inference engine for Transformer models"
@@ -1363,6 +1379,20 @@ files = [
     {file = "humanfriendly-10.0-py2.py3-none-any.whl", hash = "sha256:1697e1a8a8f550fd43c2865cd84542fc175a61dcb779b6fee18cf6b6ccba1477"},
     {file = "humanfriendly-10.0.tar.gz", hash = "sha256:6b0b831ce8f15f7300721aa49829fc4e83921a9a301cc7f606be6686a2288ddc"},
 ]
+
+[[package]]
+name = "humanize"
+version = "4.10.0"
+description = "Python humanize utilities"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "humanize-4.10.0-py3-none-any.whl", hash = "sha256:39e7ccb96923e732b5c2e27aeaa3b10a8dfeeba3eb965ba7b74a3eb0e30040a6"},
+    {file = "humanize-4.10.0.tar.gz", hash = "sha256:06b6eb0293e4b85e8d385397c5868926820db32b9b654b932f57fa41c23c9978"},
+]
+
+[package.extras]
+tests = ["freezegun", "pytest", "pytest-cov"]
 
 [[package]]
 name = "hyperpyyaml"
@@ -5407,4 +5437,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "01d22d41199c6815fe020f499e9758a4d9a31c10996675dbac3c591ddb665795"
+content-hash = "35fe659417308256623d0f5348fd46f4abc65214019b3b67796c7b24bc2e1c5a"

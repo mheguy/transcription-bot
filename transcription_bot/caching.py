@@ -28,7 +28,7 @@ def cache_for_episode(
     """
 
     @functools.wraps(func)
-    def sync_wrapper(podcast_episode: "PodcastEpisode", *args: P.args, **kwargs: P.kwargs) -> R:
+    def wrapper(podcast_episode: "PodcastEpisode", *args: P.args, **kwargs: P.kwargs) -> R:
         function_dir = CACHE_FOLDER / func.__module__ / func.__name__
         function_dir.mkdir(parents=True, exist_ok=True)
         cache_filepath = function_dir / f"{podcast_episode.episode_number}.json_or_pkl"
@@ -42,14 +42,14 @@ def cache_for_episode(
         _save_cache(cache_filepath, result)
         return result
 
-    return sync_wrapper
+    return wrapper
 
 
 def cache_url_title(func: "Callable[Concatenate[str, P], str|None]") -> "Callable[Concatenate[str, P], str|None]":
     """Provide caching for title page lookups."""
 
     @functools.wraps(func)
-    def sync_wrapper(url: "str", *args: P.args, **kwargs: P.kwargs) -> str | None:
+    def wrapper(url: "str", *args: P.args, **kwargs: P.kwargs) -> str | None:
         function_dir = CACHE_FOLDER / func.__module__ / func.__name__
         function_dir.mkdir(parents=True, exist_ok=True)
         cache_filepath = function_dir / "urls.json_or_pkl"
@@ -70,7 +70,7 @@ def cache_url_title(func: "Callable[Concatenate[str, P], str|None]") -> "Callabl
 
         return result
 
-    return sync_wrapper
+    return wrapper
 
 
 def cache_llm(
@@ -79,7 +79,7 @@ def cache_llm(
     """Provide caching for title page lookups."""
 
     @functools.wraps(func)
-    def sync_wrapper(
+    def wrapper(
         _podcast_episode: "PodcastEpisode", segment: "BaseSegment", transcript: "DiarizedTranscript"
     ) -> float | None:
         function_dir = CACHE_FOLDER / func.__module__ / func.__name__
@@ -108,7 +108,7 @@ def cache_llm(
 
         return result
 
-    return sync_wrapper
+    return wrapper
 
 
 def _save_cache(file: "Path", data: Any) -> None:
