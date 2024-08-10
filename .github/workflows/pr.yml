@@ -40,4 +40,4 @@ jobs:
         run: poetry run ruff format --check .
 
       - name: Run pyright
-        run: pyright .
+        run: pyright --venvpath ./.venv/
