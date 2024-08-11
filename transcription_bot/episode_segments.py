@@ -730,7 +730,7 @@ class NewsMetaSegment(FromLyricsSegment):
                     publication = urlparse(url).netloc
                     article_title = get_article_title(url)
 
-                match = re.match(r"news item #?\d+\s*.\s*(.+)", line, re.IGNORECASE)
+                match = re.match(r"news item ?#?\d+\s*.\s*(.+)", line, re.IGNORECASE)
                 if not match:
                     raise ValueError(f"Failed to extract news topic from: {line}")
                 topic = match.group(1).strip()

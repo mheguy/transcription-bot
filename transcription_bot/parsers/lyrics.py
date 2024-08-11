@@ -17,7 +17,7 @@ def parse_lyrics(lyrics: str) -> Segments:
 
 
 def _create_segment_from_lyric_chunk(text: str) -> "BaseSegment|None":
-    text = re.sub(r"segment #\d+\.?", "", text, flags=re.IGNORECASE).strip()
+    text = re.sub(r"segment #?\d+[-\.:;]?", "", text, flags=re.IGNORECASE).strip()
     match_text = text.lower().strip()
 
     found_match = False
