@@ -8,13 +8,15 @@ logger.remove()
 
 
 if IN_GCP:
-    from logging.handlers import SysLogHandler
-
-    handler = SysLogHandler(address="/dev/log")
-    logger.add(handler, colorize=False, level=LOG_LEVEL, format="transcribe-bot[0000]: {level: <8} {message}")
+    logger.add(
+        sys.stdout,
+        format="[transcript-bot] - {level: <8} - {message}",
+        level=LOG_LEVEL,
+        colorize=False,
+    )
 else:
     logger.add(
-        sys.stderr,
+        sys.stdout,
         format="{time:HH:mm:ss} <level>{level: <8}</level> [transcript-bot] {message}",
         level=LOG_LEVEL,
         colorize=True,

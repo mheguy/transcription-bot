@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # General
-IN_GCP = bool(os.getenv("GOOGLE_VM_CONFIG_LOCK_FILE"))
+IN_GCP = bool(os.getenv("IN_GCP"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
 
 # Podcast RSS feed
@@ -36,10 +36,6 @@ OPENAI_ORG = os.environ["OPENAI_ORGANIZATION"]
 OPENAI_PROJECT = os.environ["OPENAI_PROJECT"]
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 LLM_MODEL = "gpt-4o-mini"
-
-# Monitoring
-CRONITOR_API_KEY = os.getenv("CRONITOR_API_KEY", "")
-CRONITOR_JOB_ID = os.getenv("CRONITOR_JOB_ID", "")
 
 # Internal data paths
 DATA_FOLDER = Path(pkg_resources.resource_filename("transcription_bot", "data/"))
