@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     import requests
-    from mutagen.id3._frames import USLT
+    from mutagen.id3._frames import TXXX, USLT
     from requests import Session
 
     from transcription_bot.parsers.rss_feed import PodcastEpisode
@@ -48,7 +48,7 @@ def gather_data(podcast: "PodcastEpisode", client: "requests.Session") -> Episod
     audio_file = get_audio_file(client, podcast)
 
     transcript = get_transcript(podcast, audio_file)
-    lyrics = _get_lyrics_from_mp3(podcast, audio_file.read_bytes())
+    lyrics = get_lyrics_from_mp3(podcast, audio_file.read_bytes())
     show_notes = _get_show_notes(podcast, client)
 
     return EpisodeData(
@@ -73,22 +73,27 @@ def get_audio_file(client: "Session", podcast: "PodcastEpisode") -> "Path":
 
 
 @cache_for_episode
+def get_lyrics_from_mp3(_podcast: "PodcastEpisode", raw_bytes: bytes) -> str:
+    """Get the lyrics from an MP3 file."""
+    audio = ID3(BytesIO(raw_bytes))
+
+    frame: TXXX | USLT
+    if (tag := audio.getall("TXXX:lyrics-eng")) or (tag := audio.getall("USLT::eng")):
+        frame = tag[0]
+    else:
+        raise ValueError("Could not find lyrics tag")
+
+    result = getattr(frame, "text", None)
+
+    if result is None:
+        raise ValueError("Could not find lyrics in tag")
+
+    return result
+
+
+@cache_for_episode
 def _get_show_notes(podcast: "PodcastEpisode", client: "Session") -> bytes:
     resp = client.get(podcast.episode_url)
     resp.raise_for_status()
 
     return resp.content
-
-
-@cache_for_episode
-def _get_lyrics_from_mp3(_podcast: "PodcastEpisode", raw_bytes: bytes) -> str:
-    audio = ID3(BytesIO(raw_bytes))
-
-    uslt_frame: USLT = audio.getall("USLT::eng")[0]
-
-    result = getattr(uslt_frame, "text", None)
-
-    if result is None:
-        raise ValueError("could not find lyrics")
-
-    return result

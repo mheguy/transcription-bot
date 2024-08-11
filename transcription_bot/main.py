@@ -1,5 +1,6 @@
 import sys
 
+from transcription_bot.config import UNPROCESSABLE_EPISODES
 from transcription_bot.data_gathering import gather_data
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
@@ -24,6 +25,10 @@ def main(*, allow_page_editing: bool, episodes_to_process: list[int] | None = No
         podcast_episodes = [episode for episode in podcast_episodes if episode.episode_number in episodes_to_process]
 
     for podcast_episode in podcast_episodes:
+        if podcast_episode.episode_number in UNPROCESSABLE_EPISODES:
+            logger.info(f"Unable to process episode {podcast_episode.episode_number}. See UNPROCESSABLE_EPISODES.")
+            continue
+
         logger.info(f"Processing episode #{podcast_episode.episode_number}")
 
         logger.info("Checking for wiki page...")
@@ -63,6 +68,6 @@ if __name__ == "__main__":
     _, *episodes_to_process = sys.argv
     episodes_to_process = [int(episode) for episode in episodes_to_process]
     main(
-        episodes_to_process=episodes_to_process,
         allow_page_editing=False,
+        episodes_to_process=episodes_to_process,
     )

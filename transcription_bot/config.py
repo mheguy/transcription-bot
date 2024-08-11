@@ -51,3 +51,24 @@ AUDIO_FOLDER.mkdir(exist_ok=True)
 
 CACHE_FOLDER = TEMP_DATA_FOLDER / "cache"
 CACHE_FOLDER.mkdir(exist_ok=True)
+
+# Episodes that will raise exceptions when processed
+UNPROCESSABLE_EPISODES = {
+    # No lyrics
+    *range(1, 208),
+    277,
+    625,
+    652,
+    666,
+    688,
+    741,
+    744,
+    812,
+    862,
+    # "Corrupted" episodes
+    455,
+    471,
+    495,
+    540,
+    772,
+}

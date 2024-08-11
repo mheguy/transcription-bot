@@ -55,13 +55,38 @@ def get_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "DiarizedTr
     """Create a transcript with the audio and podcast information."""
     logger.debug("get_transcript")
 
-    raw_transcription = _perform_transcription(podcast, audio_file)
+    raw_transcription = perform_transcription(podcast, audio_file)
     transcription = _perform_alignment(podcast, audio_file, raw_transcription)
 
     raw_diarization = _create_diarization(podcast)
     diarization = pd.DataFrame(raw_diarization["output"]["identification"])
 
     return _merge_transcript_and_diarization(transcription, diarization)
+
+
+@cache_for_episode
+@Timer("_perform_transcription", "{name} took {:.1f} seconds")
+def perform_transcription(_podcast: "PodcastEpisode", audio_file: "Path") -> "TranscriptionResult":
+    """Perform transcription on an audio file."""
+    logger.debug("_perform_transcription")
+
+    import torch
+    import whisperx
+
+    audio = _load_audio(audio_file)
+    transcription_model = whisperx.load_model(
+        TRANSCRIPTION_MODEL,
+        "cuda",
+        asr_options={"initial_prompt": TRANSCRIPTION_PROMPT},
+    )
+    result = transcription_model.transcribe(audio)
+
+    # Unload model
+    gc.collect()
+    torch.cuda.empty_cache()
+    del transcription_model
+
+    return result
 
 
 @cache
@@ -125,30 +150,6 @@ def _merge_transcript_and_diarization(
         )
 
     return chunks
-
-
-@cache_for_episode
-@Timer("_perform_transcription", "{name} took {:.1f} seconds")
-def _perform_transcription(_podcast: "PodcastEpisode", audio_file: "Path") -> "TranscriptionResult":
-    logger.debug("_perform_transcription")
-
-    import torch
-    import whisperx
-
-    audio = _load_audio(audio_file)
-    transcription_model = whisperx.load_model(
-        TRANSCRIPTION_MODEL,
-        "cuda",
-        asr_options={"initial_prompt": TRANSCRIPTION_PROMPT},
-    )
-    result = transcription_model.transcribe(audio)
-
-    # Unload model
-    gc.collect()
-    torch.cuda.empty_cache()
-    del transcription_model
-
-    return result
 
 
 @cache_for_episode
