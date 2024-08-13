@@ -2,7 +2,7 @@ from transcription_bot.data_gathering import get_audio_file
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
 from transcription_bot.parsers.rss_feed import get_podcast_episodes
-from transcription_bot.transcription import perform_transcription
+from transcription_bot.transcription import get_transcript
 from transcription_bot.wiki import episode_has_wiki_page
 
 EPISODES_TO_PROCESS = [
@@ -31,7 +31,7 @@ def main(episodes_to_process: list[int]) -> None:
 
         logger.info(f"Transcribing episode #{podcast_episode.episode_number}")
         audio_file = get_audio_file(http_client, podcast_episode)
-        perform_transcription(podcast_episode, audio_file)
+        get_transcript(podcast_episode, audio_file)
 
 
 if __name__ == "__main__":

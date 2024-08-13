@@ -55,7 +55,7 @@ def get_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "DiarizedTr
     """Create a transcript with the audio and podcast information."""
     logger.debug("get_transcript")
 
-    raw_transcription = perform_transcription(podcast, audio_file)
+    raw_transcription = _perform_transcription(podcast, audio_file)
     transcription = _perform_alignment(podcast, audio_file, raw_transcription)
 
     raw_diarization = _create_diarization(podcast)
@@ -66,8 +66,7 @@ def get_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "DiarizedTr
 
 @cache_for_episode
 @Timer("_perform_transcription", "{name} took {:.1f} seconds")
-def perform_transcription(_podcast: "PodcastEpisode", audio_file: "Path") -> "TranscriptionResult":
-    """Perform transcription on an audio file."""
+def _perform_transcription(_podcast: "PodcastEpisode", audio_file: "Path") -> "TranscriptionResult":
     logger.debug("_perform_transcription")
 
     import torch
@@ -89,13 +88,37 @@ def perform_transcription(_podcast: "PodcastEpisode", audio_file: "Path") -> "Tr
     return result
 
 
-@cache
-def _load_audio(audio_file: "Path") -> AudioArray:
-    logger.debug("_load_audio")
+@cache_for_episode
+@Timer("_perform_alignment", "{name} took {:.1f} seconds")
+def _perform_alignment(
+    _podcast: "PodcastEpisode",
+    audio_file: "Path",
+    transcription: "TranscriptionResult",
+) -> "AlignedTranscriptionResult":
+    logger.debug("_perform_alignment")
 
+    import torch
     import whisperx
 
-    return whisperx.load_audio(str(audio_file))
+    device = torch.device("cuda")
+
+    audio = _load_audio(audio_file)
+    alignment_model, metadata = whisperx.load_align_model(language_code=TRANSCRIPTION_LANGUAGE, device=device)
+    aligned_transcription = whisperx.align(
+        transcription["segments"],
+        alignment_model,
+        metadata,
+        audio,
+        cast(str, device),
+        return_char_alignments=False,
+    )
+
+    # Unload model
+    gc.collect()
+    torch.cuda.empty_cache()
+    del alignment_model
+
+    return aligned_transcription
 
 
 @cache_for_episode
@@ -113,6 +136,15 @@ def _create_diarization(podcast: "PodcastEpisode") -> RawDiarization:
     except (TypeError, OverflowError, json.JSONDecodeError, UnicodeDecodeError):
         logger.error(f"Failed to decode to JSON: {response_content}")
         raise
+
+
+@cache
+def _load_audio(audio_file: "Path") -> AudioArray:
+    logger.debug("_load_audio")
+
+    import whisperx
+
+    return whisperx.load_audio(str(audio_file))
 
 
 def _send_diarization_request(listener_url: str, audio_file_url: str) -> None:
@@ -150,39 +182,6 @@ def _merge_transcript_and_diarization(
         )
 
     return chunks
-
-
-@cache_for_episode
-@Timer("_perform_alignment", "{name} took {:.1f} seconds")
-def _perform_alignment(
-    _podcast: "PodcastEpisode",
-    audio_file: "Path",
-    transcription: "TranscriptionResult",
-) -> "AlignedTranscriptionResult":
-    logger.debug("_perform_alignment")
-
-    import torch
-    import whisperx
-
-    device = torch.device("cuda")
-
-    audio = _load_audio(audio_file)
-    alignment_model, metadata = whisperx.load_align_model(language_code=TRANSCRIPTION_LANGUAGE, device=device)
-    aligned_transcription = whisperx.align(
-        transcription["segments"],
-        alignment_model,
-        metadata,
-        audio,
-        cast(str, device),
-        return_char_alignments=False,
-    )
-
-    # Unload model
-    gc.collect()
-    torch.cuda.empty_cache()
-    del alignment_model
-
-    return aligned_transcription
 
 
 def _get_voiceprints() -> list[dict[str, str]]:

@@ -62,13 +62,12 @@ def gather_data(podcast: "PodcastEpisode", client: "requests.Session") -> Episod
 def get_audio_file(client: "Session", podcast: "PodcastEpisode") -> "Path":
     """Retrieve the audio file for a podcast episode."""
     audio_file = AUDIO_FOLDER / f"{podcast.episode_number}.mp3"
-    if audio_file.exists():
-        audio = audio_file.read_bytes()
-    else:
+    if not audio_file.exists():
         logger.info("Downloading episode...")
         downloader = FileDownloader(client)
         audio = downloader.download(podcast.download_url)
         audio_file.write_bytes(audio)
+
     return audio_file
 
 
