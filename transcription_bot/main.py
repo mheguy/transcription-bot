@@ -11,7 +11,7 @@ from transcription_bot.transcription_splitting import add_transcript_to_segments
 from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_page
 
 
-def main(*, allow_page_editing: bool, episodes_to_process: list[int] | None = None) -> None:
+def main(*, allow_page_editing: bool, inputs: list[str]) -> None:
     """Main function that starts the program and processes podcast episodes.
 
     This function retrieves podcast episodes from an RSS feed,
@@ -21,53 +21,51 @@ def main(*, allow_page_editing: bool, episodes_to_process: list[int] | None = No
     logger.info("Getting episodes from RSS feed...")
     podcast_episodes = get_podcast_episodes(http_client)
 
-    if episodes_to_process:
-        podcast_episodes = [episode for episode in podcast_episodes if episode.episode_number in episodes_to_process]
+    if inputs:
+        if len(inputs) > 1:
+            raise ValueError("Only one episode number is allowed.")
 
-    for podcast_episode in podcast_episodes:
-        if podcast_episode.episode_number in UNPROCESSABLE_EPISODES:
-            logger.info(f"Unable to process episode {podcast_episode.episode_number}. See UNPROCESSABLE_EPISODES.")
-            continue
-
-        logger.info(f"Processing episode #{podcast_episode.episode_number}")
-
-        logger.info("Checking for wiki page...")
-        if not allow_page_editing and episode_has_wiki_page(http_client, podcast_episode.episode_number):
-            if episodes_to_process:
-                logger.info("Episode has a wiki page. Skipping.")
-                continue
-
-            logger.info("Episode has a wiki page. Stopping.")
-            break
-
-        logger.debug("Gathering all data...")
-        episode_data = gather_data(podcast_episode, http_client)
-        adjust_transcript_for_voiceover(episode_data.transcript)
-
-        logger.debug("Converting data to segments...")
-        episode_segments = convert_episode_data_to_episode_segments(episode_data)
-
-        logger.debug("Merging transcript into episode segments...")
-        episode_segments = add_transcript_to_segments(episode_data.podcast, episode_data.transcript, episode_segments)
-
-        create_podcast_wiki_page(
-            client=http_client,
-            episode_data=episode_data,
-            episode_segments=episode_segments,
-            allow_page_editing=allow_page_editing,
-        )
-
-        logger.success(f"Episode #{podcast_episode.episode_number} processed.")
+        episode_number = int(inputs[0])
+        podcast_episode = next(episode for episode in podcast_episodes if episode.episode_number == episode_number)
     else:
-        logger.success("All episodes processed.")
+        podcast_episode = podcast_episodes[0]
 
+    logger.info(f"Processing episode #{podcast_episode.episode_number}")
+
+    if podcast_episode.episode_number in UNPROCESSABLE_EPISODES:
+        logger.info(f"Unable to process episode {podcast_episode.episode_number}. See UNPROCESSABLE_EPISODES.")
+        return
+
+    logger.info("Checking for wiki page...")
+    if not allow_page_editing and episode_has_wiki_page(http_client, podcast_episode.episode_number):
+        logger.info("Episode has a wiki page. Stopping.")
+        return
+
+    logger.debug("Gathering all data...")
+    episode_data = gather_data(podcast_episode, http_client)
+    adjust_transcript_for_voiceover(episode_data.transcript)
+
+    logger.debug("Converting data to segments...")
+    episode_segments = convert_episode_data_to_episode_segments(episode_data)
+
+    logger.debug("Merging transcript into episode segments...")
+    episode_segments = add_transcript_to_segments(episode_data.podcast, episode_data.transcript, episode_segments)
+
+    create_podcast_wiki_page(
+        client=http_client,
+        episode_data=episode_data,
+        episode_segments=episode_segments,
+        allow_page_editing=allow_page_editing,
+    )
+
+    logger.success(f"Episode #{podcast_episode.episode_number} processed.")
     logger.success("Shutting down.")
 
 
 if __name__ == "__main__":
     _, *episodes_to_process = sys.argv
-    episodes_to_process = [int(episode) for episode in episodes_to_process]
+
     main(
         allow_page_editing=False,
-        episodes_to_process=episodes_to_process,
+        inputs=episodes_to_process,
     )
