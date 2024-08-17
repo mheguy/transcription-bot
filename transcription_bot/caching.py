@@ -34,7 +34,7 @@ def cache_for_episode(
         cache_filepath = function_dir / f"{podcast_episode.episode_number}.json_or_pkl"
 
         if cache_filepath.exists():
-            logger.info(f"Using cache for: {func.__name__}")
+            logger.info(f"Using cache for func: {func.__name__}, ep: {podcast_episode.episode_number}")
             return _load_cache(cache_filepath)
 
         result = func(podcast_episode, *args, **kwargs)
