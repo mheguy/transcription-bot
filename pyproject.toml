@@ -25,7 +25,6 @@ pyarrow = "^17.0.0"
 setuptools = "^72.1.0"
 openai = "^1.40.3"
 loguru = "^0.7.2"
-cronitor = "^4.7.1"
 
 [tool.poetry.group.ml.dependencies]
 whisperx = { git = "https://github.com/m-bain/whisperx.git", markers = "sys_platform == 'linux'", rev = "f2da2f858e99e4211fe4f64b5f2938b007827e17" }
