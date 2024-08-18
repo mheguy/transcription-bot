@@ -32,6 +32,10 @@ def ask_llm_for_segment_start(
         "The transitions are usually performed by Steve."
         'You must reply with a json object like this: {"start_time": 123.45}'
         "If you cannot identify the transition, provide null as the start time."
+        "You shoould provide the start of the transition."
+        "Ex. If the transcript is:"
+        "'All right, well, let's go on with our interview. We are joined now by Forrest Valkai.'"
+        "You should return the timestamp for the beginning of 'All right, well, let's go on with our interview.'"
     )
 
     transcript_blob = f"transcript:\n\n````{json.dumps(transcript)}````"
