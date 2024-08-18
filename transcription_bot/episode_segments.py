@@ -195,6 +195,33 @@ class IntroSegment(BaseSegment):
 
 
 @dataclass(kw_only=True)
+class OutroSegment(BaseSegment):
+    @property
+    def template_name(self) -> str:
+        return "outro"
+
+    @property
+    def llm_prompt(self) -> str:
+        return "Please find the start of the outro. This is typically where Steve says 'And until next week, this is your Skeptics' Guide to the Universe.'"
+
+    def get_template_values(self) -> dict[str, Any]:
+        return {}
+
+    @staticmethod
+    def match_string(lowercase_text: str) -> bool:
+        raise NotImplementedError
+
+    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+        for chunk in transcript:
+            if are_strings_in_string(
+                ["next", "week", "this", "is", "skeptic", "guide", "to", "the", "universe"], chunk["text"].lower()
+            ):
+                return chunk["start"]
+
+        return None
+
+
+@dataclass(kw_only=True)
 class LogicalFallacySegment(FromLyricsSegment):
     topic: str
 
