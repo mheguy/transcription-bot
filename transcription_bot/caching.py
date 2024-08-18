@@ -97,7 +97,7 @@ def cache_llm(
             llm_cache = _load_cache(cache_filepath)
 
         if start_time := llm_cache.get(cache_key):
-            logger.info(f"Using llm cache for segment type:{segment_type}, transcript start:{transcript_start=}")
+            logger.info(f"Using llm cache for segment type:{segment_type}, {transcript_start=}")
             return start_time
 
         result = func(_podcast_episode, segment, transcript)
