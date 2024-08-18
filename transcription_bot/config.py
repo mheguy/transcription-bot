@@ -65,7 +65,7 @@ UNPROCESSABLE_EPISODES = {
     744,
     812,
     862,
-    # "Corrupted" episodes
+    # "Corrupt" episodes
     455,
     471,
     495,
