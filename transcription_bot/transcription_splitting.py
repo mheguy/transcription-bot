@@ -1,7 +1,7 @@
 import itertools
 from typing import TYPE_CHECKING
 
-from transcription_bot.episode_segments import IntroSegment
+from transcription_bot.episode_segments import IntroSegment, OutroSegment
 from transcription_bot.global_logger import logger
 from transcription_bot.llm_interface import ask_llm_for_segment_start
 from transcription_bot.transcription import DiarizedTranscript
@@ -22,7 +22,7 @@ def add_transcript_to_segments(
 ) -> "Segments":
     """Add the transcript to the episode segments."""
     partial_transcript: DiarizedTranscript = []
-    segments: Segments = [IntroSegment(start_time=0), *episode_segments]
+    segments: Segments = [IntroSegment(start_time=0), *episode_segments, OutroSegment()]
 
     segments[-1].end_time = raw_transcript[-1]["end"]
 
@@ -34,9 +34,10 @@ def add_transcript_to_segments(
         if not left_segment.start_time:
             left_segment.start_time = last_start_time
 
-        partial_transcript = _get_transcript_between_times(
+        partial_transcript = _get_partial_transcript_for_start_time(
             raw_transcript,
-            left_segment.start_time + THIRTY_SECONDS,
+            2,
+            left_segment.start_time,
             left_segment.start_time + THIRTY_MINUTES,
         )
 
@@ -69,6 +70,12 @@ def add_transcript_to_segments(
             )
 
     return segments
+
+
+def _get_partial_transcript_for_start_time(
+    transcript: "DiarizedTranscript", transcript_chunks_to_skip: int, start: float, end: float
+) -> "DiarizedTranscript":
+    return _get_transcript_between_times(transcript, start, end)[transcript_chunks_to_skip:]
 
 
 def _get_transcript_between_times(transcript: "DiarizedTranscript", start: float, end: float) -> "DiarizedTranscript":
