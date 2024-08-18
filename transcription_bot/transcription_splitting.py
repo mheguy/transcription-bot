@@ -72,4 +72,4 @@ def add_transcript_to_segments(
 
 
 def _get_transcript_between_times(transcript: "DiarizedTranscript", start: float, end: float) -> "DiarizedTranscript":
-    return [c for c in transcript if start <= c["start"] <= end]
+    return [c for c in transcript if start <= c["start"] < end]
