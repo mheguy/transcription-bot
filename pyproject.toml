@@ -29,7 +29,7 @@ loguru = "^0.7.2"
 [tool.poetry.group.ml.dependencies]
 whisperx = { git = "https://github.com/m-bain/whisperx.git", markers = "sys_platform == 'linux'", rev = "f2da2f858e99e4211fe4f64b5f2938b007827e17" }
 torchvision = { version = "^0.18.1", markers = "sys_platform == 'linux'" }
-numpy = "<2.0.0"
+numpy = "<3.0.0"
 
 [tool.poetry.group.stats.dependencies]
 ipykernel = "^6.29.5"
