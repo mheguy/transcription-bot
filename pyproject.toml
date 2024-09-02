@@ -16,20 +16,20 @@ python-dotenv = "^1.0.1"
 beautifulsoup4 = "^4.12.3"
 codetiming = "^1.4.0"
 tqdm = "^4.66.5"
-httpx = "^0.27.0"
+httpx = "^0.27.2"
 ngrok = "^1.4.0"
 mutagen = "^1.47.0"
 flask = "^3.0.3"
 pandas = "^2.2.2"
 pyarrow = "^17.0.0"
-setuptools = "^72.1.0"
-openai = "^1.40.3"
+setuptools = "^74.0.0"
+openai = "^1.43.0"
 loguru = "^0.7.2"
 
 [tool.poetry.group.ml.dependencies]
 whisperx = { git = "https://github.com/m-bain/whisperx.git", markers = "sys_platform == 'linux'", rev = "f2da2f858e99e4211fe4f64b5f2938b007827e17" }
 torchvision = { version = "^0.18.1", markers = "sys_platform == 'linux'" }
-numpy = "<2.0.0"
+numpy = "<3.0.0"
 
 [tool.poetry.group.stats.dependencies]
 ipykernel = "^6.29.5"
