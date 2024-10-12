@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   ruff:
-    timeout-minutes: 5
+    timeout-minutes: 10
     name: Run linters
     runs-on: ubuntu-latest
     steps:
