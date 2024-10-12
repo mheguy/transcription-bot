@@ -12,9 +12,9 @@ This explanation is targeted toward those who have no experience writing or read
 We create a transcription of an episode. The transcription contains the words that were said as well as the time at which they were spoken.<br>
 That looks a bit like this:
 
-> 0:01.234 - And
-> 0:01.450 - that's
-> 0:01.750 - why
+> 0:01.234 - And<br>
+> 0:01.450 - that's<br>
+> 0:01.750 - why<br>
 
 For the sake of our demo, here are the words that we extracted without the timestamps.<br>
 
