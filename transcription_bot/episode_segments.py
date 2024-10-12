@@ -202,7 +202,7 @@ class OutroSegment(BaseSegment):
 
     @property
     def llm_prompt(self) -> str:
-        return "Please find the start of the outro. This is typically where Steve says 'And until next week, this is your Skeptics' Guide to the Universe.'"
+        return "Please find the start of the outro. This is typically where Steve says 'Skeptics' Guide to the Universe is produced by SGU Productions'"
 
     def get_template_values(self) -> dict[str, Any]:
         return {}
@@ -214,7 +214,8 @@ class OutroSegment(BaseSegment):
     def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
         for chunk in transcript:
             if are_strings_in_string(
-                ["next", "week", "this", "is", "skeptic", "guide", "to", "the", "universe"], chunk["text"].lower()
+                ["skeptic", "guide", "to", "the", "universe", "produced", "by", "sgu", "productions"],
+                chunk["text"].lower(),
             ):
                 return chunk["start"]
 
