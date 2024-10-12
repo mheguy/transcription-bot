@@ -42,4 +42,4 @@ jobs:
       - run: pwd ; tree
 
       - name: Run pyright
-        run: pyright --venvpath ./.venv/
+        run: pyright
