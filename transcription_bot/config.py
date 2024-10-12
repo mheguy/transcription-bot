@@ -10,6 +10,10 @@ load_dotenv()
 IN_GCP = bool(os.getenv("IN_GCP"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
 
+# Cronitor
+CRONITOR_API_KEY = os.environ["CRONITOR_API_KEY"]
+CRONITOR_JOB_KEY = os.environ["CRONITOR_JOB_KEY"]
+
 # Podcast RSS feed
 RSS_URL = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
 

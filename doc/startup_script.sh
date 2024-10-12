@@ -1,6 +1,10 @@
 #! /bin/bash
 set -x
 
+export CRONITOR_API_KEY="API_KEY_HERE"
+export CRONITOR_JOB_KEY="ptDp2a"
+export IN_GCP=1
+
 MONITOR_URL='URL_HERE'
 curl $MONITOR_URL?state=run
 
@@ -12,11 +16,8 @@ git pull --ff-only
 
 /root/.local/bin/poetry install --sync
 
-export IN_GCP=1
-if /root/.local/bin/poetry run python transcription_bot/main.py
+if ! /root/.local/bin/poetry run python transcription_bot/main.py
 then
-    curl $MONITOR_URL?state=complete
-else
     curl $MONITOR_URL?state=fail
 fi
 

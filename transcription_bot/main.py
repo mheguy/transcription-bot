@@ -1,6 +1,8 @@
 import sys
 
-from transcription_bot.config import UNPROCESSABLE_EPISODES
+import cronitor
+
+from transcription_bot.config import CRONITOR_API_KEY, CRONITOR_JOB_KEY, UNPROCESSABLE_EPISODES
 from transcription_bot.data_gathering import gather_data
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
@@ -18,6 +20,8 @@ def main(*, allow_page_editing: bool, inputs: list[str]) -> None:
     checks if each episode has a wiki page,
     and creates a wiki page for episodes that don't have one.
     """
+    cronitor.api_key = CRONITOR_API_KEY
+    monitor = cronitor.Monitor(CRONITOR_JOB_KEY)
     logger.info("Getting episodes from RSS feed...")
     podcast_episodes = get_podcast_episodes(http_client)
 
@@ -39,6 +43,7 @@ def main(*, allow_page_editing: bool, inputs: list[str]) -> None:
     logger.info("Checking for wiki page...")
     if not allow_page_editing and episode_has_wiki_page(http_client, podcast_episode.episode_number):
         logger.info("Episode has a wiki page. Stopping.")
+        monitor.ping(state="complete", metric={"count": 0})
         return
 
     logger.debug("Gathering all data...")
@@ -59,6 +64,7 @@ def main(*, allow_page_editing: bool, inputs: list[str]) -> None:
     )
 
     logger.success(f"Episode #{podcast_episode.episode_number} processed.")
+    monitor.ping(state="complete", metric={"count": 1})
     logger.success("Shutting down.")
 
 
