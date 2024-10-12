@@ -39,7 +39,7 @@ jobs:
       - name: Ruff format check
         run: poetry run ruff format --check .
 
-      - run: tree
+      - run: pwd ; tree
 
       - name: Run pyright
         run: pyright --venvpath ./.venv/
