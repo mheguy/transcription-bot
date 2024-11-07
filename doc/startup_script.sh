@@ -3,6 +3,7 @@ set -x
 
 export CRONITOR_API_KEY="API_KEY_HERE"
 export CRONITOR_JOB_KEY="ptDp2a"
+export SENTRY_DSN="DSN_HERE"
 export IN_GCP=1
 
 MONITOR_URL='URL_HERE'

@@ -61,3 +61,8 @@ poetry config
 git clone https://github.com/mheguy/transcription-bot.git && \
 cd /root/transcription-bot/ && \
 /root/.local/bin/poetry install
+
+### Running
+
+# In order to run, we use "instance schedules".
+# We schedule the job to run 3 times on Saturday, at 8-hour intervals.

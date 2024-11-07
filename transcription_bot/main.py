@@ -1,8 +1,9 @@
 import sys
 
 import cronitor
+import sentry_sdk
 
-from transcription_bot.config import CRONITOR_API_KEY, CRONITOR_JOB_KEY, UNPROCESSABLE_EPISODES
+from transcription_bot.config import CRONITOR_API_KEY, CRONITOR_JOB_KEY, SENTRY_DSN, UNPROCESSABLE_EPISODES
 from transcription_bot.data_gathering import gather_data
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
@@ -11,6 +12,8 @@ from transcription_bot.parsers.rss_feed import get_podcast_episodes
 from transcription_bot.transcript_formatting import adjust_transcript_for_voiceover
 from transcription_bot.transcription_splitting import add_transcript_to_segments
 from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_page
+
+sentry_sdk.init(dsn=SENTRY_DSN, traces_sample_rate=1.0)
 
 
 def main(*, allow_page_editing: bool, inputs: list[str]) -> None:

@@ -14,6 +14,9 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
 CRONITOR_API_KEY = os.environ["CRONITOR_API_KEY"]
 CRONITOR_JOB_KEY = os.environ["CRONITOR_JOB_KEY"]
 
+# Sentry
+SENTRY_DSN = os.environ["SENTRY_DSN"]
+
 # Podcast RSS feed
 RSS_URL = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
 

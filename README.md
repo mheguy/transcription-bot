@@ -90,7 +90,7 @@ There are a number of required env vars to run the tool. `dotenv` is set up, so 
 
 `PYANNOTE_TOKEN` is a token for pyannote.ai's services, which is what we use to handle diarization and speaker identification.<br>
 `NGROK_TOKEN` is also required for pyannote.ai as they return results via a webhook/callback.<br>
-`WIKI_USERNAME` and `WIKI_PASSWORD` are credentials for your bot account. You can create bot credentials at https://www.sgutranscripts.org/wiki/Special:BotPasswords.<br>
+`WIKI_USERNAME` and `WIKI_PASSWORD` are credentials for your bot account. You can create bot credentials at <https://www.sgutranscripts.org/wiki/Special:BotPasswords>.<br>
 `OPENAI_API_KEY`, `OPENAI_ORGANIZATION`, and `OPENAI_PROJECT` are all used for calls to GPT.
 
 Ruff and Pyright should be used for linting and type checking.
