@@ -41,7 +41,7 @@ def adjust_transcript_for_voiceover(complete_transcript: "DiarizedTranscript") -
 
     for chunk in complete_transcript:
         if chunk["speaker"] == voiceover:
-            chunk["speaker"] = "Voiceover"
+            chunk["speaker"] = "Voice-over"
 
 
 def _trim_whitespace(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
@@ -68,7 +68,7 @@ def _join_speaker_transcription_chunks(transcript: "DiarizedTranscript") -> "Dia
 
 def _abbreviate_speakers(transcript: "DiarizedTranscript") -> None:
     for chunk in transcript:
-        if chunk["speaker"] == "Voiceover":
+        if chunk["speaker"] == "Voice-over":
             continue
 
         if "SPEAKER_" in chunk["speaker"]:
