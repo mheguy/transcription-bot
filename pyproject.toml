@@ -172,9 +172,6 @@ known-first-party = ["transcript_bot"]
     "D101",
     "D102", # public methods (this can be disabled if we can transition to py3.12 and use the override decorator)
 ]
-"**/entrypoints/*" = [
-    "D", # these scripts are one-off and/or for debugging
-]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
