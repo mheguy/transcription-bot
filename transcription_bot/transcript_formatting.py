@@ -10,7 +10,7 @@ def format_transcript_for_wiki(transcript: "DiarizedTranscript") -> str:
     transcript = _join_speaker_transcription_chunks(transcript)
     _abbreviate_speakers(transcript)
 
-    text_chunks = [f"'''{transcript_chunk['speaker']}:'''{transcript_chunk['text']}" for transcript_chunk in transcript]
+    text_chunks = [f"'''{ts_chunk['speaker']}:''' {ts_chunk['text']}" for ts_chunk in transcript]
 
     return "\n\n".join(text_chunks)
 
