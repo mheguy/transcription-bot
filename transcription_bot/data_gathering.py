@@ -9,6 +9,7 @@ from transcription_bot.caching import cache_for_episode
 from transcription_bot.config import AUDIO_FOLDER
 from transcription_bot.downloader import FileDownloader
 from transcription_bot.global_logger import logger
+from transcription_bot.transcript_formatting import adjust_transcript_for_voiceover
 from transcription_bot.transcription import (
     DiarizedTranscript,
     get_transcript,
@@ -48,6 +49,8 @@ def gather_data(podcast: "PodcastEpisode", client: "requests.Session") -> Episod
     audio_file = get_audio_file(client, podcast)
 
     transcript = get_transcript(podcast, audio_file)
+    adjust_transcript_for_voiceover(transcript)
+
     lyrics = get_lyrics_from_mp3(podcast, audio_file.read_bytes())
     show_notes = _get_show_notes(podcast, client)
 
