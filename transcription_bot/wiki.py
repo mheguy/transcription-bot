@@ -56,7 +56,7 @@ def create_podcast_wiki_page(
 
     page_title = f"SGU_Episode_{episode_data.podcast.episode_number}"
 
-    _create_page(client, csrf_token, page_title, wiki_page, allow_page_editing=allow_page_editing)
+    create_page(client, page_title, wiki_page, allow_page_editing=allow_page_editing)
 
 
 def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
@@ -86,6 +86,41 @@ def log_into_wiki(client: "Session") -> str:
     _send_credentials(client, login_token)
 
     return _get_csrf_token(client)
+
+
+def create_page(
+    client: "Session",
+    page_title: str,
+    page_text: str,
+    *,
+    allow_page_editing: bool,
+) -> None:
+    """Create a wiki page."""
+    csrf_token = log_into_wiki(client)
+
+    payload = {
+        "action": "edit",
+        "title": page_title,
+        "summary": "Page created (or rewritten) by transcription-bot. https://github.com/mheguy/transcription-bot",
+        "format": "json",
+        "text": page_text,
+        "notminor": True,
+        "bot": True,
+        "token": csrf_token,
+        "createonly": True,
+    }
+
+    if allow_page_editing:
+        payload.pop("createonly")
+
+    resp = client.post(WIKI_API_BASE, data=payload)
+    resp.raise_for_status()
+    data = resp.json()
+
+    if "error" in data:
+        raise RequestException("Error during page creation: %s", data["error"])
+
+    logger.debug(data)
 
 
 # endregion
@@ -160,38 +195,6 @@ def _construct_wiki_page(
         is_perry_present="perry" in speakers and "y" or "",
         forum_link="",
     )
-
-
-def _create_page(
-    client: "Session",
-    csrf_token: str,
-    page_title: str,
-    page_text: str,
-    *,
-    allow_page_editing: bool,
-) -> None:
-    csrf_token = log_into_wiki(client)
-
-    payload = {
-        "action": "edit",
-        "title": page_title,
-        "summary": "Page created (or rewritten) by transcription-bot. https://github.com/mheguy/transcription-bot",
-        "format": "json",
-        "text": page_text,
-        "notminor": True,
-        "bot": True,
-        "token": csrf_token,
-        "createonly": True,
-    }
-
-    if allow_page_editing:
-        payload.pop("createonly")
-
-    resp = client.post(WIKI_API_BASE, data=payload)
-    resp.raise_for_status()
-    data = resp.json()
-
-    logger.debug(data)
 
 
 def _get_login_token(client: "Session") -> str:
