@@ -2,7 +2,7 @@
 
 ![transcriptionbot](https://cronitor.io/badges/ptDp2a/production/g39Jba1nK2_Hh3UVLqswolPPAPI.svg)
 
-This tools creates transcripts for episodes of the podcast "the Skeptic's Guide to the Universe".<br>
+This tool creates transcripts for episodes of the podcast "the Skeptic's Guide to the Universe".<br>
 This tool is a fan creation and is neither endorsed by nor associated with the creators of the podcast.<br>
 
 ## How it works
