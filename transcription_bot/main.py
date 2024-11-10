@@ -9,7 +9,6 @@ from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
 from transcription_bot.parsers.episode_data import convert_episode_data_to_episode_segments
 from transcription_bot.parsers.rss_feed import get_podcast_episodes
-from transcription_bot.transcript_formatting import adjust_transcript_for_voiceover
 from transcription_bot.transcription_splitting import add_transcript_to_segments
 from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_page
 
@@ -51,7 +50,6 @@ def main(*, allow_page_editing: bool, inputs: list[str]) -> None:
 
     logger.debug("Gathering all data...")
     episode_data = gather_data(podcast_episode, http_client)
-    adjust_transcript_for_voiceover(episode_data.transcript)
 
     logger.debug("Converting data to segments...")
     episode_segments = convert_episode_data_to_episode_segments(episode_data)
