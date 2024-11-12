@@ -4,7 +4,7 @@ version = "0.0.1"
 package-mode = true
 description = ""
 authors = []
-license = "CC0"
+license = "MIT"
 readme = "README.md"
 packages = [{ include = "transcription_bot" }]
 
