@@ -14,7 +14,7 @@ from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_pa
 sentry_sdk.init(dsn=SENTRY_DSN, traces_sample_rate=1.0)
 
 
-def main(*, allow_page_editing: bool, inputs: list[str]) -> None:
+def main(*, allow_page_editing: bool, selected_episodes: list[str]) -> None:
     """Main function that starts the program and processes podcast episodes.
 
     This function retrieves podcast episodes from an RSS feed,
@@ -24,16 +24,16 @@ def main(*, allow_page_editing: bool, inputs: list[str]) -> None:
     cronitor.api_key = CRONITOR_API_KEY
     monitor = cronitor.Monitor(CRONITOR_JOB_KEY)
     logger.info("Getting episodes from RSS feed...")
-    podcast_episodes = get_podcast_episodes(http_client)
+    all_episodes = get_podcast_episodes(http_client)
 
-    if inputs:
-        if len(inputs) > 1:
+    if selected_episodes:
+        if len(selected_episodes) > 1:
             raise ValueError("Only one episode number is allowed.")
 
-        episode_number = int(inputs[0])
-        podcast_episode = next(episode for episode in podcast_episodes if episode.episode_number == episode_number)
+        episode_number = int(selected_episodes[0])
+        podcast_episode = next(episode for episode in all_episodes if episode.episode_number == episode_number)
     else:
-        podcast_episode = podcast_episodes[0]
+        podcast_episode = all_episodes[0]
 
     logger.info(f"Processing episode #{podcast_episode.episode_number}")
 
@@ -66,9 +66,12 @@ def main(*, allow_page_editing: bool, inputs: list[str]) -> None:
 
 
 if __name__ == "__main__":
-    _, *episodes_to_process = sys.argv
+    _, *_episodes_to_process = sys.argv
 
     main(
         allow_page_editing=False,
-        inputs=episodes_to_process,
+        selected_episodes=_episodes_to_process,
     )
+
+# TODO: Create dockerfile
+# TODO: Remove vm_setup and startup_script in doc

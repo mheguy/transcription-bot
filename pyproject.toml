@@ -10,35 +10,32 @@ packages = [{ include = "transcription_bot" }]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
-feedparser = "^6.0.11"
-requests = "^2.32.3"
-python-dotenv = "^1.0.1"
+
 beautifulsoup4 = "^4.12.3"
 codetiming = "^1.4.0"
-tqdm = "^4.66.5"
-httpx = "^0.27.2"
-ngrok = "^1.4.0"
-mutagen = "^1.47.0"
+cronitor = "^4.7.1"
+feedparser = "^6.0.11"
 flask = "^3.0.3"
+httpx = "^0.27.2"
+loguru = "^0.7.2"
+mutagen = "^1.47.0"
+ngrok = "^1.4.0"
+numpy = "<2.0.0"
+openai = "^1.51.2"
 pandas = "^2.2.3"
 pyarrow = "^18.0.0"
-setuptools = "^75.1.0"
-openai = "^1.51.2"
-loguru = "^0.7.2"
-cronitor = "^4.7.1"
+python-dotenv = "^1.0.1"
+requests = "^2.32.3"
 sentry-sdk = "^2.17.0"
-ctranslate2 = "<4.5.0"     # 4.5.0 requires libraries we don't have
-
-[tool.poetry.group.ml.dependencies]
-whisperx = { git = "https://github.com/m-bain/whisperx.git", markers = "sys_platform == 'linux'", rev = "f2da2f858e99e4211fe4f64b5f2938b007827e17" }
-torchvision = { version = "^0.18.1", markers = "sys_platform == 'linux'" }
-numpy = "<2.0.0"
+setuptools = "^75.1.0"
+tqdm = "^4.66.5"
 
 [tool.poetry.group.stats.dependencies]
 ipykernel = "^6.29.5"
 pydub = "^0.25.1"
 
 [tool.poetry.group.dev.dependencies]
+pyright = "*"
 ruff = "*"
 coverage = "*"
 pytest = "*"
@@ -75,9 +72,20 @@ exclude_also = [
 ]
 
 [tool.pyright]
+exclude = ["**/.*", "**/node_modules", "**/__pycache__"]
 reportMissingImports = true
 reportMissingTypeStubs = false
-exclude = ["**/.*", "**/node_modules", "**/__pycache__"]
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
+analyzeUnannotatedFunctions = true
+enableTypeIgnoreComments = true
+deprecateTypingAliases = true
+enableReachabilityAnalysis = true
+typeCheckingMode = "strict"
+reportUnknownArgumentType = "none"
+reportUnknownMemberType = "none"
+reportUnknownVariableType = "none"
 
 [tool.pytest]
 ignore-glob = [".venv"]

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from transcription_bot.data_gathering import EpisodeData
     from transcription_bot.episode_segments import Segments
     from transcription_bot.parsers.rss_feed import PodcastEpisode
-    from transcription_bot.transcription import DiarizedTranscript
+    from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 THIRTY_MINUTES = 30 * 60
 

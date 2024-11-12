@@ -9,7 +9,7 @@ from transcription_bot.caching import cache_for_episode
 from transcription_bot.config import AUDIO_FOLDER
 from transcription_bot.downloader import FileDownloader
 from transcription_bot.global_logger import logger
-from transcription_bot.transcription import DiarizedTranscript, get_transcript
+from transcription_bot.transcription import Transcript, get_transcript
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -33,7 +33,7 @@ class EpisodeData:
     """
 
     podcast: "PodcastEpisode"
-    transcript: "DiarizedTranscript"
+    transcript: "Transcript"
     lyrics: str
     show_notes: bytes
 

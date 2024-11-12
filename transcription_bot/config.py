@@ -1,7 +1,7 @@
+import importlib.resources as pkg_resources
 import os
 from pathlib import Path
 
-import pkg_resources
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,9 +27,13 @@ WIKI_EPISODE_URL_BASE = "https://www.sgutranscripts.org/w/rest.php/v1/page/SGU_E
 WIKI_API_BASE = "https://sgutranscripts.org/w/api.php"
 
 # Transcription settings
-TRANSCRIPTION_MODEL = "medium.en"
+TRANSCRIPTION_MODEL = "whisper-1"
 TRANSCRIPTION_LANGUAGE = "en"
 TRANSCRIPTION_PROMPT = "The Skeptic's Guide to the Universe is hosted by Steven Novella, Bob Novella, Jay Novella, Cara Santa Maria, and Evan Bernstein."
+
+_TRANSCRIPTION_PROMPT_MAX_LEN = 255
+if len(TRANSCRIPTION_PROMPT) > _TRANSCRIPTION_PROMPT_MAX_LEN:
+    raise ValueError("TRANSCRIPTION_PROMPT must be less than 255 characters.")
 
 # Diarization tokens
 PYANNOTE_TOKEN = os.environ["PYANNOTE_TOKEN"]
@@ -45,7 +49,7 @@ OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 LLM_MODEL = "gpt-4o-mini"
 
 # Internal data paths
-DATA_FOLDER = Path(pkg_resources.resource_filename("transcription_bot", "data/"))
+DATA_FOLDER = Path(str(pkg_resources.files("transcription_bot").joinpath("data")))
 VOICEPRINT_FILE = DATA_FOLDER / "voiceprint_map.json"
 TEMPLATES_FOLDER = DATA_FOLDER / "templates"
 

@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
     from transcription_bot.episode_segments import BaseSegment
     from transcription_bot.parsers.rss_feed import PodcastEpisode
-    from transcription_bot.transcription import DiarizedTranscript
+    from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 P = ParamSpec("P")
 R = TypeVar("R")
