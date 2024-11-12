@@ -61,7 +61,10 @@ def get_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "DiarizedTr
     raw_diarization = _create_diarization(podcast)
     diarization = pd.DataFrame(raw_diarization["output"]["identification"])
 
-    return _merge_transcript_and_diarization(transcription, diarization)
+    diarized_transcript = _merge_transcript_and_diarization(transcription, diarization)
+    _adjust_transcript_for_voiceover(diarized_transcript)
+
+    return diarized_transcript
 
 
 @cache_for_episode
@@ -188,3 +191,15 @@ def _get_voiceprints() -> list[dict[str, str]]:
     voiceprint_map: dict[str, str] = json.loads(VOICEPRINT_FILE.read_text())
 
     return [{"voiceprint": voiceprint, "label": name} for name, voiceprint in voiceprint_map.items()]
+
+
+def _adjust_transcript_for_voiceover(complete_transcript: "DiarizedTranscript") -> None:
+    """Adjust the transcript for voiceover."""
+    voiceover = complete_transcript[0]["speaker"]
+
+    if "SPEAKER_" not in voiceover:
+        return
+
+    for chunk in complete_transcript:
+        if chunk["speaker"] == voiceover:
+            chunk["speaker"] = "Voice-over"

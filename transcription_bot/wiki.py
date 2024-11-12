@@ -10,7 +10,7 @@ from transcription_bot.global_logger import logger
 from transcription_bot.helpers import get_first_segment_of_type
 from transcription_bot.llm_interface import ask_llm_for_image_caption
 from transcription_bot.parsers.show_notes import get_episode_image_url
-from transcription_bot.template_environment import template_env
+from transcription_bot.templating import get_template
 
 if TYPE_CHECKING:
     from requests import Session
@@ -166,7 +166,7 @@ def _construct_wiki_page(
     qotw_segment: QuoteSegment | None,
     speakers: set[str],
 ) -> str:
-    template = template_env.get_template("base.j2x")
+    template = get_template("base")
 
     num = str(episode_data.podcast.episode_number)
     episode_group_number = num[0] + "0" * (len(num) - 1) + "s"

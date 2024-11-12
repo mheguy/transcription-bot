@@ -9,8 +9,8 @@ from bs4 import Tag
 
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
-from transcription_bot.template_environment import template_env
-from transcription_bot.transcript_formatting import format_time, format_transcript_for_wiki
+from transcription_bot.templating import get_template
+from transcription_bot.transcription import DiarizedTranscript
 
 if TYPE_CHECKING:
     from transcription_bot.transcription import DiarizedTranscript
@@ -80,7 +80,7 @@ class BaseSegment(ABC):
 
     def to_wiki(self) -> str:
         """Get the wiki text / section header for the segment."""
-        template = template_env.get_template(f"{self.template_name}.j2x")
+        template = get_template(self.template_name)
         template_values = self.get_template_values()
         return template.render(
             start_time=format_time(self.start_time),
@@ -963,6 +963,72 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment):
     @staticmethod
     def from_lyrics(text: str) -> "SwindlersListSegment":
         raise NotImplementedError
+
+
+# endregion
+# region formatters
+
+
+def _trim_whitespace(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
+    for chunk in transcript:
+        chunk["text"] = chunk["text"].strip()
+
+    return transcript
+
+
+def _join_speaker_transcription_chunks(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
+    current_speaker = None
+
+    speaker_chunks = []
+    for chunk in transcript:
+        if chunk["speaker"] != current_speaker:
+            speaker_chunks.append(chunk)
+            current_speaker = chunk["speaker"]
+        else:
+            speaker_chunks[-1]["text"] += " " + chunk["text"]
+            speaker_chunks[-1]["end"] = chunk["end"]
+
+    return speaker_chunks
+
+
+def _abbreviate_speakers(transcript: "DiarizedTranscript") -> None:
+    for chunk in transcript:
+        if chunk["speaker"] == "Voice-over":
+            continue
+
+        if "SPEAKER_" in chunk["speaker"]:
+            name = "US#" + chunk["speaker"].split("_")[1]
+            chunk["speaker"] = name
+        else:
+            chunk["speaker"] = chunk["speaker"][0]
+
+
+def format_transcript_for_wiki(transcript: "DiarizedTranscript") -> str:
+    """Format the transcript for the wiki."""
+    transcript = _trim_whitespace(transcript)
+    transcript = _join_speaker_transcription_chunks(transcript)
+    _abbreviate_speakers(transcript)
+
+    text_chunks = [f"'''{ts_chunk['speaker']}:''' {ts_chunk['text']}" for ts_chunk in transcript]
+
+    return "\n\n".join(text_chunks)
+
+
+def format_time(time: float | None) -> str:
+    """Format a float time to h:mm:ss or mm:ss if < 1 hour."""
+    if not time:
+        return "???"
+
+    hour_count = int(time) // 3600
+
+    hour = ""
+    if hour_count:
+        hour = f"{hour_count}:"
+
+    minutes = f"{int(time) // 60 % 60:02d}:"
+    seconds = f"{int(time) % 60:02d}"
+
+    return f"{hour}{minutes}{seconds}"
 
 
 # endregion
