@@ -6,7 +6,7 @@ import pandas as pd
 from transcription_bot.caching import cache_for_episode
 from transcription_bot.global_logger import logger
 from transcription_bot.transcription._diarization import create_diarization
-from transcription_bot.transcription._transcription import get_transcription_from_openai
+from transcription_bot.transcription._transcription import create_transcription
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -39,7 +39,7 @@ def get_diarized_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "D
     """Create a transcript with the audio and podcast information."""
     logger.debug("get_transcript")
 
-    openai_transcription = get_transcription_from_openai(podcast, audio_file)
+    openai_transcription = create_transcription(podcast, audio_file)
 
     raw_diarization = create_diarization(podcast)
     diarization = pd.DataFrame(raw_diarization["output"]["identification"])
@@ -62,16 +62,14 @@ def merge_transcript_and_diarization(
         if not seg.text:
             continue
 
-        # assign speaker to segment (if any)
+        # Find active speakers during the segment
         diarization["intersection"] = np.minimum(diarization["end"], seg.end) - np.maximum(
             diarization["start"], seg.start
         )
-
-        # Filter speakers during this segment of diarization
         segment_speakers = diarization[diarization["intersection"] > 0]
 
         if len(segment_speakers) > 0:
-            # Select the speaker with that was detected most in this timeframe
+            # Select the most active speaker
             segment_speaker = (
                 segment_speakers.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
             )

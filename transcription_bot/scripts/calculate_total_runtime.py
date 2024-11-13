@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 
 from mutagen.mp3 import MP3
 from pydub import AudioSegment
-from tqdm import tqdm
 
 from transcription_bot.config import AUDIO_FOLDER
 
@@ -49,7 +48,7 @@ def main() -> None:
     all_files = list(AUDIO_FOLDER.glob("*.mp3"))
 
     remaining_files = []
-    for file in tqdm(all_files):
+    for file in all_files:
         try:
             audio = MP3(file)
             total_runtime += audio.info.length

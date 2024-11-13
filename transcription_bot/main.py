@@ -11,7 +11,8 @@ from transcription_bot.global_logger import logger
 from transcription_bot.parsers.rss_feed import get_podcast_episodes
 from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_page
 
-sentry_sdk.init(dsn=SENTRY_DSN, traces_sample_rate=1.0)
+if not True:  # TODO: Enable this
+    sentry_sdk.init(dsn=SENTRY_DSN, traces_sample_rate=1.0)
 
 
 def main(*, allow_page_editing: bool, selected_episodes: list[str]) -> None:
