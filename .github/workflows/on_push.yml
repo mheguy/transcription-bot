@@ -14,7 +14,7 @@ concurrency:
 
 env:
   REGISTRY_LOGIN_SERVER: ghcr.io
-  IMAGE_NAME: transcription-bot
+  IMAGE_NAME: mheguy/transcription-bot
 
 jobs:
   test-suite:
@@ -37,6 +37,8 @@ jobs:
           python-version-file: "pyproject.toml"
 
       - name: Install the project
+        env: 
+          UV_LINK_MODE: copy
         run: uv sync --all-extras --dev
 
       - name: Ruff lint check
