@@ -8,17 +8,9 @@ load_dotenv()
 
 # General
 RUNNING_IN_LOCAL = bool(os.getenv("TB_LOCAL"))
+ENVIRONMENT = "local" if RUNNING_IN_LOCAL else "production"
+
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
-
-# Cronitor
-CRONITOR_API_KEY = ""
-CRONITOR_JOB_KEY = ""
-
-os.environ["CRONITOR_API_KEY"]
-os.environ["CRONITOR_JOB_KEY"]
-
-# Sentry
-SENTRY_DSN = os.environ["SENTRY_DSN"]
 
 # Podcast RSS feed
 RSS_URL = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
@@ -29,18 +21,18 @@ WIKI_PASSWORD = os.environ["WIKI_PASSWORD"]
 WIKI_EPISODE_URL_BASE = "https://www.sgutranscripts.org/w/rest.php/v1/page/SGU_Episode_"
 WIKI_API_BASE = "https://sgutranscripts.org/w/api.php"
 
-# Azure info
+# Azure / transcription
 AZURE_SUBSCRIPTION_KEY = os.environ["AZURE_SUBSCRIPTION_KEY"]
 AZURE_SERVICE_REGION = os.environ["AZURE_SERVICE_REGION"]
 
-# Diarization tokens
+# pyannote / diarization
 PYANNOTE_TOKEN = os.environ["PYANNOTE_TOKEN"]
 NGROK_TOKEN = os.environ["NGROK_TOKEN"]
 PYANNOTE_IDENTIFY_ENDPOINT = "https://api.pyannote.ai/v1/identify"
 PYANNOTE_VOICEPRINT_ENDPOINT = "https://api.pyannote.ai/v1/voiceprint"
 SERVER_PORT = 23500
 
-# OpenAI
+# OpenAI / GPT / llm
 OPENAI_ORG = os.environ["OPENAI_ORGANIZATION"]
 OPENAI_PROJECT = os.environ["OPENAI_PROJECT"]
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]

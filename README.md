@@ -81,10 +81,10 @@ We load the links to extract the article titles which are used in the references
 
 ## Development
 
-The project uses Python 3.11 because many of the ML libraries have not yet adopted 3.12.<br>
-Poetry is used to manage dependencies. `poetry install` will get you set up.<br>
+uv is used to manage dependencies: <https://docs.astral.sh/uv/getting-started/installation/><br>
+Once installed, `uv sync` is all you need to run.
 
 There are a number of required env vars to run the tool. `dotenv` is set up, so we can place our variables into a `.env` file.<br>
 See `.env.sample` for required env vars.<br>
 
-Ruff and Pyright should be used for linting and type checking.
+Ruff and Pyright should be used for linting, formatting, and type checking.
