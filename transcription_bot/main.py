@@ -2,6 +2,7 @@ import sys
 
 import cronitor
 import sentry_sdk
+from sentry_sdk.crons import monitor
 
 from transcription_bot.config import CRONITOR_API_KEY, CRONITOR_JOB_KEY, SENTRY_DSN, UNPROCESSABLE_EPISODES
 from transcription_bot.converters.episode_data_to_segments import convert_episode_data_to_episode_segments
@@ -11,10 +12,10 @@ from transcription_bot.global_logger import logger
 from transcription_bot.parsers.rss_feed import get_podcast_episodes
 from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_page
 
-if not True:  # TODO: Enable this
-    sentry_sdk.init(dsn=SENTRY_DSN, traces_sample_rate=1.0)
+sentry_sdk.init(dsn=SENTRY_DSN, traces_sample_rate=1.0)
 
 
+@monitor(monitor_slug="transcription-bot")
 def main(*, allow_page_editing: bool, selected_episodes: list[str]) -> None:
     """Main function that starts the program and processes podcast episodes.
 

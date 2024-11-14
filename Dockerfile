@@ -17,7 +17,7 @@ COPY --from=ghcr.io/astral-sh/uv:0.5.1 /uv /uvx /bin/
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project --no-dev
+    uv sync --frozen --no-install-workspace --no-dev
 
 COPY transcription_bot transcription_bot
 COPY pyproject.toml uv.lock ./
@@ -25,7 +25,7 @@ COPY pyproject.toml uv.lock ./
 # Sync the project
 RUN --mount=type=cache,target=/root/.cache/uv \
     touch README.md && \
-    uv sync --frozen --no-dev
+    uv sync --no-dev
 
 # We change to the non-root user after all files are copied
 # Root owns the files and we cannot write to them: this is a security measure
