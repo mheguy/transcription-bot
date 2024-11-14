@@ -7,12 +7,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # General
-IN_GCP = bool(os.getenv("IN_GCP"))
-LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
+RUNNING_IN_LOCAL = bool(os.getenv("TB_LOCAL"))
+LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 
 # Cronitor
-CRONITOR_API_KEY = os.environ["CRONITOR_API_KEY"]
-CRONITOR_JOB_KEY = os.environ["CRONITOR_JOB_KEY"]
+CRONITOR_API_KEY = ""
+CRONITOR_JOB_KEY = ""
+
+os.environ["CRONITOR_API_KEY"]
+os.environ["CRONITOR_JOB_KEY"]
 
 # Sentry
 SENTRY_DSN = os.environ["SENTRY_DSN"]
@@ -26,14 +29,9 @@ WIKI_PASSWORD = os.environ["WIKI_PASSWORD"]
 WIKI_EPISODE_URL_BASE = "https://www.sgutranscripts.org/w/rest.php/v1/page/SGU_Episode_"
 WIKI_API_BASE = "https://sgutranscripts.org/w/api.php"
 
-# Transcription settings
-TRANSCRIPTION_MODEL = "whisper-1"
-TRANSCRIPTION_LANGUAGE = "en"
-TRANSCRIPTION_PROMPT = "The Skeptic's Guide to the Universe is hosted by Steven Novella, Bob Novella, Jay Novella, Cara Santa Maria, and Evan Bernstein."
-
-_TRANSCRIPTION_PROMPT_MAX_LEN = 255
-if len(TRANSCRIPTION_PROMPT) > _TRANSCRIPTION_PROMPT_MAX_LEN:
-    raise ValueError("TRANSCRIPTION_PROMPT must be less than 255 characters.")
+# Azure info
+AZURE_SUBSCRIPTION_KEY = os.environ["AZURE_SUBSCRIPTION_KEY"]
+AZURE_SERVICE_REGION = os.environ["AZURE_SERVICE_REGION"]
 
 # Diarization tokens
 PYANNOTE_TOKEN = os.environ["PYANNOTE_TOKEN"]

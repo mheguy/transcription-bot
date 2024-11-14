@@ -1,6 +1,7 @@
 import json
 from typing import TYPE_CHECKING
 
+import pandas as pd
 import requests
 
 from transcription_bot.caching import cache_for_episode
@@ -11,12 +12,10 @@ from transcription_bot.webhook_server import WebhookServer
 if TYPE_CHECKING:
     from transcription_bot.parsers.rss_feed import PodcastEpisode
 
-RawDiarization = dict[str, dict[str, list[dict[str, str | float]]]]
-
 
 @cache_for_episode
-def create_diarization(podcast: "PodcastEpisode") -> RawDiarization:
-    logger.debug("_create_diarization")
+def create_diarization(podcast: "PodcastEpisode") -> pd.DataFrame:
+    logger.info("Creating diarization...")
     webhook_server = WebhookServer()
     server_url = webhook_server.start_server_thread()
 
@@ -25,10 +24,12 @@ def create_diarization(podcast: "PodcastEpisode") -> RawDiarization:
     response_content = webhook_server.get_webhook_payload()
 
     try:
-        return json.loads(response_content)
+        raw_diarization = json.loads(response_content)
     except (TypeError, OverflowError, json.JSONDecodeError, UnicodeDecodeError):
         logger.error(f"Failed to decode to JSON: {response_content}")
         raise
+
+    return pd.DataFrame(raw_diarization["output"]["identification"])
 
 
 def get_voiceprints() -> list[dict[str, str]]:
@@ -38,13 +39,13 @@ def get_voiceprints() -> list[dict[str, str]]:
 
 
 def send_diarization_request(listener_url: str, audio_file_url: str) -> None:
-    logger.debug("_send_diarization_request")
+    logger.info("Sending diarization request...")
     webhook_url = f"{listener_url}/webhook"
 
     headers = {"Authorization": f"Bearer {PYANNOTE_TOKEN}", "Content-Type": "application/json"}
     data = {"webhook": webhook_url, "url": audio_file_url, "voiceprints": get_voiceprints()}
 
-    logger.info(f"Request data: {data}")
+    logger.debug(f"Request data: {data}")
     response = requests.post(PYANNOTE_IDENTIFY_ENDPOINT, headers=headers, json=data, timeout=10)
-    logger.info(f"Request sent. Response: {response}")
+    logger.debug(f"Request sent. Response: {response}")
     response.raise_for_status()

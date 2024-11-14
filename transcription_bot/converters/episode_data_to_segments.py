@@ -93,7 +93,7 @@ def convert_episode_data_to_episode_segments(episode_data: "EpisodeData") -> "Se
 
     segments = merge_segments(lyric_segments, show_note_segments, summary_text_segments)
 
-    logger.debug("Merging transcript into episode segments...")
+    logger.info("Merging transcript into episode segments...")
     return add_transcript_to_segments(episode_data.podcast, episode_data.transcript, segments)
 
 

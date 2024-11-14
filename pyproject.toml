@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "beautifulsoup4>=4.12.3",
-    "codetiming>=1.4.0",
     "cronitor>=4.7.1",
     "feedparser>=6.0.11",
     "httpx>=0.27.2",
@@ -95,7 +94,6 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
 [tool.ruff]
 line-length = 120
-target-version = "py312"
 
 [tool.ruff.format]
 docstring-code-format = true

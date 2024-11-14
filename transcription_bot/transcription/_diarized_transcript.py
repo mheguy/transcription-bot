@@ -1,17 +1,14 @@
+import concurrent.futures
 from typing import TYPE_CHECKING, TypedDict
 
 import numpy as np
-import pandas as pd
 
-from transcription_bot.caching import cache_for_episode
 from transcription_bot.global_logger import logger
 from transcription_bot.transcription._diarization import create_diarization
-from transcription_bot.transcription._transcription import create_transcription
+from transcription_bot.transcription._transcription import Transcription, create_transcription
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
-    from openai.types.audio.transcription_verbose import TranscriptionVerbose
+    import pandas as pd
 
     from transcription_bot.parsers.rss_feed import PodcastEpisode
 
@@ -34,37 +31,37 @@ class DiarizedTranscriptChunk(TypedDict):
     speaker: str
 
 
-@cache_for_episode
-def get_diarized_transcript(podcast: "PodcastEpisode", audio_file: "Path") -> "DiarizedTranscript":
+def get_diarized_transcript(podcast: "PodcastEpisode") -> "DiarizedTranscript":
     """Create a transcript with the audio and podcast information."""
-    logger.debug("get_transcript")
+    logger.info("Getting diarized transcript...")
 
-    openai_transcription = create_transcription(podcast, audio_file)
+    transcription = create_transcription(podcast)
+    diarization = create_diarization(podcast)
 
-    raw_diarization = create_diarization(podcast)
-    diarization = pd.DataFrame(raw_diarization["output"]["identification"])
+    # with concurrent.futures.ThreadPoolExecutor() as executor:
+    #     transcription_future = executor.submit(create_transcription, podcast)
+    #     diarization_future = executor.submit(create_diarization, podcast)
 
-    return merge_transcript_and_diarization(openai_transcription, diarization)
+    #     transcription = transcription_future.result()
+    #     diarization = diarization_future.result()
+
+    return merge_transcript_and_diarization(transcription, diarization)
 
 
 def merge_transcript_and_diarization(
-    transcription: "TranscriptionVerbose",
-    diarization: pd.DataFrame,
+    transcription: "Transcription",
+    diarization: "pd.DataFrame",
 ) -> DiarizedTranscript:
-    logger.debug("Merging transcript and diarization...")
-
-    if transcription.segments is None:
-        raise TypeError("transcription.segments is None")
-
+    logger.info("Merging transcript and diarization...")
     diarized_transcript: DiarizedTranscript = []
 
-    for seg in transcription.segments:
-        if not seg.text:
+    for seg in transcription:
+        if not seg["text"]:
             continue
 
         # Find active speakers during the segment
-        diarization["intersection"] = np.minimum(diarization["end"], seg.end) - np.maximum(
-            diarization["start"], seg.start
+        diarization["intersection"] = np.minimum(diarization["end"], seg["end"]) - np.maximum(
+            diarization["start"], seg["start"]
         )
         segment_speakers = diarization[diarization["intersection"] > 0]
 
@@ -80,7 +77,7 @@ def merge_transcript_and_diarization(
             segment_speaker = "UNKNOWN"
 
         diarized_transcript.append(
-            DiarizedTranscriptChunk(start=seg.start, end=seg.end, text=seg.text, speaker=segment_speaker)
+            DiarizedTranscriptChunk(start=seg["start"], end=seg["end"], text=seg["text"], speaker=segment_speaker)
         )
 
     adjust_transcript_for_voiceover(diarized_transcript)
