@@ -87,4 +87,4 @@ Once installed, `uv sync` is all you need to run.
 There are a number of required env vars to run the tool. `dotenv` is set up, so we can place our variables into a `.env` file.<br>
 See `.env.sample` for required env vars.<br>
 
-Ruff and Pyright should be used for linting, formatting, and type checking.
+Ruff and Pyright should be used for linting, formatting, and type checking: `uv run ruff check ; uv run ruff format ; uv run pyright`
