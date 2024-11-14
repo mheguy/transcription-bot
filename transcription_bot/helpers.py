@@ -49,7 +49,7 @@ def get_article_title(url: str) -> str | None:
     try:
         resp = http_client.get(url)
     except requests.exceptions.RequestException as e:
-        logger.error(f"Error fetching article title at {url} : {e}")
+        logger.exception(f"Error fetching article title at {url} : {e}")
         return None
 
     if not resp.ok:

@@ -35,15 +35,12 @@ def get_diarized_transcript(podcast: "PodcastEpisode") -> "DiarizedTranscript":
     """Create a transcript with the audio and podcast information."""
     logger.info("Getting diarized transcript...")
 
-    transcription = create_transcription(podcast)
-    diarization = create_diarization(podcast)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        transcription_future = executor.submit(create_transcription, podcast)
+        diarization_future = executor.submit(create_diarization, podcast)
 
-    # with concurrent.futures.ThreadPoolExecutor() as executor:
-    #     transcription_future = executor.submit(create_transcription, podcast)
-    #     diarization_future = executor.submit(create_diarization, podcast)
-
-    #     transcription = transcription_future.result()
-    #     diarization = diarization_future.result()
+        transcription = transcription_future.result()
+        diarization = diarization_future.result()
 
     return merge_transcript_and_diarization(transcription, diarization)
 

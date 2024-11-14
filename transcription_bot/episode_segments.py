@@ -309,7 +309,7 @@ class QuickieSegment(FromLyricsSegment):
         article_title = None
         if url:
             article_publication = urlparse(url).netloc
-            article_title = get_article_title(url)
+            article_title = get_article_title(url) or url
 
         return QuickieSegment(
             title=title,
@@ -473,7 +473,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
         article_title = None
         if url:
             article_publication = urlparse(url).netloc
-            article_title = get_article_title(url)
+            article_title = get_article_title(url) or url
 
         return DumbestThingOfTheWeekSegment(
             topic=topic,
@@ -642,7 +642,7 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
             article_title = None
             if article_url:
                 publication = urlparse(article_url).netloc
-                article_title = get_article_title(article_url)
+                article_title = get_article_title(article_url) or article_url
 
             if answer.lower() == "science":
                 sof_result = f"science{science_items}"
@@ -756,7 +756,7 @@ class NewsMetaSegment(FromLyricsSegment):
                 article_title = None
                 if url:
                     publication = urlparse(url).netloc
-                    article_title = get_article_title(url)
+                    article_title = get_article_title(url) or url
 
                 match = re.match(r"news item ?#?\d+\s*.\s*(.+)", line, re.IGNORECASE)
                 if not match:

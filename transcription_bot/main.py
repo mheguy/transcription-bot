@@ -73,6 +73,3 @@ if __name__ == "__main__":
         allow_page_editing=False,
         selected_episodes=_episodes_to_process,
     )
-
-# TODO: Create dockerfile
-# TODO: Remove vm_setup and startup_script in doc

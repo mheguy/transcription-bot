@@ -86,11 +86,7 @@ We load the links to extract the article titles which are used in the references
 The project uses Python 3.11 because many of the ML libraries have not yet adopted 3.12.<br>
 Poetry is used to manage dependencies. `poetry install` will get you set up.<br>
 
-There are a number of required env vars to run the tool. `dotenv` is set up, so we can place our variables into a `.env` file.
-
-`PYANNOTE_TOKEN` is a token for pyannote.ai's services, which is what we use to handle diarization and speaker identification.<br>
-`NGROK_TOKEN` is also required for pyannote.ai as they return results via a webhook/callback.<br>
-`WIKI_USERNAME` and `WIKI_PASSWORD` are credentials for your bot account. You can create bot credentials at <https://www.sgutranscripts.org/wiki/Special:BotPasswords>.<br>
-`OPENAI_API_KEY`, `OPENAI_ORGANIZATION`, and `OPENAI_PROJECT` are used for calls to OpenAI for both transcribing the audio as well as having GPT help with episode segment detection.
+There are a number of required env vars to run the tool. `dotenv` is set up, so we can place our variables into a `.env` file.<br>
+See `.env.sample` for required env vars.<br>
 
 Ruff and Pyright should be used for linting and type checking.
