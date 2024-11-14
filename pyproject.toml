@@ -37,8 +37,6 @@ scripts = ["flask", "pydub"]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.uv]
-default-groups = ["dev", "scripts"]
 
 [tool.black]
 line-length = 120
@@ -176,3 +174,6 @@ known-first-party = ["transcription_bot"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.uv]
+default-groups = ["dev", "scripts"]
