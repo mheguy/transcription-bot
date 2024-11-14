@@ -37,6 +37,9 @@ jobs:
         with:
           python-version-file: "pyproject.toml"
 
+      - name: Ensure lock file is up to date
+        run: uv lock --locked
+
       - name: Install the project
         env: 
           UV_LINK_MODE: copy
