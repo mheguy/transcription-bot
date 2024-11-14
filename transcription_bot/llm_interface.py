@@ -3,6 +3,8 @@
 import json
 from typing import TYPE_CHECKING
 
+from openai import OpenAI
+
 from transcription_bot.caching import cache_for_episode, cache_llm
 from transcription_bot.config import LLM_MODEL, OPENAI_API_KEY, OPENAI_ORG, OPENAI_PROJECT
 from transcription_bot.global_logger import logger
@@ -10,9 +12,7 @@ from transcription_bot.global_logger import logger
 if TYPE_CHECKING:
     from transcription_bot.episode_segments import BaseSegment
     from transcription_bot.parsers.rss_feed import PodcastEpisode
-    from transcription_bot.transcription import DiarizedTranscript
-
-from openai import OpenAI
+    from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 
 @cache_llm

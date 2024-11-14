@@ -19,7 +19,7 @@ class WebhookServer:
     """
 
     def __init__(self) -> None:
-        self._queue = Queue(1)
+        self._queue: Queue[bytes] = Queue(1)
         self._server_thread = Thread(target=self._start_server, daemon=False)
         self._listener: ngrok.Listener | None = None
 

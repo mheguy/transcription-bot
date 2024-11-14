@@ -1,7 +1,5 @@
 # transcription-bot
 
-![transcriptionbot](https://cronitor.io/badges/ptDp2a/production/g39Jba1nK2_Hh3UVLqswolPPAPI.svg)
-
 This tool creates transcripts for episodes of the podcast "the Skeptic's Guide to the Universe".<br>
 This tool is a fan creation and is neither endorsed by nor associated with the creators of the podcast.<br>
 
@@ -83,14 +81,10 @@ We load the links to extract the article titles which are used in the references
 
 ## Development
 
-The project uses Python 3.11 because many of the ML libraries have not yet adopted 3.12.<br>
-Poetry is used to manage dependencies. `poetry install` will get you set up.<br>
+uv is used to manage dependencies: <https://docs.astral.sh/uv/getting-started/installation/><br>
+Once installed, `uv sync` is all you need to run.
 
-There are a number of required env vars to run the tool. `dotenv` is set up, so we can place our variables into a `.env` file.
+There are a number of required env vars to run the tool. `dotenv` is set up, so we can place our variables into a `.env` file.<br>
+See `.env.sample` for required env vars.<br>
 
-`PYANNOTE_TOKEN` is a token for pyannote.ai's services, which is what we use to handle diarization and speaker identification.<br>
-`NGROK_TOKEN` is also required for pyannote.ai as they return results via a webhook/callback.<br>
-`WIKI_USERNAME` and `WIKI_PASSWORD` are credentials for your bot account. You can create bot credentials at <https://www.sgutranscripts.org/wiki/Special:BotPasswords>.<br>
-`OPENAI_API_KEY`, `OPENAI_ORGANIZATION`, and `OPENAI_PROJECT` are all used for calls to GPT.
-
-Ruff and Pyright should be used for linting and type checking.
+Ruff and Pyright should be used for linting, formatting, and type checking: `uv run ruff check ; uv run ruff format ; uv run pyright`

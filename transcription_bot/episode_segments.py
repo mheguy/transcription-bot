@@ -10,10 +10,10 @@ from bs4 import Tag
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
 from transcription_bot.templating import get_template
-from transcription_bot.transcription import DiarizedTranscript
+from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 if TYPE_CHECKING:
-    from transcription_bot.transcription import DiarizedTranscript
+    from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
@@ -309,7 +309,7 @@ class QuickieSegment(FromLyricsSegment):
         article_title = None
         if url:
             article_publication = urlparse(url).netloc
-            article_title = get_article_title(url)
+            article_title = get_article_title(url) or url
 
         return QuickieSegment(
             title=title,
@@ -473,7 +473,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
         article_title = None
         if url:
             article_publication = urlparse(url).netloc
-            article_title = get_article_title(url)
+            article_title = get_article_title(url) or url
 
         return DumbestThingOfTheWeekSegment(
             topic=topic,
@@ -642,7 +642,7 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
             article_title = None
             if article_url:
                 publication = urlparse(article_url).netloc
-                article_title = get_article_title(article_url)
+                article_title = get_article_title(article_url) or article_url
 
             if answer.lower() == "science":
                 sof_result = f"science{science_items}"
@@ -756,7 +756,7 @@ class NewsMetaSegment(FromLyricsSegment):
                 article_title = None
                 if url:
                     publication = urlparse(url).netloc
-                    article_title = get_article_title(url)
+                    article_title = get_article_title(url) or url
 
                 match = re.match(r"news item ?#?\d+\s*.\s*(.+)", line, re.IGNORECASE)
                 if not match:
@@ -979,7 +979,7 @@ def _trim_whitespace(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
 def _join_speaker_transcription_chunks(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
     current_speaker = None
 
-    speaker_chunks = []
+    speaker_chunks: DiarizedTranscript = []
     for chunk in transcript:
         if chunk["speaker"] != current_speaker:
             speaker_chunks.append(chunk)

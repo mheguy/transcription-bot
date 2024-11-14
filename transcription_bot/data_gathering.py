@@ -9,7 +9,7 @@ from transcription_bot.caching import cache_for_episode
 from transcription_bot.config import AUDIO_FOLDER
 from transcription_bot.downloader import FileDownloader
 from transcription_bot.global_logger import logger
-from transcription_bot.transcription import DiarizedTranscript, get_transcript
+from transcription_bot.transcription import Transcript, get_transcript
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -33,7 +33,7 @@ class EpisodeData:
     """
 
     podcast: "PodcastEpisode"
-    transcript: "DiarizedTranscript"
+    transcript: "Transcript"
     lyrics: str
     show_notes: bytes
 
@@ -44,8 +44,7 @@ def gather_data(podcast: "PodcastEpisode", client: "requests.Session") -> Episod
     logger.info("Getting show data...")
     audio_file = get_audio_file(client, podcast)
 
-    transcript = get_transcript(podcast, audio_file)
-
+    transcript = get_transcript(podcast)
     lyrics = get_lyrics_from_mp3(podcast, audio_file.read_bytes())
     show_notes = _get_show_notes(podcast, client)
 
@@ -60,6 +59,7 @@ def gather_data(podcast: "PodcastEpisode", client: "requests.Session") -> Episod
 def get_audio_file(client: "Session", podcast: "PodcastEpisode") -> "Path":
     """Retrieve the audio file for a podcast episode."""
     audio_file = AUDIO_FOLDER / f"{podcast.episode_number}.mp3"
+
     if not audio_file.exists():
         logger.info("Downloading episode...")
         downloader = FileDownloader(client)

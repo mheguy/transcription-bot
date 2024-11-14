@@ -1,65 +1,51 @@
-[tool.poetry]
+[project]
 name = "transcription-bot"
 version = "0.0.1"
-package-mode = true
 description = ""
-authors = []
-license = "CC0"
 readme = "README.md"
-packages = [{ include = "transcription_bot" }]
+requires-python = ">=3.13"
+dependencies = [
+    "beautifulsoup4>=4.12.3",
+    "feedparser>=6.0.11",
+    "httpx>=0.27.2",
+    "loguru>=0.7.2",
+    "mutagen>=1.47.0",
+    "ngrok>=1.4.0",
+    "numpy>=2.1.3",
+    "openai>=1.54.4",
+    "pandas>=2.2.3",
+    "pyarrow>=18.0.0",
+    "python-dotenv>=1.0.1",
+    "requests>=2.32.3",
+    "sentry-sdk>=2.18.0",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<3.12"
-feedparser = "^6.0.11"
-requests = "^2.32.3"
-python-dotenv = "^1.0.1"
-beautifulsoup4 = "^4.12.3"
-codetiming = "^1.4.0"
-tqdm = "^4.66.5"
-httpx = "^0.27.2"
-ngrok = "^1.4.0"
-mutagen = "^1.47.0"
-flask = "^3.0.3"
-pandas = "^2.2.3"
-pyarrow = "^18.0.0"
-setuptools = "^75.1.0"
-openai = "^1.51.2"
-loguru = "^0.7.2"
-cronitor = "^4.7.1"
-sentry-sdk = "^2.17.0"
-ctranslate2 = "<4.5.0"     # 4.5.0 requires libraries we don't have
-
-[tool.poetry.group.ml.dependencies]
-whisperx = { git = "https://github.com/m-bain/whisperx.git", markers = "sys_platform == 'linux'", rev = "f2da2f858e99e4211fe4f64b5f2938b007827e17" }
-torchvision = { version = "^0.18.1", markers = "sys_platform == 'linux'" }
-numpy = "<2.0.0"
-
-[tool.poetry.group.stats.dependencies]
-ipykernel = "^6.29.5"
-pydub = "^0.25.1"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "*"
-coverage = "*"
-pytest = "*"
-pytest-icdiff = "*"
-pytest-cov = "*"
-pytest-randomly = "*"
+[dependency-groups]
+dev = [
+    "coverage",
+    "pyright",
+    "pytest",
+    "pytest-icdiff",
+    "pytest-cov",
+    "pytest-randomly",
+    "ruff",
+]
+scripts = ["flask", "pydub"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.black]
 line-length = 120
 
 [tool.codespell]
-skip = "poetry.lock,pyproject.toml"
+skip = "uv.lock,pyproject.toml"
 
 [tool.coverage]
 run.branch = true
 run.relative_files = true
-run.source = ["transcript_bot"]
+run.source = ["transcription_bot"]
 xml.output = "cov.xml"
 
 [tool.coverage.report]
@@ -75,9 +61,20 @@ exclude_also = [
 ]
 
 [tool.pyright]
+exclude = ["**/.*", "**/node_modules", "**/__pycache__"]
 reportMissingImports = true
 reportMissingTypeStubs = false
-exclude = ["**/.*", "**/node_modules", "**/__pycache__"]
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
+analyzeUnannotatedFunctions = true
+enableTypeIgnoreComments = true
+deprecateTypingAliases = true
+enableReachabilityAnalysis = true
+typeCheckingMode = "strict"
+reportUnknownArgumentType = "none"
+reportUnknownMemberType = "none"
+reportUnknownVariableType = "none"
 
 [tool.pytest]
 ignore-glob = [".venv"]
@@ -93,7 +90,6 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
 [tool.ruff]
 line-length = 120
-target-version = "py312"
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -158,7 +154,7 @@ runtime-evaluated-base-classes = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["transcript_bot"]
+known-first-party = ["transcription_bot"]
 
 [tool.ruff.lint.per-file-ignores]
 # Rules for notebooks:
@@ -176,3 +172,6 @@ known-first-party = ["transcript_bot"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.uv]
+default-groups = ["dev", "scripts"]

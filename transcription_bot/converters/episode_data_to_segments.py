@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from transcription_bot.data_gathering import EpisodeData
     from transcription_bot.episode_segments import Segments
     from transcription_bot.parsers.rss_feed import PodcastEpisode
-    from transcription_bot.transcription import DiarizedTranscript
+    from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 THIRTY_MINUTES = 30 * 60
 
@@ -93,7 +93,7 @@ def convert_episode_data_to_episode_segments(episode_data: "EpisodeData") -> "Se
 
     segments = merge_segments(lyric_segments, show_note_segments, summary_text_segments)
 
-    logger.debug("Merging transcript into episode segments...")
+    logger.info("Merging transcript into episode segments...")
     return add_transcript_to_segments(episode_data.podcast, episode_data.transcript, segments)
 
 
