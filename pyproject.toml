@@ -36,9 +36,6 @@ scripts = ["flask", "pydub"]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.black]
-line-length = 120
-
 [tool.codespell]
 skip = "uv.lock,pyproject.toml"
 

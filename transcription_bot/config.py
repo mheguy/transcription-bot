@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # General
-RUNNING_IN_LOCAL = bool(os.getenv("TB_LOCAL"))
-ENVIRONMENT = "local" if RUNNING_IN_LOCAL else "production"
+_RUNNING_IN_LOCAL = bool(os.getenv("TB_LOCAL"))
+ENVIRONMENT = "local" if _RUNNING_IN_LOCAL else "production"
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 
@@ -42,16 +42,6 @@ LLM_MODEL = "gpt-4o-mini"
 DATA_FOLDER = Path(str(pkg_resources.files("transcription_bot").joinpath("data")))
 VOICEPRINT_FILE = DATA_FOLDER / "voiceprint_map.json"
 TEMPLATES_FOLDER = DATA_FOLDER / "templates"
-
-# Temp data paths
-TEMP_DATA_FOLDER = Path("data/").resolve()
-TEMP_DATA_FOLDER.mkdir(exist_ok=True)
-
-AUDIO_FOLDER = TEMP_DATA_FOLDER / "audio"
-AUDIO_FOLDER.mkdir(exist_ok=True)
-
-CACHE_FOLDER = TEMP_DATA_FOLDER / "cache"
-CACHE_FOLDER.mkdir(exist_ok=True)
 
 # Episodes that will raise exceptions when processed
 UNPROCESSABLE_EPISODES = {

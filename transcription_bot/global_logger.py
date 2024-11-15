@@ -2,12 +2,12 @@ import sys
 
 from loguru import logger
 
-from transcription_bot.config import LOG_LEVEL, RUNNING_IN_LOCAL
+from transcription_bot.config import ENVIRONMENT, LOG_LEVEL
 
 logger.remove()
 
 
-if RUNNING_IN_LOCAL:
+if ENVIRONMENT == "local":
     logger.add(
         sys.stdout,
         format="{time:HH:mm:ss} <level>{level: <8}</level> [transcript-bot] {message}",
