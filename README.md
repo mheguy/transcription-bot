@@ -3,6 +3,13 @@
 This tool creates transcripts for episodes of the podcast "the Skeptic's Guide to the Universe".<br>
 This tool is a fan creation and is neither endorsed by nor associated with the creators of the podcast.<br>
 
+## The output
+
+You can view the output of the bot here: https://www.sgutranscripts.org/w/index.php?title=SGU_Episode_1009&oldid=19910
+
+All new episodes are automatically transcribed. A human editor will typically clean up issues that the bot was not able to resolve itself.
+Therefore, the link provided is a link to a specific version of that page that the bot created.
+
 ## How it works
 
 This explanation is targeted toward those who have no experience writing or reading code.<br>
