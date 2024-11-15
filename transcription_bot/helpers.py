@@ -77,3 +77,11 @@ def string_is_url(text: str) -> bool:
     """Check if a string is a valid URL."""
     parsed = urlparse(text)
     return all([parsed.scheme, parsed.netloc])
+
+
+def download_file(url: str, client: requests.Session) -> bytes:
+    """Download a file from the given URL."""
+    response = client.get(url)
+    response.raise_for_status()
+
+    return response.content

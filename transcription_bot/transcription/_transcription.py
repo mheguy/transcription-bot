@@ -6,8 +6,8 @@ import requests
 
 from transcription_bot.caching import cache_for_episode
 from transcription_bot.config import AZURE_SERVICE_REGION, AZURE_SUBSCRIPTION_KEY
-from transcription_bot.downloader import FileDownloader
 from transcription_bot.global_logger import logger
+from transcription_bot.helpers import download_file
 
 if TYPE_CHECKING:
     from transcription_bot.parsers.rss_feed import PodcastEpisode
@@ -120,7 +120,7 @@ def get_transcription_results(files_url: str) -> Transcription:
     if not content_url:
         raise ValueError("Unable to locate transcription in results: %s", content["values"])
 
-    return convert_raw_transcription(json.loads(FileDownloader(session).download(content_url)))
+    return convert_raw_transcription(json.loads(download_file(content_url, session)))
 
 
 def convert_raw_transcription(raw_transcription: dict[str, Any]) -> Transcription:

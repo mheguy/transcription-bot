@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 from mutagen.id3 import ID3
 
 from transcription_bot.caching import cache_for_episode
-from transcription_bot.downloader import FileDownloader
 from transcription_bot.global_logger import logger
+from transcription_bot.helpers import download_file
 from transcription_bot.transcription import Transcript, get_transcript
 
 if TYPE_CHECKING:
@@ -56,9 +56,7 @@ def gather_data(podcast: "PodcastEpisode", client: "requests.Session") -> Episod
 def get_audio_file(podcast: "PodcastEpisode", client: "Session") -> bytes:
     """Retrieve the audio file for a podcast episode."""
     logger.info("Downloading episode...")
-    downloader = FileDownloader(client)
-
-    return downloader.download(podcast.download_url)
+    return download_file(podcast.download_url, client)
 
 
 @cache_for_episode
