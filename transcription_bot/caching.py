@@ -1,14 +1,14 @@
 import functools
 import json
 import pickle
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
 
-from transcription_bot.config import CACHE_FOLDER
+from transcription_bot.config import ENVIRONMENT
 from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from pathlib import Path
 
     from transcription_bot.episode_segments import BaseSegment
     from transcription_bot.parsers.rss_feed import PodcastEpisode
@@ -17,6 +17,9 @@ if TYPE_CHECKING:
 P = ParamSpec("P")
 R = TypeVar("R")
 UrlCache = dict[str, str]
+
+_TEMP_DATA_FOLDER = Path("data/").resolve()
+_CACHE_FOLDER = _TEMP_DATA_FOLDER / "cache"
 
 
 def cache_for_episode(
@@ -29,8 +32,7 @@ def cache_for_episode(
 
     @functools.wraps(func)
     def wrapper(podcast_episode: "PodcastEpisode", *args: P.args, **kwargs: P.kwargs) -> R:
-        function_dir = CACHE_FOLDER / func.__module__ / func.__name__
-        function_dir.mkdir(parents=True, exist_ok=True)
+        function_dir = _get_cache_dir(func)
         cache_filepath = function_dir / f"{podcast_episode.episode_number}.json_or_pkl"
 
         if cache_filepath.exists():
@@ -50,8 +52,7 @@ def cache_url_title(func: "Callable[Concatenate[str, P], str|None]") -> "Callabl
 
     @functools.wraps(func)
     def wrapper(url: "str", *args: P.args, **kwargs: P.kwargs) -> str | None:
-        function_dir = CACHE_FOLDER / func.__module__ / func.__name__
-        function_dir.mkdir(parents=True, exist_ok=True)
+        function_dir = _get_cache_dir(func)
         cache_filepath = function_dir / "urls.json_or_pkl"
 
         url_cache: UrlCache = {}
@@ -82,8 +83,7 @@ def cache_llm(
     def wrapper(
         _podcast_episode: "PodcastEpisode", segment: "BaseSegment", transcript: "DiarizedTranscript"
     ) -> float | None:
-        function_dir = CACHE_FOLDER / func.__module__ / func.__name__
-        function_dir.mkdir(parents=True, exist_ok=True)
+        function_dir = _get_cache_dir(func)
         episode = _podcast_episode.episode_number
         cache_filepath = function_dir / f"{episode}.json_or_pkl"
 
@@ -111,7 +111,21 @@ def cache_llm(
     return wrapper
 
 
+def _get_cache_dir(func: "Callable[..., Any]") -> Path:
+    function_dir = _CACHE_FOLDER / func.__module__ / func.__name__
+
+    if ENVIRONMENT != "production":
+        _TEMP_DATA_FOLDER.mkdir(exist_ok=True)
+        _CACHE_FOLDER.mkdir(exist_ok=True)
+        function_dir.mkdir(parents=True, exist_ok=True)
+
+    return function_dir
+
+
 def _save_cache(file: "Path", data: Any) -> None:
+    if ENVIRONMENT == "production":
+        return
+
     try:
         file.write_text(json.dumps(data))
     except (TypeError, OverflowError):
