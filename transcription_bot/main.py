@@ -1,4 +1,5 @@
 import sys
+import time
 
 import sentry_sdk
 from sentry_sdk.crons import monitor
@@ -72,3 +73,6 @@ if __name__ == "__main__":
             _episode_to_process = int(_episodes_to_process[0])
 
     main(selected_episode=_episode_to_process)
+
+    # Sleep to allow sentry to flush
+    time.sleep(5)
