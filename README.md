@@ -1,6 +1,6 @@
 # transcription-bot
 
-This tool creates transcripts for episodes of the podcast "the Skeptic's Guide to the Universe".<br>
+This tool creates transcripts for episodes of the podcast "The Skeptic's Guide to the Universe".<br>
 This tool is a fan creation and is neither endorsed by nor associated with the creators of the podcast.<br>
 
 ## The output
