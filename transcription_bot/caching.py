@@ -4,7 +4,7 @@ import pickle
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
 
-from transcription_bot.config import ENVIRONMENT
+from transcription_bot.config import config
 from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
@@ -114,7 +114,7 @@ def cache_llm(
 def _get_cache_dir(func: "Callable[..., Any]") -> Path:
     function_dir = _CACHE_FOLDER / func.__module__ / func.__name__
 
-    if ENVIRONMENT != "production":
+    if config.local_mode:
         _TEMP_DATA_FOLDER.mkdir(exist_ok=True)
         _CACHE_FOLDER.mkdir(exist_ok=True)
         function_dir.mkdir(parents=True, exist_ok=True)
@@ -123,7 +123,7 @@ def _get_cache_dir(func: "Callable[..., Any]") -> Path:
 
 
 def _save_cache(file: "Path", data: Any) -> None:
-    if ENVIRONMENT == "production":
+    if not config.local_mode:
         return
 
     try:

@@ -1,5 +1,4 @@
 import importlib.resources as pkg_resources
-import os
 from pathlib import Path
 
 from dynaconf import Dynaconf, Validator
@@ -21,7 +20,10 @@ config = Dynaconf(
     settings_files=["transcription_bot/data/config.toml"],
     load_dotenv=True,
     ignore_unknown_envvars=True,
-    validators=[Validator("log_level", cast=lambda x: x.upper())],
+    validators=[
+        Validator("log_level", cast=lambda x: x.upper()),
+        Validator("local_mode", cast=bool),
+    ],
 )
 config.validators.register(
     *(
@@ -29,10 +31,6 @@ config.validators.register(
         for env_var in _required_env_vars
     )
 )
-
-# General
-_RUNNING_IN_LOCAL = bool(os.getenv("TB_LOCAL"))
-ENVIRONMENT = "local" if _RUNNING_IN_LOCAL else "production"
 
 # Internal data paths
 DATA_FOLDER = Path(str(pkg_resources.files("transcription_bot").joinpath("data")))

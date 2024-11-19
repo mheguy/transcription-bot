@@ -35,7 +35,8 @@ def mock_transcript():
     return transcript
 
 
-def test_cache_for_episode(tmp_path: Path, mock_podcast_episode: MagicMock):
+@pytest.mark.usefixtures("enable_local_mode")
+def test_cache_for_episode_with_local_mode(tmp_path: Path, mock_podcast_episode: MagicMock):
     # Arrange
     test_func_mock = MagicMock(return_value={TEST_DATA_KEY: TEST_DATA_VALUE})
 
@@ -58,7 +59,8 @@ def test_cache_for_episode(tmp_path: Path, mock_podcast_episode: MagicMock):
         test_func_mock.assert_called_once_with(mock_podcast_episode)
 
 
-def test_cache_url_title(tmp_path: Path):
+@pytest.mark.usefixtures("enable_local_mode")
+def test_cache_url_title_with_local_mode(tmp_path: Path):
     # Arrange
     get_title_mock = MagicMock(side_effect=lambda url: f"Title for {url}")
 
@@ -81,7 +83,8 @@ def test_cache_url_title(tmp_path: Path):
         get_title_mock.assert_called_once_with(TEST_URL)
 
 
-def test_cache_llm(
+@pytest.mark.usefixtures("enable_local_mode")
+def test_cache_llm_with_local_mode(
     tmp_path: Path, mock_podcast_episode: MagicMock, mock_segment: MagicMock, mock_transcript: MagicMock
 ):
     # Arrange
@@ -104,6 +107,80 @@ def test_cache_llm(
         assert result2 == result1
         # Verify the underlying function was only called once
         llm_mock.assert_called_once_with(mock_podcast_episode, mock_segment, mock_transcript)
+
+
+def test_cache_for_episode_without_local_mode(tmp_path: Path, mock_podcast_episode: MagicMock):
+    # Arrange
+    test_func_mock = MagicMock(return_value={TEST_DATA_KEY: TEST_DATA_VALUE})
+
+    with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
+
+        @caching.cache_for_episode
+        def test_func(_episode: PodcastEpisode) -> dict[str, str]:  # noqa: PT019
+            return test_func_mock(_episode)
+
+        # Act
+        # First call - should execute function and cache
+        result1 = test_func(mock_podcast_episode)
+        # Second call - should use cache
+        result2 = test_func(mock_podcast_episode)
+
+        # Assert
+        assert result1 == {TEST_DATA_KEY: TEST_DATA_VALUE}
+        assert result1 == result2
+        # Verify the underlying function was only called once
+        test_func_mock.assert_called_with(mock_podcast_episode)
+        assert test_func_mock.call_count == 2
+
+
+def test_cache_url_title_without_local_mode(tmp_path: Path):
+    # Arrange
+    get_title_mock = MagicMock(side_effect=lambda url: f"Title for {url}")
+
+    with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
+
+        @caching.cache_url_title
+        def get_title(url: str) -> str:
+            return get_title_mock(url)
+
+        # Act
+        # First call - should execute function and cache
+        result1 = get_title(TEST_URL)
+        # Second call - should use cache
+        result2 = get_title(TEST_URL)
+
+        # Assert
+        assert result1 == f"Title for {TEST_URL}"
+        assert result2 == result1
+        # Verify the underlying function was only called once
+        get_title_mock.assert_called_with(TEST_URL)
+        assert get_title_mock.call_count == 2
+
+
+def test_cache_llm_without_local_mode(
+    tmp_path: Path, mock_podcast_episode: MagicMock, mock_segment: MagicMock, mock_transcript: MagicMock
+):
+    # Arrange
+    llm_mock = MagicMock(return_value=TEST_LLM_RESULT)
+
+    with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
+
+        @caching.cache_llm
+        def test_llm(_episode: PodcastEpisode, _segment: BaseSegment, _transcript: DiarizedTranscript) -> float:  # noqa: PT019
+            return llm_mock(_episode, _segment, _transcript)
+
+        # Act
+        # First call - should execute function and cache
+        result1 = test_llm(mock_podcast_episode, mock_segment, mock_transcript)
+        # Second call - should use cache
+        result2 = test_llm(mock_podcast_episode, mock_segment, mock_transcript)
+
+        # Assert
+        assert result1 == TEST_LLM_RESULT
+        assert result2 == result1
+        # Verify the underlying function was only called once
+        llm_mock.assert_called_with(mock_podcast_episode, mock_segment, mock_transcript)
+        assert llm_mock.call_count == 2
 
 
 def test_cache_for_episode_different_episodes(tmp_path: Path):

@@ -2,14 +2,14 @@ import sys
 
 from loguru import logger
 
-from transcription_bot.config import ENVIRONMENT, config
+from transcription_bot.config import config
 
 
 def init_logging() -> None:
     """Initialize loguru logger."""
     logger.remove()
 
-    if ENVIRONMENT == "local":
+    if config.local_mode:
         logger.add(
             sys.stdout,
             format="{time:HH:mm:ss} <level>{level: <8}</level> [transcript-bot] {message}",

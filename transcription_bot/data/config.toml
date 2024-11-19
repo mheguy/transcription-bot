@@ -1,3 +1,4 @@
+local_mode = false
 log_level = "debug"
 
 # Podcast RSS feed
