@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 import feedparser
 
-from transcription_bot.config import RSS_URL
+from transcription_bot.config import config
 
 if TYPE_CHECKING:
     from time import struct_time
@@ -39,7 +39,7 @@ def get_podcast_episodes(client: "requests.Session") -> list[PodcastEpisode]:
 
 
 def _get_raw_rss_feed_entries(client: "requests.Session") -> list[dict[str, Any]]:
-    response = client.get(RSS_URL, timeout=10)
+    response = client.get(config.rss_url, timeout=10)
     response.raise_for_status()
 
     return feedparser.parse(response.text)["entries"]

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, TypedDict
 import requests
 
 from transcription_bot.caching import cache_for_episode
-from transcription_bot.config import AZURE_SERVICE_REGION, AZURE_SUBSCRIPTION_KEY
+from transcription_bot.config import config
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import download_file
 
@@ -17,10 +17,10 @@ if TYPE_CHECKING:
 _API_VERSION_PARAM = {}
 # _API_VERSION_PARAM = {"api-version": "2024-11-15"}
 _TRANSCRIPTIONS_ENDPOINT = (
-    f"https://{AZURE_SERVICE_REGION}.api.cognitive.microsoft.com/speechtotext/v3.2-preview.2/transcriptions"
+    f"https://{config.azure_service_region}.api.cognitive.microsoft.com/speechtotext/v3.2-preview.2/transcriptions"
 )
 
-_AUTH_HEADER = {"Ocp-Apim-Subscription-Key": AZURE_SUBSCRIPTION_KEY}
+_AUTH_HEADER = {"Ocp-Apim-Subscription-Key": config.azure_subscription_key}
 _LOCALE = "en-US"
 _TRANSCRIPTION_CONFIG = {
     "profanityFilterMode": "None",

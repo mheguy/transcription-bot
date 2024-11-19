@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from openai import OpenAI
 
 from transcription_bot.caching import cache_for_episode, cache_llm
-from transcription_bot.config import LLM_MODEL, OPENAI_API_KEY, OPENAI_ORG, OPENAI_PROJECT
+from transcription_bot.config import config
 from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ def ask_llm_for_segment_start(
     _podcast_episode: "PodcastEpisode", segment: "BaseSegment", transcript: "DiarizedTranscript"
 ) -> float | None:
     """Ask an LLM for the start time of a segment."""
-    client = OpenAI(organization=OPENAI_ORG, project=OPENAI_PROJECT, api_key=OPENAI_API_KEY)
+    client = OpenAI(organization=config.openai_org, project=config.openai_project, api_key=config.openai_api_key)
     system_prompt = (
         "You are a helpful assistant designed to output JSON."
         "The user will provide you with a section of transcript"
@@ -43,7 +43,7 @@ def ask_llm_for_segment_start(
 
     logger.debug(f"Requesting LLM find start of segment: {segment}")
     response = client.chat.completions.create(
-        model=LLM_MODEL,
+        model=config.llm_model,
         response_format={"type": "json_object"},
         messages=[
             {"role": "system", "content": system_prompt},
@@ -65,9 +65,9 @@ def ask_llm_for_image_caption(_podcast_episode: "PodcastEpisode", image_url: str
     """Ask an LLM to write an image caption."""
     user_prompt = "Please write a 10-15 word caption for this image."
 
-    client = OpenAI(organization=OPENAI_ORG, project=OPENAI_PROJECT, api_key=OPENAI_API_KEY)
+    client = OpenAI(organization=config.openai_org, project=config.openai_project, api_key=config.openai_api_key)
     response = client.chat.completions.create(
-        model=LLM_MODEL,
+        model=config.llm_model,
         messages=[
             {
                 "role": "user",

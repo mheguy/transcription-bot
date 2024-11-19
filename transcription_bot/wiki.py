@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from requests import RequestException
 
-from transcription_bot.config import WIKI_API_BASE, WIKI_EPISODE_URL_BASE, WIKI_PASSWORD, WIKI_USERNAME
+from transcription_bot.config import config
 from transcription_bot.episode_segments import QuoteSegment, Segments
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import get_first_segment_of_type
@@ -69,7 +69,7 @@ def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
     Returns:
         bool: True if the episode has a wiki page, False otherwise.
     """
-    resp = client.get(WIKI_EPISODE_URL_BASE + str(episode_number))
+    resp = client.get(config.wiki_episode_url_base + str(episode_number))
 
     if resp.status_code == NOT_FOUND:
         return False
@@ -113,7 +113,7 @@ def create_page(
     if allow_page_editing:
         payload.pop("createonly")
 
-    resp = client.post(WIKI_API_BASE, data=payload)
+    resp = client.post(config.wiki_api_base, data=payload)
     resp.raise_for_status()
     data = resp.json()
 
@@ -127,7 +127,7 @@ def create_page(
 # region private functions
 def _find_image_upload(client: "Session", episode_number: str) -> str:
     params = {"action": "query", "list": "allimages", "aiprefix": episode_number, "format": "json"}
-    response = client.get(WIKI_API_BASE, params=params)
+    response = client.get(config.wiki_api_base, params=params)
     data = response.json()
 
     files = data.get("query", {}).get("allimages", [])
@@ -148,7 +148,7 @@ def _upload_image_to_wiki(client: "Session", csrf_token: str, image_url: str, ep
     }
     files = {"file": (filename, image_data)}
 
-    upload_response = client.post(WIKI_API_BASE, data=upload_params, files=files)
+    upload_response = client.post(config.wiki_api_base, data=upload_params, files=files)
     upload_response.raise_for_status()
 
     upload_data = upload_response.json()
@@ -200,7 +200,7 @@ def _construct_wiki_page(
 def _get_login_token(client: "Session") -> str:
     params = {"action": "query", "meta": "tokens", "type": "login", "format": "json"}
 
-    resp = client.get(url=WIKI_API_BASE, params=params)
+    resp = client.get(url=config.wiki_api_base, params=params)
     resp.raise_for_status()
     data = resp.json()
 
@@ -210,13 +210,13 @@ def _get_login_token(client: "Session") -> str:
 def _send_credentials(client: "Session", login_token: str) -> None:
     payload = {
         "action": "login",
-        "lgname": WIKI_USERNAME,
-        "lgpassword": WIKI_PASSWORD,
+        "lgname": config.wiki_username,
+        "lgpassword": config.wiki_password,
         "lgtoken": login_token,
         "format": "json",
     }
 
-    resp = client.post(WIKI_API_BASE, data=payload)
+    resp = client.post(config.wiki_api_base, data=payload)
     resp.raise_for_status()
 
     if resp.json()["login"]["result"] != "Success":
@@ -226,7 +226,7 @@ def _send_credentials(client: "Session", login_token: str) -> None:
 def _get_csrf_token(client: "Session") -> str:
     params = {"action": "query", "meta": "tokens", "format": "json"}
 
-    resp = client.get(url=WIKI_API_BASE, params=params)
+    resp = client.get(url=config.wiki_api_base, params=params)
     resp.raise_for_status()
     data = resp.json()
 

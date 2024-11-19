@@ -1,0 +1,29 @@
+log_level = "debug"
+
+# Podcast RSS feed
+rss_url = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
+
+# Wiki
+wiki_username = ""
+wiki_password = ""
+wiki_episode_url_base = "https://www.sgutranscripts.org/w/rest.php/v1/page/SGU_Episode_"
+wiki_api_base = "https://sgutranscripts.org/w/api.php"
+
+# Azure / transcription
+azure_subscription_key = ""
+azure_service_region = ""
+
+# pyannote / diarization
+pyannote_token = ""
+pyannote_identify_endpoint = "https://api.pyannote.ai/v1/identify"
+pyannote_voiceprint_endpoint = "https://api.pyannote.ai/v1/voiceprint"
+
+# Local server
+ngrok_token = ""
+server_port = 23500
+
+# OpenAI / GPT / llm
+openai_organization = ""
+openai_project = ""
+openai_api_key = ""
+llm_model = "gpt-4o-mini"

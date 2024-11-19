@@ -3,11 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from transcription_bot.caching import (
-    cache_for_episode,
-    cache_llm,
-    cache_url_title,
-)
+from transcription_bot import caching
 from transcription_bot.episode_segments import BaseSegment
 from transcription_bot.parsers.rss_feed import PodcastEpisode
 from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
@@ -45,7 +41,7 @@ def test_cache_for_episode(tmp_path: Path, mock_podcast_episode: MagicMock):
 
     with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
 
-        @cache_for_episode
+        @caching.cache_for_episode
         def test_func(_episode: PodcastEpisode) -> dict[str, str]:  # noqa: PT019
             return test_func_mock(_episode)
 
@@ -68,7 +64,7 @@ def test_cache_url_title(tmp_path: Path):
 
     with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
 
-        @cache_url_title
+        @caching.cache_url_title
         def get_title(url: str) -> str:
             return get_title_mock(url)
 
@@ -93,7 +89,7 @@ def test_cache_llm(
 
     with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
 
-        @cache_llm
+        @caching.cache_llm
         def test_llm(_episode: PodcastEpisode, _segment: BaseSegment, _transcript: DiarizedTranscript) -> float:  # noqa: PT019
             return llm_mock(_episode, _segment, _transcript)
 
@@ -116,7 +112,7 @@ def test_cache_for_episode_different_episodes(tmp_path: Path):
 
     with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
 
-        @cache_for_episode
+        @caching.cache_for_episode
         def test_func(episode: PodcastEpisode) -> dict[str, str]:
             return test_func_mock(episode)
 

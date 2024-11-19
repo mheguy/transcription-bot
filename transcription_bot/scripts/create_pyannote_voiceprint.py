@@ -6,10 +6,9 @@ from pathlib import Path
 
 import ngrok
 import requests
-from dotenv import load_dotenv
 from flask import Flask, Response, request, send_file
 
-from transcription_bot.config import NGROK_TOKEN, PYANNOTE_TOKEN, PYANNOTE_VOICEPRINT_ENDPOINT, SERVER_PORT
+from transcription_bot.config import config
 
 # This determines who is being processed!
 ROGUE_TO_PROCESS = "Steve"
@@ -20,8 +19,7 @@ if not AUDIO_FILE.exists():
 
 OUTPUT_FILE = AUDIO_FILE.with_name(AUDIO_FILE.stem + ".json")
 
-load_dotenv()
-HEADERS = {"Authorization": f"Bearer {PYANNOTE_TOKEN}", "Content-Type": "application/json"}
+HEADERS = {"Authorization": f"Bearer {config.pyannote_token}", "Content-Type": "application/json"}
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(funcName)s - %(message)s")
 logger = logging.getLogger("voiceprint")
@@ -55,14 +53,14 @@ def _send_voiceprint(base_url: str) -> None:
 
     logger.info("data=%s", data)
 
-    response = requests.post(PYANNOTE_VOICEPRINT_ENDPOINT, headers=HEADERS, json=data, timeout=10)
+    response = requests.post(config.pyannote_voiceprint_endpoint, headers=HEADERS, json=data, timeout=10)
     response.raise_for_status()
 
     logger.info("Voiceprint sent. Response: %s", response.content)
 
 
 if __name__ == "__main__":
-    listener = ngrok.forward(SERVER_PORT, authtoken=NGROK_TOKEN)
+    listener = ngrok.forward(config.server_port, authtoken=config.ngrok_token)
     if inspect.isawaitable(listener):
         raise ValueError("ngrok.forward() returned an _asyncio.Task")
 
@@ -71,4 +69,4 @@ if __name__ == "__main__":
 
     threading.Thread(target=_send_voiceprint, args=(url,), daemon=True).start()
 
-    app.run(port=SERVER_PORT)
+    app.run(port=config.server_port)
