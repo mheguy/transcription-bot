@@ -10,7 +10,6 @@ from bs4 import Tag
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
 from transcription_bot.templating import get_template
-from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 if TYPE_CHECKING:
     from transcription_bot.transcription._diarized_transcript import DiarizedTranscript

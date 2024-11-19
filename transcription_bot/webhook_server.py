@@ -6,7 +6,7 @@ from threading import Thread
 
 import ngrok
 
-from transcription_bot.config import NGROK_TOKEN, SERVER_PORT
+from transcription_bot.config import config
 from transcription_bot.global_logger import logger
 
 
@@ -26,7 +26,7 @@ class WebhookServer:
     def start_server_thread(self) -> str:
         """Start the server in a separate thread and return the public URL of the server."""
         self._server_thread.start()
-        listener = ngrok.forward(SERVER_PORT, authtoken=NGROK_TOKEN)
+        listener = ngrok.forward(config.server_port, authtoken=config.ngrok_token)
 
         if isawaitable(listener):
             raise TypeError("Listener is awaitable")
@@ -61,7 +61,7 @@ class WebhookServer:
 
     def _start_server(self) -> None:
         handler_class = self._create_handler_class()
-        with socketserver.TCPServer(("", SERVER_PORT), handler_class) as httpd:
-            logger.info(f"Serving on port {SERVER_PORT}")
+        with socketserver.TCPServer(("", config.server_port), handler_class) as httpd:
+            logger.info(f"Serving on port {config.server_port}")
             httpd.handle_request()
             logger.info("Server has shut down")

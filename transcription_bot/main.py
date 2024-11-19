@@ -4,15 +4,16 @@ import time
 import sentry_sdk
 from sentry_sdk.crons import monitor
 
-from transcription_bot.config import ENVIRONMENT, UNPROCESSABLE_EPISODES
+from transcription_bot.config import UNPROCESSABLE_EPISODES, config
 from transcription_bot.converters.episode_data_to_segments import convert_episode_data_to_episode_segments
 from transcription_bot.data_gathering import gather_data
 from transcription_bot.global_http_client import http_client
-from transcription_bot.global_logger import logger
+from transcription_bot.global_logger import init_logging, logger
 from transcription_bot.parsers.rss_feed import get_podcast_episodes
 from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_page
 
-sentry_sdk.init(traces_sample_rate=1.0, environment=ENVIRONMENT)
+if not config.local_mode:
+    sentry_sdk.init(environment="production")
 
 
 @monitor(monitor_slug="transcription-bot")
@@ -23,6 +24,9 @@ def main(*, selected_episode: int) -> None:
     checks if each episode has a wiki page,
     and creates a wiki page for episodes that don't have one.
     """
+    init_logging()
+    config.validators.validate_all()
+
     logger.info("Getting episodes from RSS feed...")
     all_episodes = get_podcast_episodes(http_client)
 
