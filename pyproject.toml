@@ -41,7 +41,8 @@ skip = "uv.lock,pyproject.toml"
 
 [tool.coverage]
 run.branch = true
-run.relative_files = true
+run.omit = ["transcription_bot/data/**"]
+# run.relative_files = true
 run.source = ["transcription_bot"]
 xml.output = "cov.xml"
 
@@ -70,6 +71,7 @@ deprecateTypingAliases = true
 enableReachabilityAnalysis = true
 typeCheckingMode = "strict"
 reportUnknownArgumentType = "none"
+reportUnknownLambdaType = "none"
 reportUnknownMemberType = "none"
 reportUnknownVariableType = "none"
 
@@ -157,7 +159,18 @@ known-first-party = ["transcription_bot"]
 # Rules for notebooks:
 "*.ipynb" = ["PLE1142", "PLR2004", "S101", "S311"]
 # Rules for tests:
-"test_*.py" = ["ANN001", "ANN401", "D10", "PGH", "PLR2004", "S101", "SLF"]
+"test_*.py" = [
+    "ANN001",
+    "ANN401",
+    "D10",
+    "PGH",
+    "PLR2004",
+    "S101",
+    "SLF",
+    "TCH001",
+    "TCH002",
+    "TCH003",
+]
 # Rules for init files:
 "__init__.py" = ["D10"]
 # Project-specific rules:
