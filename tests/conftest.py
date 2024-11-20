@@ -1,24 +1,16 @@
 import pytest
 
-from transcription_bot import config
-
-REQUIRED_ENV_VARS = [
-    "TB_WIKI_USERNAME",
-    "TB_WIKI_PASSWORD",
-    "TB_AZURE_SUBSCRIPTION_KEY",
-    "TB_AZURE_SERVICE_REGION",
-    "TB_PYANNOTE_TOKEN",
-    "TB_NGROK_TOKEN",
-]
+from transcription_bot.config import CONFIG_FILE, config
 
 
 @pytest.fixture(autouse=True, scope="session")
-def disable_local_mode() -> None:
-    """Disable caching for tests."""
-    config.config.local_mode = False
+def clean_config() -> None:
+    """Disable caching and remove all environment variables for tests (to prevent external calls)."""
+    config.validators.clear()
+    config.load_file(CONFIG_FILE)
 
 
 @pytest.fixture()
 def enable_local_mode(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Disable caching for tests."""
-    monkeypatch.setattr(config.config, "local_mode", True)
+    """Enable caching for tests."""
+    monkeypatch.setattr(config, "local_mode", True)

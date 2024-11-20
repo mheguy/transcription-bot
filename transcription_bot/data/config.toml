@@ -1,3 +1,6 @@
+# override these settings with env vars, not by editing
+# see .env.sample
+
 local_mode = false
 log_level = "debug"
 

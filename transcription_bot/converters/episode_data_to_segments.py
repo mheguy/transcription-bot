@@ -1,7 +1,7 @@
 import itertools
 from typing import TYPE_CHECKING
 
-from transcription_bot.episode_segments import IntroSegment, OutroSegment, Segments
+from transcription_bot.episode_segments import IntroSegment, OutroSegment
 from transcription_bot.global_logger import logger
 from transcription_bot.llm_interface import ask_llm_for_segment_start
 from transcription_bot.parsers.lyrics import parse_lyrics
@@ -37,7 +37,7 @@ def add_transcript_to_segments(
         if not left_segment.start_time:
             left_segment.start_time = last_start_time
 
-        partial_transcript = _get_partial_transcript_for_start_time(
+        partial_transcript = get_partial_transcript_for_start_time(
             raw_transcript,
             2,
             left_segment.start_time,
@@ -60,7 +60,7 @@ def add_transcript_to_segments(
         left_segment.end_time = right_segment.start_time
 
     for segment in segments:
-        segment.transcript = _get_transcript_between_times(
+        segment.transcript = get_transcript_between_times(
             raw_transcript,
             segment.start_time if segment.start_time else 0,
             segment.end_time,
@@ -97,14 +97,16 @@ def convert_episode_data_to_episode_segments(episode_data: "EpisodeData") -> "Se
     return add_transcript_to_segments(episode_data.podcast, episode_data.transcript, segments)
 
 
-def _get_transcript_between_times(transcript: "DiarizedTranscript", start: float, end: float) -> "DiarizedTranscript":
+def get_transcript_between_times(transcript: "DiarizedTranscript", start: float, end: float) -> "DiarizedTranscript":
+    """Get the transcript between two times."""
     return [c for c in transcript if start <= c["start"] < end]
 
 
-def _get_partial_transcript_for_start_time(
+def get_partial_transcript_for_start_time(
     transcript: "DiarizedTranscript", transcript_chunks_to_skip: int, start: float, end: float
 ) -> "DiarizedTranscript":
-    return _get_transcript_between_times(transcript, start, end)[transcript_chunks_to_skip:]
+    """Get the transcript between two times, skipping the first n chunks."""
+    return get_transcript_between_times(transcript, start, end)[transcript_chunks_to_skip:]
 
 
 THIRTY_SECONDS = 30
