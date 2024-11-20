@@ -20,7 +20,9 @@ def ask_llm_for_segment_start(
     _podcast_episode: "PodcastEpisode", segment: "BaseSegment", transcript: "DiarizedTranscript"
 ) -> float | None:
     """Ask an LLM for the start time of a segment."""
-    client = OpenAI(organization=config.openai_org, project=config.openai_project, api_key=config.openai_api_key)
+    client = OpenAI(
+        organization=config.openai_organization, project=config.openai_project, api_key=config.openai_api_key
+    )
     system_prompt = (
         "You are a helpful assistant designed to output JSON."
         "The user will provide you with a section of transcript"
@@ -65,7 +67,9 @@ def ask_llm_for_image_caption(_podcast_episode: "PodcastEpisode", image_url: str
     """Ask an LLM to write an image caption."""
     user_prompt = "Please write a 10-15 word caption for this image."
 
-    client = OpenAI(organization=config.openai_org, project=config.openai_project, api_key=config.openai_api_key)
+    client = OpenAI(
+        organization=config.openai_organization, project=config.openai_project, api_key=config.openai_api_key
+    )
     response = client.chat.completions.create(
         model=config.llm_model,
         messages=[

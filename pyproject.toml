@@ -40,16 +40,16 @@ build-backend = "hatchling.build"
 skip = "uv.lock,pyproject.toml"
 
 [tool.coverage]
-run.branch = true
-run.omit = ["transcription_bot/data/**"]
-# run.relative_files = true
-run.source = ["transcription_bot"]
 xml.output = "cov.xml"
+
+[tool.coverage.run]
+branch = true
+omit = ["transcription_bot/data/**", "tests/**"]
+source = ["transcription_bot/"]
 
 [tool.coverage.report]
 show_missing = true
 skip_empty = true
-omit = []
 exclude_also = [
     "if TYPE_CHECKING:",
     "@(abc\\.)?abstractmethod",
