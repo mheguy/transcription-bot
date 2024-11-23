@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from transcription_bot.parsers.rss_feed import PodcastEpisode
     from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
-THIRTY_MINUTES = 30 * 60
+_THIRTY_MINUTES = 30 * 60
 
 
 def add_transcript_to_segments(
@@ -41,7 +41,7 @@ def add_transcript_to_segments(
             raw_transcript,
             2,
             left_segment.start_time,
-            left_segment.start_time + THIRTY_MINUTES,
+            left_segment.start_time + _THIRTY_MINUTES,
         )
 
         right_segment.start_time = right_segment.get_start_time(partial_transcript)
@@ -107,6 +107,3 @@ def get_partial_transcript_for_start_time(
 ) -> "DiarizedTranscript":
     """Get the transcript between two times, skipping the first n chunks."""
     return get_transcript_between_times(transcript, start, end)[transcript_chunks_to_skip:]
-
-
-THIRTY_SECONDS = 30
