@@ -13,7 +13,7 @@ from transcription_bot.parsers.rss_feed import get_podcast_episodes
 from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_page
 
 if not config.local_mode:
-    sentry_sdk.init(environment="production")
+    sentry_sdk.init(dsn=config.sentry_dsn, environment="production")
 
 
 @monitor(monitor_slug="transcription-bot")

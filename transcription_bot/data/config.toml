@@ -31,3 +31,6 @@ openai_organization = ""
 openai_project = ""
 openai_api_key = ""
 llm_model = "gpt-4o-mini"
+
+# Sentry (only in deployed)
+sentry_dsn = ""

@@ -43,6 +43,14 @@ _REQUIRED_ENV_VARS = [
     "pyannote_token",
 ]
 
+_sentry_validator = Validator(
+    "sentry_dsn",
+    required=True,
+    ne="",
+    messages={"operations": "{name} must not be blank when in production"},
+    when=Validator("local_mode", eq=False),
+)
+
 config = Dynaconf(
     envvar_prefix="TB",
     settings_files=[CONFIG_FILE],
@@ -53,9 +61,11 @@ config = Dynaconf(
         Validator("local_mode", cast=bool),
     ],
 )
+
 config.validators.register(
+    _sentry_validator,
     *(
         Validator(env_var, required=True, ne="", messages={"operations": "{name} must not be blank"})
         for env_var in _REQUIRED_ENV_VARS
-    )
+    ),
 )
