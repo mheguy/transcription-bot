@@ -160,16 +160,16 @@ split-on-trailing-comma = false
 "*.ipynb" = ["PLE1142", "PLR2004", "S101", "S311"]
 # Rules for tests:
 "tests/**" = [
-    "ANN200",
+    "ANN201",
     "ANN401",
     "D10",
     "PGH",
     "PLR2004",
     "S101",
     "SLF",
-    "TCH001",
-    "TCH002",
-    "TCH003",
+    "TC001",
+    "TC002",
+    "TC003",
 ]
 # Rules for init files:
 "__init__.py" = ["D10"]
