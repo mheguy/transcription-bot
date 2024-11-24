@@ -90,6 +90,9 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 [tool.ruff]
 line-length = 120
 
+[tool.ruff.analyze]
+detect-string-imports = true
+
 [tool.ruff.format]
 docstring-code-format = true
 line-ending = "lf"
@@ -97,8 +100,6 @@ line-ending = "lf"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "ANN101",  # missing-type-self - static analyzers infer the type of self
-    "ANN102",  # missing-type-cls - static analyzers infer the type of cls
     "ANN401",  # any-type - this is acceptable in some cases
     "D105",    # undocumented-magic-method - documenting magic methods is redundant
     "D107",    # undocumented-public-init - documenting init methods is redundant
@@ -107,7 +108,6 @@ ignore = [
     "ERA",     # commented-out-code - sometimes commented out code is useful
     "FIX002",  # errors for todos
     "PLR0913", # too many arguments to function (including tests) - should not be a blocker
-    "PT004",   # missing-fixture-name-underscore - adding underscore to names means IDEs will show them as unused
     "SIM108",  # Ternaries make code harder to read, especially for new developers
     "TD",      # rules related to TODOs in code
     "T20",     # makes using print and pprint an error
@@ -130,7 +130,6 @@ allow-star-arg-any = true
 ignore-fully-untyped = true
 mypy-init-return = true
 suppress-dummy-args = true
-suppress-none-returning = true
 
 [tool.ruff.lint.flake8-pytest-style]
 mark-parentheses = false
@@ -154,13 +153,14 @@ runtime-evaluated-base-classes = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["transcription_bot"]
+split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
 # Rules for notebooks:
 "*.ipynb" = ["PLE1142", "PLR2004", "S101", "S311"]
 # Rules for tests:
 "tests/**" = [
-    "ANN001",
+    "ANN200",
     "ANN401",
     "D10",
     "PGH",

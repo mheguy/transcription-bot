@@ -44,12 +44,7 @@ def gather_data(podcast: "PodcastEpisode", client: "requests.Session") -> Episod
     lyrics = get_lyrics_from_mp3(podcast, mp3)
     show_notes = _get_show_notes(podcast, client)
 
-    return EpisodeData(
-        podcast=podcast,
-        transcript=transcript,
-        lyrics=lyrics,
-        show_notes=show_notes,
-    )
+    return EpisodeData(podcast=podcast, transcript=transcript, lyrics=lyrics, show_notes=show_notes)
 
 
 @cache_for_episode

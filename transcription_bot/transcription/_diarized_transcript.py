@@ -45,10 +45,7 @@ def get_diarized_transcript(podcast: "PodcastEpisode") -> "DiarizedTranscript":
     return merge_transcript_and_diarization(transcription, diarization)
 
 
-def merge_transcript_and_diarization(
-    transcription: "Transcription",
-    diarization: "pd.DataFrame",
-) -> DiarizedTranscript:
+def merge_transcript_and_diarization(transcription: "Transcription", diarization: "pd.DataFrame") -> DiarizedTranscript:
     logger.info("Merging transcript and diarization...")
     diarized_transcript: DiarizedTranscript = []
 

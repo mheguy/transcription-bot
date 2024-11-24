@@ -127,9 +127,7 @@ def test_get_partial_transcript_for_start_time_with_no_skip(sample_diarized_tran
 
 @patch("transcription_bot.converters.episode_data_to_segments.ask_llm_for_segment_start")
 def test_add_transcript_to_segments(
-    mock_llm: Mock,
-    sample_podcast_episode: PodcastEpisode,
-    sample_diarized_transcript: DiarizedTranscript,
+    mock_llm: Mock, sample_podcast_episode: PodcastEpisode, sample_diarized_transcript: DiarizedTranscript
 ):
     # Arrange
     # Configure mock to return a fixed timestamp
