@@ -1,10 +1,10 @@
-import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 import feedparser
 
 from transcription_bot.config import config
+from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
     from time import struct_time
@@ -52,7 +52,7 @@ def _convert_feed_entries_to_episodes(feed_entries: list[dict[str, Any]]) -> lis
 
         # Skip episodes that don't have a number.
         if episode_number <= 0:
-            logging.info("Skipping episode due to number: %s", entry["title"])
+            logger.info("Skipping episode due to number: %s", entry["title"])
             continue
 
         podcast_episodes.append(
