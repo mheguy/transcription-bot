@@ -4,13 +4,15 @@
 local_mode = false
 log_level = "debug"
 
-# Podcast RSS feed
-rss_url = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
+# RSS feeds
+podcast_rss_url = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"
+wiki_rss_url = "https://www.sgutranscripts.org/w/api.php?hidebots=0&urlversion=1&days=1&limit=500&action=feedrecentchanges&feedformat=rss"
 
 # Wiki
 wiki_username = ""
 wiki_password = ""
 wiki_episode_url_base = "https://www.sgutranscripts.org/w/rest.php/v1/page/SGU_Episode_"
+wiki_base_url = "https://www.sgutranscripts.org"
 wiki_api_base = "https://sgutranscripts.org/w/api.php"
 
 # Azure / transcription

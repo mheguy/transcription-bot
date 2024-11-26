@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from typing import TYPE_CHECKING, TypeVar
 from urllib.parse import urlparse
 
@@ -14,6 +15,25 @@ if TYPE_CHECKING:
     from transcription_bot.episode_segments import BaseSegment, Segments
 
 T = TypeVar("T", bound="BaseSegment")
+
+
+_BASELINE_EPISODE_NUMBER = 1000
+_BASELINE_EPISODE_DATE = date(2024, 9, 7)
+_MISALIGNED_EPISODES = {
+    442: 2014,
+    390: 2013,
+    338: 2012,
+    234: 2009,
+    233: 2010,
+    232: 2010,
+    181: 2009,
+    129: 2008,
+    128: 2008,
+    77: 2007,
+    76: 2007,
+    25: 2006,
+    24: 2006,
+}
 
 
 def are_strings_in_string(strings: list[str], string: str) -> bool:
@@ -85,3 +105,13 @@ def download_file(url: str, client: requests.Session) -> bytes:
     response.raise_for_status()
 
     return response.content
+
+
+def get_year_from_episode_number(episode_number: int) -> int:
+    """Get the year of a given episode number."""
+    if year := _MISALIGNED_EPISODES.get(episode_number):
+        return year
+
+    expected_date = _BASELINE_EPISODE_DATE - timedelta(days=7 * (_BASELINE_EPISODE_NUMBER - episode_number))
+
+    return expected_date.year

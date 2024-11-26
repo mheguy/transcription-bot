@@ -16,6 +16,7 @@ dependencies = [
     "openai>=1.54.4",
     "pandas>=2.2.3",
     "pyarrow>=18.0.0",
+    "pywikibot>=9.5.0",
     "requests>=2.32.3",
     "sentry-sdk>=2.18.0",
 ]
@@ -108,7 +109,7 @@ ignore = [
     "ERA",     # commented-out-code - sometimes commented out code is useful
     "FIX002",  # errors for todos
     "PLR0913", # too many arguments to function (including tests) - should not be a blocker
-    "SIM108",  # Ternaries make code harder to read, especially for new developers
+    "SIM108",  # ternaries make code harder to read, especially for new developers
     "TD",      # rules related to TODOs in code
     "T20",     # makes using print and pprint an error
     "TRY003",  # warns for long messages when raising exceptions rather than in the class

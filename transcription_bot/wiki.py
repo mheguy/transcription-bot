@@ -2,9 +2,11 @@ from functools import cache
 from http.client import NOT_FOUND
 from typing import TYPE_CHECKING
 
+import pywikibot
 from requests import RequestException
 
 from transcription_bot.config import config
+from transcription_bot.data_models import SguListEntry
 from transcription_bot.episode_segments import QuoteSegment, Segments
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import get_first_segment_of_type
@@ -16,6 +18,10 @@ if TYPE_CHECKING:
     from requests import Session
 
     from transcription_bot.data_gathering import EpisodeData
+
+
+_EPISODE_PAGE_PREFIX = "SGU_Episode_"
+_EPISODE_LIST_PAGE_PREFIX = "Template:EpisodeList"
 
 
 # region public functions
@@ -54,7 +60,7 @@ def create_podcast_wiki_page(
         episode_data, episode_icon_name, episode_icon_caption, wiki_segment_text, qotw_segment, speakers
     )
 
-    page_title = f"SGU_Episode_{episode_data.podcast.episode_number}"
+    page_title = f"{_EPISODE_PAGE_PREFIX}{episode_data.podcast.episode_number}"
 
     create_page(client, page_title, wiki_page, allow_page_editing=allow_page_editing)
 
@@ -121,6 +127,31 @@ def create_page(
         raise RequestException("Error during page creation: %s", data["error"])
 
     logger.debug(data)
+
+
+def get_episode_wiki_page(episode_number: int) -> pywikibot.Page:
+    """Retrieve the wiki page with the episode number."""
+    return get_wiki_page(f"{_EPISODE_PAGE_PREFIX}{episode_number}")
+
+
+def get_episode_list_wiki_page(year: int) -> pywikibot.Page:
+    """Retrieve the wiki page with the episode number."""
+    return get_wiki_page(f"{_EPISODE_LIST_PAGE_PREFIX}{year}")
+
+
+def get_episode_entry_from_list(episode_list_page: pywikibot.Page, episode_number: str) -> SguListEntry | None:
+    """Convert a wiki page to an SguListEntry."""
+    for template in episode_list_page.raw_extracted_templates:
+        if template[0] == SguListEntry.identifier and template[1].get("episode") == episode_number:
+            return SguListEntry(**template[1])
+
+    return None
+
+
+def get_wiki_page(page_title: str) -> pywikibot.Page:
+    """Retrieve the wiki page with the given name."""
+    site = pywikibot.Site(url=config.wiki_base_url)
+    return pywikibot.Page(site, page_title)
 
 
 # endregion

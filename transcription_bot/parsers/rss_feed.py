@@ -55,3 +55,21 @@ def get_podcast_rss_entries(client: "Session") -> list[PodcastRssEntry]:
         )
 
     return sorted(feed_entries, key=lambda e: e.episode_number, reverse=True)
+
+
+def get_recently_modified_episode_pages(client: "Session") -> set[int]:
+    """Retrieve the list of recently modified episode transcripts."""
+    response = client.get(config.wiki_rss_url, timeout=10)
+    response.raise_for_status()
+
+    episode_numbers: list[int] = []
+
+    for rss_entry in feedparser.parse(response.text)["entries"]:
+        match = re.match(EPISODE_PATTERN, rss_entry["title"])
+        if not match:
+            continue
+
+        episode_number = int(match.group(1))
+        episode_numbers.append(episode_number)
+
+    return set(episode_numbers)
