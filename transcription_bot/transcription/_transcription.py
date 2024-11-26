@@ -10,7 +10,7 @@ from transcription_bot.global_logger import logger
 from transcription_bot.helpers import download_file
 
 if TYPE_CHECKING:
-    from transcription_bot.parsers.rss_feed import PodcastEpisode
+    from transcription_bot.parsers.rss_feed import PodcastRssEntry
 
 # At the time of writing, API version 2024-11-15 is not yet available
 # When it becomes available, switch api version param and remove the version from the endpoint
@@ -56,7 +56,7 @@ class RecognizedPhrase(TypedDict):
     nBest: list[PhraseInfo]
 
 
-def create_transcription(podcast: "PodcastEpisode") -> Transcription:
+def create_transcription(podcast: "PodcastRssEntry") -> Transcription:
     """Send a transcription request."""
     transcription_id = send_transcription_request(podcast, _TRANSCRIPTIONS_ENDPOINT)
     transcription_url = f"{_TRANSCRIPTIONS_ENDPOINT}/{transcription_id}"
@@ -65,7 +65,7 @@ def create_transcription(podcast: "PodcastEpisode") -> Transcription:
 
 
 @cache_for_episode
-def send_transcription_request(podcast: "PodcastEpisode", transcriptions_endpoint: str) -> str:
+def send_transcription_request(podcast: "PodcastRssEntry", transcriptions_endpoint: str) -> str:
     payload = {
         "contentUrls": [podcast.download_url],
         "properties": _TRANSCRIPTION_CONFIG,

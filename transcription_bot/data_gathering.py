@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from mutagen.id3._frames import TXXX, USLT
     from requests import Session
 
-    from transcription_bot.parsers.rss_feed import PodcastEpisode
+    from transcription_bot.parsers.rss_feed import PodcastRssEntry
 
 
 @dataclass
@@ -28,34 +28,34 @@ class EpisodeData:
         show_notes: The show notes of the episode from the website.
     """
 
-    podcast: "PodcastEpisode"
+    podcast: "PodcastRssEntry"
     transcript: "Transcript"
     lyrics: str
     show_notes: bytes
 
 
 @cache_for_episode
-def gather_data(podcast: "PodcastEpisode", client: "requests.Session") -> EpisodeData:
+def gather_data(rss_entry: "PodcastRssEntry", client: "requests.Session") -> EpisodeData:
     """Gather data about a podcast episode."""
     logger.info("Getting show data...")
-    mp3 = get_audio_file(podcast, client)
+    mp3 = get_audio_file(rss_entry, client)
 
-    transcript = get_transcript(podcast)
-    lyrics = get_lyrics_from_mp3(podcast, mp3)
-    show_notes = _get_show_notes(podcast, client)
+    transcript = get_transcript(rss_entry)
+    lyrics = get_lyrics_from_mp3(rss_entry, mp3)
+    show_notes = _get_show_notes(rss_entry, client)
 
-    return EpisodeData(podcast=podcast, transcript=transcript, lyrics=lyrics, show_notes=show_notes)
+    return EpisodeData(podcast=rss_entry, transcript=transcript, lyrics=lyrics, show_notes=show_notes)
 
 
 @cache_for_episode
-def get_audio_file(podcast: "PodcastEpisode", client: "Session") -> bytes:
+def get_audio_file(rss_entry: "PodcastRssEntry", client: "Session") -> bytes:
     """Retrieve the audio file for a podcast episode."""
     logger.info("Downloading episode...")
-    return download_file(podcast.download_url, client)
+    return download_file(rss_entry.download_url, client)
 
 
 @cache_for_episode
-def get_lyrics_from_mp3(_podcast: "PodcastEpisode", raw_bytes: bytes) -> str:
+def get_lyrics_from_mp3(_rss_entry: "PodcastRssEntry", raw_bytes: bytes) -> str:
     """Get the lyrics from an MP3 file."""
     audio = ID3(BytesIO(raw_bytes))
 
@@ -74,8 +74,8 @@ def get_lyrics_from_mp3(_podcast: "PodcastEpisode", raw_bytes: bytes) -> str:
 
 
 @cache_for_episode
-def _get_show_notes(podcast: "PodcastEpisode", client: "Session") -> bytes:
-    resp = client.get(podcast.episode_url)
+def _get_show_notes(rss_entry: "PodcastRssEntry", client: "Session") -> bytes:
+    resp = client.get(rss_entry.episode_url)
     resp.raise_for_status()
 
     return resp.content

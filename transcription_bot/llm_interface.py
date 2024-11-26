@@ -11,13 +11,13 @@ from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
     from transcription_bot.episode_segments import BaseSegment
-    from transcription_bot.parsers.rss_feed import PodcastEpisode
+    from transcription_bot.parsers.rss_feed import PodcastRssEntry
     from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 
 @cache_llm
 def ask_llm_for_segment_start(
-    _podcast_episode: "PodcastEpisode", segment: "BaseSegment", transcript: "DiarizedTranscript"
+    _podcast_episode: "PodcastRssEntry", segment: "BaseSegment", transcript: "DiarizedTranscript"
 ) -> float | None:
     """Ask an LLM for the start time of a segment."""
     client = OpenAI(
@@ -63,7 +63,7 @@ def ask_llm_for_segment_start(
 
 
 @cache_for_episode
-def ask_llm_for_image_caption(_podcast_episode: "PodcastEpisode", image_url: str) -> str:
+def ask_llm_for_image_caption(_podcast_episode: "PodcastRssEntry", image_url: str) -> str:
     """Ask an LLM to write an image caption."""
     user_prompt = "Please write a 10-15 word caption for this image."
 

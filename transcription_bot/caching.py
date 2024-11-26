@@ -2,7 +2,7 @@ import functools
 import json
 import pickle
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, Protocol, TypeVar
 
 from transcription_bot.config import config
 from transcription_bot.global_logger import logger
@@ -11,27 +11,34 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from transcription_bot.episode_segments import BaseSegment
-    from transcription_bot.parsers.rss_feed import PodcastEpisode
     from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 P = ParamSpec("P")
 R = TypeVar("R")
-UrlCache = dict[str, str]
+T = TypeVar("T", bound="HasEpisodeNumber")
+Url = str
+UrlCache = dict[Url, str]
 
 _TEMP_DATA_FOLDER = Path("data/").resolve()
 _CACHE_FOLDER = _TEMP_DATA_FOLDER / "cache"
 
 
+class HasEpisodeNumber(Protocol):
+    """A protocol that requires an episode number."""
+
+    episode_number: int
+
+
 def cache_for_episode(
-    func: "Callable[Concatenate[PodcastEpisode, P], R]",
-) -> "Callable[Concatenate[PodcastEpisode, P], R]":
+    func: "Callable[Concatenate[T, P], R]",
+) -> "Callable[Concatenate[T, P], R]":
     """Cache the result of the decorated function to a file.
 
     Requires the first positional argument be a PodcastEpisode.
     """
 
     @functools.wraps(func)
-    def wrapper(podcast_episode: "PodcastEpisode", *args: P.args, **kwargs: P.kwargs) -> R:
+    def wrapper(podcast_episode: "T", *args: P.args, **kwargs: P.kwargs) -> R:
         function_dir = _get_cache_dir(func)
         cache_filepath = function_dir / f"{podcast_episode.episode_number}.json_or_pkl"
 
@@ -47,11 +54,11 @@ def cache_for_episode(
     return wrapper
 
 
-def cache_url_title(func: "Callable[Concatenate[str, P], str|None]") -> "Callable[Concatenate[str, P], str|None]":
+def cache_url_title(func: "Callable[Concatenate[Url, P], str|None]") -> "Callable[Concatenate[Url, P], str|None]":
     """Provide caching for title page lookups."""
 
     @functools.wraps(func)
-    def wrapper(url: "str", *args: P.args, **kwargs: P.kwargs) -> str | None:
+    def wrapper(url: Url, *args: P.args, **kwargs: P.kwargs) -> str | None:
         function_dir = _get_cache_dir(func)
         cache_filepath = function_dir / "urls.json_or_pkl"
 
@@ -75,14 +82,12 @@ def cache_url_title(func: "Callable[Concatenate[str, P], str|None]") -> "Callabl
 
 
 def cache_llm(
-    func: "Callable[[PodcastEpisode, BaseSegment, DiarizedTranscript], float | None]",
-) -> "Callable[[PodcastEpisode, BaseSegment, DiarizedTranscript], float | None]":
+    func: "Callable[[T, BaseSegment, DiarizedTranscript], float | None]",
+) -> "Callable[[T, BaseSegment, DiarizedTranscript], float | None]":
     """Provide caching for title page lookups."""
 
     @functools.wraps(func)
-    def wrapper(
-        _podcast_episode: "PodcastEpisode", segment: "BaseSegment", transcript: "DiarizedTranscript"
-    ) -> float | None:
+    def wrapper(_podcast_episode: "T", segment: "BaseSegment", transcript: "DiarizedTranscript") -> float | None:
         function_dir = _get_cache_dir(func)
         episode = _podcast_episode.episode_number
         cache_filepath = function_dir / f"{episode}.json_or_pkl"

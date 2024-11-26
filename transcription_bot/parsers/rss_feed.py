@@ -1,5 +1,6 @@
+import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import feedparser
 
@@ -9,11 +10,13 @@ from transcription_bot.global_logger import logger
 if TYPE_CHECKING:
     from time import struct_time
 
-    import requests
+    from requests import Session
+
+EPISODE_PATTERN = r"^SGU Episode (\d{1,4})$"
 
 
 @dataclass
-class PodcastEpisode:
+class PodcastRssEntry:
     """Basic information about a podcast episode."""
 
     episode_number: int
@@ -24,30 +27,15 @@ class PodcastEpisode:
     published_time: "struct_time"
 
 
-def get_podcast_episodes(client: "requests.Session") -> list[PodcastEpisode]:
-    """Retrieve the list of SGU podcast episodes.
-
-    Args:
-        client (requests.Session): The HTTP client to use for making requests.
-
-    Returns:
-        list[PodcastEpisode]: A list of podcast episodes, sorted by episode number in descending order.
-    """
-    raw_feed_entries = _get_raw_rss_feed_entries(client)
-    feed_entries = _convert_feed_entries_to_episodes(raw_feed_entries)
-    return sorted(feed_entries, key=lambda e: e.episode_number, reverse=True)
-
-
-def _get_raw_rss_feed_entries(client: "requests.Session") -> list[dict[str, Any]]:
-    response = client.get(config.rss_url, timeout=10)
+def get_podcast_rss_entries(client: "Session") -> list[PodcastRssEntry]:
+    """Retrieve the list of SGU podcast episodes from  the RSS feed."""
+    response = client.get(config.podcast_rss_url, timeout=10)
     response.raise_for_status()
 
-    return feedparser.parse(response.text)["entries"]
+    raw_feed_entries = feedparser.parse(response.text)["entries"]
 
-
-def _convert_feed_entries_to_episodes(feed_entries: list[dict[str, Any]]) -> list[PodcastEpisode]:
-    podcast_episodes: list[PodcastEpisode] = []
-    for entry in feed_entries:
+    feed_entries: list[PodcastRssEntry] = []
+    for entry in raw_feed_entries:
         episode_number = int(entry["link"].split("/")[-1])
 
         # Skip episodes that don't have a number.
@@ -55,8 +43,8 @@ def _convert_feed_entries_to_episodes(feed_entries: list[dict[str, Any]]) -> lis
             logger.info("Skipping episode due to number: %s", entry["title"])
             continue
 
-        podcast_episodes.append(
-            PodcastEpisode(
+        feed_entries.append(
+            PodcastRssEntry(
                 episode_number=int(entry["link"].split("/")[-1]),
                 official_title=entry["title"],
                 summary=entry["summary"],
@@ -66,4 +54,4 @@ def _convert_feed_entries_to_episodes(feed_entries: list[dict[str, Any]]) -> lis
             )
         )
 
-    return podcast_episodes
+    return sorted(feed_entries, key=lambda e: e.episode_number, reverse=True)

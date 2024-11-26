@@ -35,4 +35,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Root owns the files and we cannot write to them: this is a security measure
 USER python-runner
 
-ENTRYPOINT ["/app/.venv/bin/python", "/app/transcription_bot/main.py"]
+ENTRYPOINT ["/app/.venv/bin/python"]
+
+CMD [ "-c", "import sys;print('Provide an entrypoint script!');sys.exit(1)" ]

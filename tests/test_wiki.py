@@ -7,7 +7,7 @@ from requests import RequestException, Session
 from transcription_bot import wiki
 from transcription_bot.data_gathering import EpisodeData
 from transcription_bot.episode_segments import QuoteSegment, Segments
-from transcription_bot.parsers.rss_feed import PodcastEpisode
+from transcription_bot.parsers.rss_feed import PodcastRssEntry
 
 # Test constants
 TEST_EPISODE_NUMBER = "123"
@@ -41,7 +41,7 @@ def mock_session() -> MagicMock:
 @pytest.fixture()
 def mock_episode_data() -> MagicMock:
     episode_data = MagicMock(spec=EpisodeData)
-    episode_data.podcast = MagicMock(spec=PodcastEpisode)
+    episode_data.podcast = MagicMock(spec=PodcastRssEntry)
     episode_data.podcast.episode_number = TEST_EPISODE_NUMBER
     episode_data.transcript = [{"speaker": "Bob"}, {"speaker": "Alice"}]
     episode_data.show_notes = TEST_SHOW_NOTES

@@ -10,11 +10,11 @@ from transcription_bot.global_logger import logger
 from transcription_bot.webhook_server import WebhookServer
 
 if TYPE_CHECKING:
-    from transcription_bot.parsers.rss_feed import PodcastEpisode
+    from transcription_bot.parsers.rss_feed import PodcastRssEntry
 
 
 @cache_for_episode
-def create_diarization(podcast: "PodcastEpisode") -> pd.DataFrame:
+def create_diarization(podcast: "PodcastRssEntry") -> pd.DataFrame:
     logger.info("Creating diarization...")
     webhook_server = WebhookServer()
     server_url = webhook_server.start_server_thread()

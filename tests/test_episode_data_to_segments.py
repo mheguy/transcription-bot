@@ -12,7 +12,7 @@ from transcription_bot.episode_segments import (
     QuickieSegment,
     Segments,
 )
-from transcription_bot.parsers.rss_feed import PodcastEpisode
+from transcription_bot.parsers.rss_feed import PodcastRssEntry
 from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 HOST_LINE_1 = "Welcome to the show"
@@ -40,8 +40,8 @@ def sample_diarized_transcript() -> DiarizedTranscript:
 
 
 @pytest.fixture()
-def sample_podcast_episode() -> PodcastEpisode:
-    return PodcastEpisode(
+def sample_podcast_episode() -> PodcastRssEntry:
+    return PodcastRssEntry(
         episode_number=123,
         official_title="Test Episode",
         summary="This is a test episode summary",
@@ -53,7 +53,7 @@ def sample_podcast_episode() -> PodcastEpisode:
 
 @pytest.fixture()
 def sample_episode_data(
-    sample_podcast_episode: PodcastEpisode, sample_diarized_transcript: DiarizedTranscript
+    sample_podcast_episode: PodcastRssEntry, sample_diarized_transcript: DiarizedTranscript
 ) -> EpisodeData:
     return EpisodeData(
         podcast=sample_podcast_episode,
@@ -127,7 +127,7 @@ def test_get_partial_transcript_for_start_time_with_no_skip(sample_diarized_tran
 
 @patch("transcription_bot.converters.episode_data_to_segments.ask_llm_for_segment_start")
 def test_add_transcript_to_segments(
-    mock_llm: Mock, sample_podcast_episode: PodcastEpisode, sample_diarized_transcript: DiarizedTranscript
+    mock_llm: Mock, sample_podcast_episode: PodcastRssEntry, sample_diarized_transcript: DiarizedTranscript
 ):
     # Arrange
     # Configure mock to return a fixed timestamp

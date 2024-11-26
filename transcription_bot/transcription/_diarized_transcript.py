@@ -10,7 +10,7 @@ from transcription_bot.transcription._transcription import Transcription, create
 if TYPE_CHECKING:
     import pandas as pd
 
-    from transcription_bot.parsers.rss_feed import PodcastEpisode
+    from transcription_bot.parsers.rss_feed import PodcastRssEntry
 
 DiarizedTranscript = list["DiarizedTranscriptChunk"]
 
@@ -31,7 +31,7 @@ class DiarizedTranscriptChunk(TypedDict):
     speaker: str
 
 
-def get_diarized_transcript(podcast: "PodcastEpisode") -> "DiarizedTranscript":
+def get_diarized_transcript(podcast: "PodcastRssEntry") -> "DiarizedTranscript":
     """Create a transcript with the audio and podcast information."""
     logger.info("Getting diarized transcript...")
 
