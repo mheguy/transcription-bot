@@ -172,6 +172,8 @@ split-on-trailing-comma = false
     "TC002",
     "TC003",
 ]
+# Rules for stubs:
+"**.pyi" = ["FBT001"]
 # Rules for init files:
 "__init__.py" = ["D10"]
 # Project-specific rules:
