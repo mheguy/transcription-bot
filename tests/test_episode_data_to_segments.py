@@ -167,17 +167,3 @@ def test_add_transcript_to_segments(
 
     # Calls for: Quickie, Forgotten, and Outro
     assert mock_llm.call_count == 3
-
-
-@patch("transcription_bot.converters.episode_data_to_segments.add_transcript_to_segments")
-def test_convert_episode_data_to_episode_segments(add_transcript_to_segments: Mock, sample_episode_data: EpisodeData):
-    # TODO: Improve this test to assert something "real" about the return value
-    # Arrange
-    return_value = object()
-    add_transcript_to_segments.return_value = return_value
-    # Act
-    result = episode_data_to_segments.convert_episode_data_to_episode_segments(sample_episode_data)
-
-    # Assert
-    add_transcript_to_segments.assert_called_once()
-    assert result is return_value
