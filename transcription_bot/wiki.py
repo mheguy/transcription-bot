@@ -3,6 +3,7 @@ from http.client import NOT_FOUND
 from typing import TYPE_CHECKING
 
 import pywikibot
+from mwparserfromhell.utils import parse_anything as parse_wiki
 from requests import RequestException
 
 from transcription_bot.config import config
@@ -15,6 +16,9 @@ from transcription_bot.parsers.show_notes import get_episode_image_url
 from transcription_bot.templating import get_template
 
 if TYPE_CHECKING:
+    from mwparserfromhell.nodes import Template
+    from mwparserfromhell.nodes.extras.parameter import Parameter
+    from mwparserfromhell.wikicode import Wikicode
     from requests import Session
 
     from transcription_bot.data_gathering import EpisodeData
@@ -62,7 +66,7 @@ def create_podcast_wiki_page(
 
     page_title = f"{_EPISODE_PAGE_PREFIX}{episode_data.podcast.episode_number}"
 
-    create_page(client, page_title, wiki_page, allow_page_editing=allow_page_editing)
+    save_wiki_page(client, page_title, wiki_page, allow_page_editing=allow_page_editing)
 
 
 def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
@@ -94,7 +98,7 @@ def log_into_wiki(client: "Session") -> str:
     return _get_csrf_token(client)
 
 
-def create_page(
+def save_wiki_page(
     client: "Session",
     page_title: str,
     page_text: str,
@@ -129,29 +133,50 @@ def create_page(
     logger.debug(data)
 
 
-def get_episode_wiki_page(episode_number: int) -> pywikibot.Page:
+def update_episode_list(client: "Session", year: int, page_text: str) -> None:
+    """Update an episode list."""
+    save_wiki_page(client, f"{_EPISODE_LIST_PAGE_PREFIX}/{year}", page_text, allow_page_editing=True)
+
+
+def get_episode_wiki_page(episode_number: int) -> "Wikicode":
     """Retrieve the wiki page with the episode number."""
     return get_wiki_page(f"{_EPISODE_PAGE_PREFIX}{episode_number}")
 
 
-def get_episode_list_wiki_page(year: int) -> pywikibot.Page:
+def get_episode_list_wiki_page(year: int) -> "Wikicode":
     """Retrieve the wiki page with the episode number."""
     return get_wiki_page(f"{_EPISODE_LIST_PAGE_PREFIX}{year}")
 
 
-def get_episode_entry_from_list(episode_list_page: pywikibot.Page, episode_number: str) -> SguListEntry | None:
+def get_episode_entry_from_list(episode_list_page: "Wikicode", episode_number: str) -> SguListEntry | None:
     """Convert a wiki page to an SguListEntry."""
-    for template in episode_list_page.raw_extracted_templates:
-        if template[0] == SguListEntry.identifier and template[1].get("episode") == episode_number:
-            return SguListEntry(**template[1])
+    template = get_episode_template_from_list(episode_list_page, episode_number)
+    if template is None:
+        return None
+
+    return SguListEntry.from_template(template)
+
+
+def get_episode_template_from_list(episode_list_page: "Wikicode", episode_number: str) -> "Template | None":
+    """Return the raw tuple from a wiki episode list."""
+    templates: list[Template] = episode_list_page.filter_templates()
+    for template in templates:
+        if template.name.matches(SguListEntry.identifier) and template.has("episode"):
+            param: Parameter = template.get("episode")
+
+            if param.value.strip_code() == str(episode_number):
+                return template
 
     return None
 
 
-def get_wiki_page(page_title: str) -> pywikibot.Page:
+@cache
+def get_wiki_page(page_title: str) -> "Wikicode":
     """Retrieve the wiki page with the given name."""
+    logger.debug(f"Retrieving wiki page: {page_title}")
     site = pywikibot.Site(url=config.wiki_base_url)
-    return pywikibot.Page(site, page_title)
+    page = pywikibot.Page(site, page_title).text
+    return parse_wiki(page)
 
 
 # endregion

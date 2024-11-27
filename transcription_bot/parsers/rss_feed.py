@@ -40,7 +40,7 @@ def get_podcast_rss_entries(client: "Session") -> list[PodcastRssEntry]:
 
         # Skip episodes that don't have a number.
         if episode_number <= 0:
-            logger.info("Skipping episode due to number: %s", entry["title"])
+            logger.debug(f"Skipping episode due to number: {entry["title"]}")
             continue
 
         feed_entries.append(

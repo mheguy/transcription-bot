@@ -114,13 +114,13 @@ def test_episode_has_wiki_page_error(mock_session: MagicMock):
         wiki.episode_has_wiki_page(mock_session, 123)
 
 
-def test_create_page(mock_session: MagicMock):
+def test_save_wiki_page(mock_session: MagicMock):
     # Arrange
     with patch("transcription_bot.wiki.log_into_wiki") as mock_login:
         mock_login.return_value = TEST_CSRF_TOKEN
 
         # Act
-        wiki.create_page(mock_session, TEST_PAGE_TITLE, TEST_PAGE_CONTENT, allow_page_editing=True)
+        wiki.save_wiki_page(mock_session, TEST_PAGE_TITLE, TEST_PAGE_CONTENT, allow_page_editing=True)
 
         # Assert
         mock_session.post.assert_called_once()
