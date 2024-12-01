@@ -16,6 +16,8 @@ from transcription_bot.parsers.show_notes import get_episode_image_url
 from transcription_bot.templating import get_template
 
 if TYPE_CHECKING:
+    from collections.abc import Container
+
     from mwparserfromhell.nodes import Template
     from mwparserfromhell.nodes.extras.parameter import Parameter
     from mwparserfromhell.wikicode import Wikicode
@@ -33,6 +35,7 @@ def create_podcast_wiki_page(
     client: "Session",
     episode_data: "EpisodeData",
     episode_segments: Segments,
+    rogues: "Container[str]",
     *,
     allow_page_editing: bool,
 ) -> None:
@@ -41,8 +44,6 @@ def create_podcast_wiki_page(
     This function gathers all the necessary data for the episode, merges the data into segments,
     and converts the segments into wiki page content.
     """
-    # we must grab speaker data before we convert transcript to wiki
-    speakers = {s["speaker"].lower() for s in episode_data.transcript}
     wiki_segment_text = "\n".join(s.to_wiki() for s in episode_segments)
     qotw_segment = get_first_segment_of_type(episode_segments, QuoteSegment)
 
@@ -61,7 +62,7 @@ def create_podcast_wiki_page(
 
     logger.debug("Creating wiki page...")
     wiki_page = _construct_wiki_page(
-        episode_data, episode_icon_name, episode_icon_caption, wiki_segment_text, qotw_segment, speakers
+        episode_data, episode_icon_name, episode_icon_caption, wiki_segment_text, qotw_segment, rogues
     )
 
     page_title = f"{_EPISODE_PAGE_PREFIX}{episode_data.podcast.episode_number}"
@@ -220,7 +221,7 @@ def _construct_wiki_page(
     episode_icon_caption: str,
     segment_text: str,
     qotw_segment: QuoteSegment | None,
-    speakers: set[str],
+    rogues: "Container[str]",
 ) -> str:
     template = get_template("base")
 
@@ -242,13 +243,13 @@ def _construct_wiki_page(
         episode_icon_caption=episode_icon_caption,
         quote_of_the_week=quote_of_the_week,
         quote_of_the_week_attribution=quote_of_the_week_attribution,
-        is_bob_present=("bob" in speakers and "y") or "",
-        is_cara_present=("cara" in speakers and "y") or "",
-        is_jay_present=("jay" in speakers and "y") or "",
-        is_evan_present=("evan" in speakers and "y") or "",
-        is_george_present=("george" in speakers and "y") or "",
-        is_rebecca_present=("rebecca" in speakers and "y") or "",
-        is_perry_present=("perry" in speakers and "y") or "",
+        is_bob_present=("bob" in rogues and "y") or "",
+        is_cara_present=("cara" in rogues and "y") or "",
+        is_jay_present=("jay" in rogues and "y") or "",
+        is_evan_present=("evan" in rogues and "y") or "",
+        is_george_present=("george" in rogues and "y") or "",
+        is_rebecca_present=("rebecca" in rogues and "y") or "",
+        is_perry_present=("perry" in rogues and "y") or "",
         forum_link="",
     )
 

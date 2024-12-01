@@ -140,7 +140,9 @@ def test_create_podcast_wiki_page(mock_session: MagicMock, mock_episode_data: Ma
         ask_llm_for_image_caption=MagicMock(return_value=TEST_IMAGE_CAPTION),
     ):
         # Act
-        wiki.create_podcast_wiki_page(mock_session, mock_episode_data, mock_segments, allow_page_editing=True)
+        wiki.create_podcast_wiki_page(
+            mock_session, mock_episode_data, mock_segments, rogues=[], allow_page_editing=True
+        )
 
         # Assert
         mock_session.post.assert_called()
@@ -165,4 +167,6 @@ def test_create_podcast_wiki_page_failed_image_upload(
         pytest.raises(RequestException),
     ):
         # Act
-        wiki.create_podcast_wiki_page(mock_session, mock_episode_data, mock_segments, allow_page_editing=True)
+        wiki.create_podcast_wiki_page(
+            mock_session, mock_episode_data, mock_segments, rogues=[], allow_page_editing=True
+        )

@@ -10,11 +10,15 @@ import sentry_sdk
 from sentry_sdk.crons import monitor
 
 from transcription_bot.config import UNPROCESSABLE_EPISODES, config
-from transcription_bot.converters.episode_data_to_segments import convert_episode_data_to_episode_segments
-from transcription_bot.data_gathering import gather_data
+from transcription_bot.converters.episode_data_to_segments import (
+    add_transcript_to_segments,
+    convert_episode_data_to_episode_segments,
+)
+from transcription_bot.data_gathering import gather_metadata
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import init_logging, logger
 from transcription_bot.parsers.rss_feed import get_podcast_rss_entries
+from transcription_bot.transcription import get_transcript
 from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_page
 
 if not config.local_mode:
@@ -52,16 +56,24 @@ def main(*, selected_episode: int) -> None:
         return
 
     logger.debug("Gathering all data...")
-    episode_data = gather_data(podcast_rss_entry, http_client)
+    episode_metadata = gather_metadata(podcast_rss_entry, http_client)
+    transcript = get_transcript(podcast_rss_entry)
 
     logger.debug("Converting data to segments...")
-    episode_segments = convert_episode_data_to_episode_segments(episode_data)
+    episode_segments = convert_episode_data_to_episode_segments(episode_metadata)
 
+    logger.info("Merging transcript into episode segments...")
+    transcribed_segments = add_transcript_to_segments(episode_metadata.podcast, transcript, episode_segments)
+    # TODO: Enable this
+    # transcribed_segments = enhance_transcribed_segments(podcast_rss_entry, transcribed_segments)
+
+    logger.info("Creating wiki page...")
     create_podcast_wiki_page(
         client=http_client,
-        episode_data=episode_data,
-        episode_segments=episode_segments,
+        episode_data=episode_metadata,
+        episode_segments=transcribed_segments,
         allow_page_editing=allow_page_editing,
+        rogues={s["speaker"].lower() for s in transcript},
     )
 
     logger.success(f"Episode #{podcast_rss_entry.episode_number} processed.")

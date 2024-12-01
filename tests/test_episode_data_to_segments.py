@@ -52,12 +52,9 @@ def sample_podcast_episode() -> PodcastRssEntry:
 
 
 @pytest.fixture()
-def sample_episode_data(
-    sample_podcast_episode: PodcastRssEntry, sample_diarized_transcript: DiarizedTranscript
-) -> EpisodeData:
+def sample_episode_data(sample_podcast_episode: PodcastRssEntry) -> EpisodeData:
     return EpisodeData(
         podcast=sample_podcast_episode,
-        transcript=sample_diarized_transcript,
         lyrics="Test lyrics",
         show_notes=b"""
         <main class="podcast-main">

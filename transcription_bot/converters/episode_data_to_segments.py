@@ -91,10 +91,7 @@ def convert_episode_data_to_episode_segments(episode_data: "EpisodeData") -> "Se
     show_note_segments = parse_show_notes(episode_data.show_notes)
     summary_text_segments = parse_summary_text(episode_data.podcast.summary)
 
-    segments = merge_segments(lyric_segments, show_note_segments, summary_text_segments)
-
-    logger.info("Merging transcript into episode segments...")
-    return add_transcript_to_segments(episode_data.podcast, episode_data.transcript, segments)
+    return merge_segments(lyric_segments, show_note_segments, summary_text_segments)
 
 
 def get_transcript_between_times(transcript: "DiarizedTranscript", start: float, end: float) -> "DiarizedTranscript":
