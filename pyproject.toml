@@ -118,7 +118,6 @@ ignore = [
     # These are ignored because we use Ruff to format code.
     "COM812",
     "E501",
-    "ISC001",
 
     # Doc rules.
     "D100", # public modules (I don't think this is necessary)
@@ -152,6 +151,9 @@ runtime-evaluated-base-classes = [
     "pydantic.BaseModel",
     "sqlalchemy.orm.DeclarativeBase",
 ]
+
+[tool.ruff.lint.flake8-implicit-str-concat]
+
 
 [tool.ruff.lint.isort]
 known-first-party = ["transcription_bot"]
