@@ -56,6 +56,11 @@ class BaseSegment(ABC):
     def llm_prompt(self) -> str:
         """A prompt to help an LLM identify a transition between segments."""
 
+    @property
+    @abstractmethod
+    def wiki_anchor_tag(self) -> str:
+        """The tag used in the wiki page to anchor to the segment."""
+
     @staticmethod
     @abstractmethod
     def match_string(lowercase_text: str) -> bool:
@@ -82,6 +87,7 @@ class BaseSegment(ABC):
         template = get_template(self.template_name)
         template_values = self.get_template_values()
         return template.render(
+            wiki_anchor=self.wiki_anchor_tag,
             start_time=format_time(self.start_time),
             transcript=format_transcript_for_wiki(self.transcript),
             **template_values,
@@ -134,6 +140,10 @@ class UnknownSegment(BaseSegment):
     def llm_prompt(self) -> str:
         return f"Please identify the start of the segment whose title is: {self.title}, {self.extra_text}"
 
+    @property
+    def wiki_anchor_tag(self) -> str:
+        raise NotImplementedError
+
     def get_template_values(self) -> dict[str, Any]:
         return {"title": self.title, "extra_text": self.extra_text, "url": self.url}
 
@@ -181,6 +191,10 @@ class IntroSegment(BaseSegment):
     def llm_prompt(self) -> str:
         raise NotImplementedError
 
+    @property
+    def wiki_anchor_tag(self) -> str:
+        return "intro"
+
     def get_template_values(self) -> dict[str, Any]:
         return {}
 
@@ -202,6 +216,10 @@ class OutroSegment(BaseSegment):
     @property
     def llm_prompt(self) -> str:
         return "Please find the start of the outro. This is typically where Steve says 'Skeptics' Guide to the Universe is produced by SGU Productions'"
+
+    @property
+    def wiki_anchor_tag(self) -> str:
+        raise NotImplementedError
 
     def get_template_values(self) -> dict[str, Any]:
         return {}
@@ -232,6 +250,10 @@ class LogicalFallacySegment(FromLyricsSegment):
     @property
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'name that logical fallacy' segment."
+
+    @property
+    def wiki_anchor_tag(self) -> str:
+        return "ntlf"
 
     def get_template_values(self) -> dict[str, Any]:
         return {"topic": self.topic}
@@ -271,6 +293,10 @@ class QuickieSegment(FromLyricsSegment):
     @property
     def llm_prompt(self) -> str:
         return f"Please find the start of the 'quickie' segment: {self.title}. The subject is: {self.subject}"
+
+    @property
+    def wiki_anchor_tag(self) -> str:
+        return "quickie"
 
     def get_template_values(self) -> dict[str, Any]:
         return {
@@ -334,6 +360,10 @@ class WhatsTheWordSegment(FromLyricsSegment):
             "This is typically introduced by Steve asking Cara for the word."
         )
 
+    @property
+    def wiki_anchor_tag(self) -> str:
+        return "wtw"
+
     def get_template_values(self) -> dict[str, Any]:
         return {"word": self.word}
 
@@ -390,6 +420,10 @@ class TikTokSegment(FromLyricsSegment):
     def llm_prompt(self) -> str:
         return f"Please identify the start of the 'from tiktok' segment. The topic is: {self.title}"
 
+    @property
+    def wiki_anchor_tag(self) -> str:
+        return "tiktok"
+
     def get_template_values(self) -> dict[str, Any]:
         return {"title": self.title, "url": self.url}
 
@@ -439,6 +473,10 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
             "Please identify the start of the 'dumbest thing of the week' segment."
             f"This segment is about: {self.topic}"
         )
+
+    @property
+    def wiki_anchor_tag(self) -> str:
+        return "dumbest"
 
     def get_template_values(self) -> dict[str, Any]:
         return {
@@ -496,6 +534,10 @@ class NoisySegment(FromLyricsSegment, FromShowNotesSegment):
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'who's that noisy' segment."
 
+    @property
+    def wiki_anchor_tag(self) -> str:
+        return "wtn"
+
     def get_template_values(self) -> dict[str, Any]:
         return {"last_week_answer": self.last_week_answer}
 
@@ -543,6 +585,10 @@ class QuoteSegment(FromLyricsSegment):
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'quote' segment. This is usually Steve asking Evan for the quote."
 
+    @property
+    def wiki_anchor_tag(self) -> str:
+        return "qow"
+
     def get_template_values(self) -> dict[str, Any]:
         return {"quote": self.quote, "attribution": self.attribution}
 
@@ -585,6 +631,10 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
     @property
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'science or fiction' segment."
+
+    @property
+    def wiki_anchor_tag(self) -> str:
+        return "sof"
 
     def get_template_values(self) -> dict[str, Any]:
         return {"items": self.items, "theme": self.theme}
@@ -692,6 +742,10 @@ class NewsItem(BaseSegment):
     def llm_prompt(self) -> str:
         return f"Please identify the start of the news segment whose topic is: {self.article_title or self.topic}"
 
+    @property
+    def wiki_anchor_tag(self) -> str:
+        raise NotImplementedError
+
     def get_template_values(self) -> dict[str, Any]:
         return {
             "item_number": self.item_number,
@@ -723,6 +777,10 @@ class NewsMetaSegment(FromLyricsSegment):
 
     @property
     def llm_prompt(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def wiki_anchor_tag(self) -> str:
         raise NotImplementedError
 
     def get_template_values(self) -> dict[str, Any]:
@@ -788,6 +846,10 @@ class InterviewSegment(FromLyricsSegment, FromShowNotesSegment):
     def llm_prompt(self) -> str:
         return f"Please identity the beginning of the interview with {self.name}."
 
+    @property
+    def wiki_anchor_tag(self) -> str:
+        return "interview"
+
     def get_template_values(self) -> dict[str, Any]:
         return {
             "name": self.name,
@@ -838,6 +900,10 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
     @property
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'email' segment."
+
+    @property
+    def wiki_anchor_tag(self) -> str:
+        return "email"
 
     def get_template_values(self) -> dict[str, Any]:
         return {"items": self.items}
@@ -902,6 +968,10 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'forgotten superheroes of science' segment."
 
+    @property
+    def wiki_anchor_tag(self) -> str:
+        raise NotImplementedError
+
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
@@ -939,6 +1009,10 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment):
 
     @property
     def llm_prompt(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def wiki_anchor_tag(self) -> str:
         raise NotImplementedError
 
     def get_template_values(self) -> dict[str, Any]:

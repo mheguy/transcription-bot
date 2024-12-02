@@ -1,4 +1,5 @@
-{{anchor|news((( item_number )))}}
+((# TODO: Render the meta news, that way we can get better formatting. #))
+{{anchor|((( wiki_anchor )))((( item_number )))}}
 == News Item #((( item_number ))) - ((( topic ))) <small>((( "(" )))((( start_time )))((( ")" )))</small> ==
 {{shownotes
 |weblink = ((( url )))
