@@ -136,7 +136,7 @@ def save_wiki_page(
 
 def update_episode_list(client: "Session", year: int, page_text: str) -> None:
     """Update an episode list."""
-    save_wiki_page(client, f"{_EPISODE_LIST_PAGE_PREFIX}/{year}", page_text, allow_page_editing=True)
+    save_wiki_page(client, f"{_EPISODE_LIST_PAGE_PREFIX}{year}", page_text, allow_page_editing=True)
 
 
 def get_episode_wiki_page(episode_number: int) -> "Wikicode":

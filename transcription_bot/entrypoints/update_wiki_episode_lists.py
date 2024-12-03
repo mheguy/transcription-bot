@@ -17,7 +17,7 @@ from transcription_bot.helpers import get_year_from_episode_number
 from transcription_bot.parsers.rss_feed import (
     PodcastRssEntry,
     get_podcast_rss_entries,
-    get_recently_modified_episode_pages,
+    # get_recently_modified_episode_pages,
 )
 from transcription_bot.wiki import (
     get_episode_entry_from_list,
@@ -41,12 +41,13 @@ def main() -> None:
 
     # TODO: Run this against all episodes.
 
+    # TODO: Uncomment this
     # logger.info("Getting recently modified episode wiki pages...")
     # modified_episode_pages = get_recently_modified_episode_pages(http_client)
     # logger.info(f"Found {len(modified_episode_pages)} modified episode pages")
-    # TODO: Revert this debug code
-    modified_episode_pages = [1010]  # TODO: This is a "transcription complete"
-    # modified_episode_pages = [1011]  # TODO: This is a "bot"
+
+    modified_episode_pages = [990]  # Episode with all data
+    # modified_episode_pages = [1011] # Episode missing data
 
     logger.info("Getting episodes from podcast RSS feed...")
     rss_entries = get_podcast_rss_entries(http_client)
@@ -68,11 +69,14 @@ def process_modified_episode_page(episode_rss_entry: PodcastRssEntry) -> None:
     current_episode_entry = get_episode_entry_from_list(episode_list_page, str(episode_rss_entry.episode_number))
     expected_episode_entry = create_expected_episode_entry(episode_rss_entry)
 
+    expected_episode_entry = expected_episode_entry | current_episode_entry
+
     if current_episode_entry == expected_episode_entry:
         logger.info("Episode entry is already up to date")
     else:
         logger.info("Updating episode entry...")
         create_or_update_episode_entry(year, episode_list_page, expected_episode_entry)
+        logger.info(f"Entry updated for episode #{episode_rss_entry.episode_number}")
 
 
 def create_expected_episode_entry(episode_rss_entry: PodcastRssEntry) -> SguListEntry:
@@ -82,16 +86,46 @@ def create_expected_episode_entry(episode_rss_entry: PodcastRssEntry) -> SguList
     date = time.strftime("%m-%d", episode_rss_entry.published_time)
     status = get_episode_status(episode_page)
 
-    # TODO: Get non-news segments cx
-    # TODO: Get sof theme
-    # TODO: Get interviewee
-    # TODO: Get guest rogue(s)
+    non_news_segments = get_non_news_segments()
+    sof_theme = get_sof_theme()
+    interviewee = get_interviewee()
+    guest_rogues = get_guest_rogues()
 
     return SguListEntry(
         str(episode_number),
         date,
         status,
+        other=non_news_segments,
+        theme=sof_theme,
+        interviewee=interviewee,
+        rogue=guest_rogues,
     )
+
+
+def get_non_news_segments():
+    """Replace this. #TODO: Replace."""
+    # Get all segments
+    # Filter for qualifying segments
+    # TODO:Implement
+    return
+
+
+def get_sof_theme():
+    """Replace this. #TODO: Replace."""
+    # TODO:Implement
+    return
+
+
+def get_interviewee():
+    """Replace this. #TODO: Replace."""
+    # TODO:Implement
+    return
+
+
+def get_guest_rogues():
+    """Replace this. #TODO: Replace."""
+    # TODO:Implement
+    return
 
 
 def get_episode_status(episode_page: "Wikicode") -> EpisodeStatus:

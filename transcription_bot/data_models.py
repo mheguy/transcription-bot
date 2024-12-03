@@ -1,11 +1,16 @@
-from dataclasses import asdict
+import itertools
+
+# from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from pydantic.dataclasses import dataclass
 
 if TYPE_CHECKING:
     from mwparserfromhell.nodes import Template
+
+
+_DEFAULT_SORTING_VALUE = "zzz"
 
 
 class EpisodeStatus(Enum):
@@ -28,18 +33,51 @@ class SguListEntry:
     """
 
     identifier: ClassVar[str] = "SGU list entry"
+    _REQUIRED_PROPS: ClassVar[tuple[str, ...]] = ("episode", "date", "status")
+    _SORT_PARAM_MAPPING: ClassVar[dict[str, str]] = {
+        "other": "sort_other",
+        "theme": "sort_theme",
+        "interviewee": "sort_interviewee",
+        "rogue": "sort_rogue",
+    }
+    _OPTIONAL_PROPS: ClassVar[tuple[str, ...]] = tuple(
+        itertools.chain(_SORT_PARAM_MAPPING.keys(), _SORT_PARAM_MAPPING.values())
+    )
 
     episode: str
     date: str
     status: EpisodeStatus
-    other: str = "N"
-    sort_other: str = "zzz"
-    theme: str = "N"
-    sort_theme: str = "zzz"
-    interviewee: str = "N"
-    sort_interviewee: str = "zzz"
-    rogue: str = "N"
-    sort_rogue: str = "zzz"
+
+    other: str | None = None
+    sort_other: str | None = None
+    theme: str | None = None
+    sort_theme: str | None = None
+    interviewee: str | None = None
+    sort_interviewee: str | None = None
+    rogue: str | None = None
+    sort_rogue: str | None = None
+
+    def __or__(self, other: Any) -> "SguListEntry":
+        """Combine two entries together.
+
+        When combining, the second will overwrite falsey values in the first.
+        """
+        if not isinstance(other, SguListEntry):
+            raise TypeError
+
+        return SguListEntry(
+            episode=self.episode,
+            date=self.date,
+            status=self.status,
+            other=other.other or self.other,
+            sort_other=other.sort_other or self.sort_other,
+            theme=other.theme or self.theme,
+            sort_theme=other.sort_theme or self.sort_theme,
+            interviewee=other.interviewee or self.interviewee,
+            sort_interviewee=other.sort_interviewee or self.sort_interviewee,
+            rogue=other.rogue or self.rogue,
+            sort_rogue=other.sort_rogue or self.sort_rogue,
+        )
 
     @staticmethod
     def from_template(template: "Template") -> "SguListEntry":
@@ -48,32 +86,47 @@ class SguListEntry:
             episode=template.get("episode").value.strip_code().strip(),
             date=template.get("date").value.strip_code().strip(),
             status=EpisodeStatus(template.get("status").value.strip_code().strip()),
-            other=template.get("other").value.strip_code().strip(),
-            sort_other=template.get("sort_other").value.strip_code().strip(),
-            theme=template.get("theme").value.strip_code().strip(),
-            sort_theme=template.get("sort_theme").value.strip_code().strip(),
-            interviewee=template.get("interviewee").value.strip_code().strip(),
-            sort_interviewee=template.get("sort_interviewee").value.strip_code().strip(),
-            rogue=template.get("rogue").value.strip_code().strip(),
-            sort_rogue=template.get("sort_rogue").value.strip_code().strip(),
+            **SguListEntry._get_optional_params(template),
         )
+
+    @staticmethod
+    def safely_get_param_value(template: "Template", key: str) -> str | None:
+        """Get a param value from a template, or return None if it doesn't exist."""
+        result = template.get(key, None)
+
+        if result is None:
+            return None
+
+        return result.value.strip()
+
+    @staticmethod
+    def _get_optional_params(template: "Template") -> dict[str, str]:
+        optionals = {}
+        for param in SguListEntry._OPTIONAL_PROPS:
+            if value := SguListEntry.safely_get_param_value(template, param):
+                optionals[param] = value
+
+        return optionals
 
     def to_dict(self) -> dict[str, str]:
         """Return a dictionary representation of the object."""
-        literal_dict = asdict(self)
-        literal_dict["status"] = self.status.value
-        return literal_dict
+        dict_representation = {required: getattr(self, required) for required in self._REQUIRED_PROPS}
+        dict_representation["status"] = self.status.value
+
+        for key, sort_key in self._SORT_PARAM_MAPPING.items():
+            value: str = getattr(self, key)
+            dict_representation[key] = value
+
+            if not value or value.lower() == "n":
+                dict_representation[sort_key] = _DEFAULT_SORTING_VALUE
+
+        return dict_representation
 
     def update_template(self, template: "Template") -> None:
         """Modify a template to match the current object."""
         template.add("episode", self.episode)
         template.add("date", self.date)
         template.add("status", self.status.value)
-        template.add("other", self.other)
-        template.add("sort_other", self.sort_other)
-        template.add("theme", self.theme)
-        template.add("sort_theme", self.sort_theme)
-        template.add("interviewee", self.interviewee)
-        template.add("sort_interviewee", self.sort_interviewee)
-        template.add("rogue", self.rogue)
-        template.add("sort_rogue", self.sort_rogue)
+
+        for k, v in self._get_optional_params(template).items():
+            template.add(k, v)

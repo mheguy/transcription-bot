@@ -7,12 +7,24 @@ from openai import OpenAI
 
 from transcription_bot.caching import cache_for_episode, cache_llm
 from transcription_bot.config import config
+from transcription_bot.episode_segments import BaseSegment, ScienceOrFictionSegment, Segments
 from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
-    from transcription_bot.episode_segments import BaseSegment
     from transcription_bot.parsers.rss_feed import PodcastRssEntry
     from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
+
+
+def enhance_transcribed_segments(_podcast_episode: "PodcastRssEntry", segments: "Segments") -> "Segments":
+    """Enhance segments with metadata that an LLM can deduce from the transcript."""
+    # TODO: Add SoF data about who guessed what
+    _ask_llm_for_episode_metadata(_podcast_episode, segments)
+
+    first_sof_segment = next((seg for seg in segments if isinstance(seg, ScienceOrFictionSegment)), None)
+    if first_sof_segment:
+        _ask_llm_for_sof_data(_podcast_episode, first_sof_segment)
+
+    return segments
 
 
 @cache_llm
@@ -90,3 +102,15 @@ def ask_llm_for_image_caption(_podcast_episode: "PodcastRssEntry", image_url: st
     logger.debug(f"LLM response: {image_caption}")
 
     return image_caption
+
+
+@cache_for_episode
+def _ask_llm_for_episode_metadata(_podcast_episode: "PodcastRssEntry", segments: "Segments") -> str:
+    """Ask LLM for episode metadata (ex. guests, interviewees)."""
+    raise NotImplementedError  # TODO: Implement
+
+
+@cache_for_episode
+def _ask_llm_for_sof_data(_podcast_episode: "PodcastRssEntry", segment: "ScienceOrFictionSegment") -> str:
+    """Ask LLM for SoF data (ex. theme, guesses)."""
+    raise NotImplementedError  # TODO: Implement
