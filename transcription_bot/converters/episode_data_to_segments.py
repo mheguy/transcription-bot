@@ -1,7 +1,7 @@
 import itertools
-from typing import TYPE_CHECKING
 
-from transcription_bot.episode_segments import IntroSegment, OutroSegment
+from transcription_bot.data_models import DiarizedTranscript, EpisodeData, PodcastRssEntry
+from transcription_bot.episode_segments import IntroSegment, OutroSegment, Segments
 from transcription_bot.global_logger import logger
 from transcription_bot.llm_interface import ask_llm_for_segment_start
 from transcription_bot.parsers.lyrics import parse_lyrics
@@ -9,18 +9,14 @@ from transcription_bot.parsers.show_notes import parse_show_notes
 from transcription_bot.parsers.summary_text import parse_summary_text
 from transcription_bot.segment_merger import merge_segments
 
-if TYPE_CHECKING:
-    from transcription_bot.data_models import DiarizedTranscript, EpisodeData, PodcastRssEntry
-    from transcription_bot.episode_segments import Segments
-
 _THIRTY_MINUTES = 30 * 60
 
 
 def add_transcript_to_segments(
-    podcast_episode: "PodcastRssEntry",
-    raw_transcript: "DiarizedTranscript",
-    episode_segments: "Segments",
-) -> "Segments":
+    podcast_episode: PodcastRssEntry,
+    raw_transcript: DiarizedTranscript,
+    episode_segments: Segments,
+) -> Segments:
     """Add the transcript to the episode segments."""
     partial_transcript: DiarizedTranscript = []
     segments: Segments = [IntroSegment(start_time=0), *episode_segments, OutroSegment()]
@@ -45,7 +41,9 @@ def add_transcript_to_segments(
         right_segment.start_time = right_segment.get_start_time(partial_transcript)
 
         if not right_segment.start_time:
-            right_segment.start_time = ask_llm_for_segment_start(podcast_episode, right_segment, partial_transcript)
+            right_segment.start_time = ask_llm_for_segment_start(
+                podcast_episode.episode_number, right_segment, partial_transcript
+            )
 
             if not right_segment.start_time:
                 logger.info(f"No start time found for segment: {right_segment}")
@@ -73,7 +71,7 @@ def add_transcript_to_segments(
     return segments
 
 
-def convert_episode_data_to_episode_segments(episode_data: "EpisodeData") -> "Segments":
+def convert_episode_data_to_episode_segments(episode_data: EpisodeData) -> Segments:
     """Converts episode data into segments.
 
     This function takes the episode data and parses the lyrics, show notes, and summary text
@@ -92,13 +90,13 @@ def convert_episode_data_to_episode_segments(episode_data: "EpisodeData") -> "Se
     return merge_segments(lyric_segments, show_note_segments, summary_text_segments)
 
 
-def get_transcript_between_times(transcript: "DiarizedTranscript", start: float, end: float) -> "DiarizedTranscript":
+def get_transcript_between_times(transcript: DiarizedTranscript, start: float, end: float) -> DiarizedTranscript:
     """Get the transcript between two times."""
     return [c for c in transcript if start <= c["start"] < end]
 
 
 def get_partial_transcript_for_start_time(
-    transcript: "DiarizedTranscript", transcript_chunks_to_skip: int, start: float, end: float
-) -> "DiarizedTranscript":
+    transcript: DiarizedTranscript, transcript_chunks_to_skip: int, start: float, end: float
+) -> DiarizedTranscript:
     """Get the transcript between two times, skipping the first n chunks."""
     return get_transcript_between_times(transcript, start, end)[transcript_chunks_to_skip:]

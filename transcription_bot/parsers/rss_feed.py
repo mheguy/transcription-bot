@@ -1,19 +1,16 @@
 import re
-from typing import TYPE_CHECKING
 
 import feedparser
+from requests import Session
 
 from transcription_bot.config import config
 from transcription_bot.data_models import PodcastRssEntry
 from transcription_bot.global_logger import logger
 
-if TYPE_CHECKING:
-    from requests import Session
-
 EPISODE_PATTERN = r"^SGU Episode (\d{1,4})$"
 
 
-def get_podcast_rss_entries(client: "Session") -> list[PodcastRssEntry]:
+def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
     """Retrieve the list of SGU podcast episodes from  the RSS feed."""
     response = client.get(config.podcast_rss_url, timeout=10)
     response.raise_for_status()
@@ -43,7 +40,7 @@ def get_podcast_rss_entries(client: "Session") -> list[PodcastRssEntry]:
     return sorted(feed_entries, key=lambda e: e.episode_number, reverse=True)
 
 
-def get_recently_modified_episode_pages(client: "Session") -> set[int]:
+def get_recently_modified_episode_pages(client: Session) -> set[int]:
     """Retrieve the list of recently modified episode transcripts."""
     response = client.get(config.wiki_rss_url, timeout=10)
     response.raise_for_status()

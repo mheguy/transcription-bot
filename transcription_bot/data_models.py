@@ -1,14 +1,11 @@
 import itertools
 from enum import Enum
 from time import struct_time
-from typing import TYPE_CHECKING, Any, ClassVar, TypedDict
+from typing import Any, ClassVar, TypedDict
 
+from mwparserfromhell.nodes import Template
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
-
-if TYPE_CHECKING:
-    from mwparserfromhell.nodes import Template
-
 
 _DEFAULT_SORTING_VALUE = "zzz"
 
@@ -63,34 +60,34 @@ class SguListEntry:
         When combining, the second will overwrite falsey values in the first.
         """
         if not isinstance(other, SguListEntry):
-            raise TypeError
+            return self
 
         return SguListEntry(
             episode=self.episode,
             date=self.date,
             status=self.status,
-            other=other.other or self.other,
-            sort_other=other.sort_other or self.sort_other,
-            theme=other.theme or self.theme,
-            sort_theme=other.sort_theme or self.sort_theme,
-            interviewee=other.interviewee or self.interviewee,
-            sort_interviewee=other.sort_interviewee or self.sort_interviewee,
-            rogue=other.rogue or self.rogue,
-            sort_rogue=other.sort_rogue or self.sort_rogue,
+            other=self.other or other.other,
+            sort_other=self.sort_other or other.sort_other,
+            theme=self.theme or other.theme,
+            sort_theme=self.sort_theme or other.sort_theme,
+            interviewee=self.interviewee or other.interviewee,
+            sort_interviewee=self.sort_interviewee or other.sort_interviewee,
+            rogue=self.rogue or other.rogue,
+            sort_rogue=self.sort_rogue or other.sort_rogue,
         )
 
     @staticmethod
-    def from_template(template: "Template") -> "SguListEntry":
+    def from_template(template: Template) -> "SguListEntry":
         """Construct an episode list entry from a template."""
         return SguListEntry(
             episode=template.get("episode").value.strip_code().strip(),
             date=template.get("date").value.strip_code().strip(),
             status=EpisodeStatus(template.get("status").value.strip_code().strip()),
-            **SguListEntry._get_optional_params(template),
+            **SguListEntry._get_optional_params_from_template(template),
         )
 
     @staticmethod
-    def safely_get_param_value(template: "Template", key: str) -> str | None:
+    def safely_get_param_value(template: Template, key: str) -> str | None:
         """Get a param value from a template, or return None if it doesn't exist."""
         result = template.get(key, None)
 
@@ -100,7 +97,7 @@ class SguListEntry:
         return result.value.strip()
 
     @staticmethod
-    def _get_optional_params(template: "Template") -> dict[str, str]:
+    def _get_optional_params_from_template(template: Template) -> dict[str, str]:
         optionals = {}
         for param in SguListEntry._OPTIONAL_PROPS:
             if value := SguListEntry.safely_get_param_value(template, param):
@@ -119,16 +116,14 @@ class SguListEntry:
 
             if not value or value.lower() == "n":
                 dict_representation[sort_key] = _DEFAULT_SORTING_VALUE
+            else:
+                dict_representation[sort_key] = ""
 
         return dict_representation
 
-    def update_template(self, template: "Template") -> None:
+    def update_template(self, template: Template) -> None:
         """Modify a template to match the current object."""
-        template.add("episode", self.episode)
-        template.add("date", self.date)
-        template.add("status", self.status.value)
-
-        for k, v in self._get_optional_params(template).items():
+        for k, v in self.to_dict().items():
             template.add(k, v)
 
 

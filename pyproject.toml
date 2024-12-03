@@ -121,6 +121,11 @@ ignore = [
 
     # Doc rules.
     "D100", # public modules (I don't think this is necessary)
+
+    # Project-specific rules.
+    "TC001",
+    "TC002",
+    "TC003",
 ]
 # Frustrating automatic fixes (ex. removing unused imports before you have a chance to use them)
 unfixable = ["B007", "E712", "F401", "F841"]

@@ -4,15 +4,22 @@ Check the most recently updated episode pages and update the episode list to mat
 """
 
 import time
-from typing import TYPE_CHECKING
 
 import sentry_sdk
 from mwparserfromhell.nodes.template import Template
+from mwparserfromhell.wikicode import Wikicode
 
 from transcription_bot.config import config
 from transcription_bot.converters.episode_data_to_segments import convert_episode_data_to_episode_segments
 from transcription_bot.data_gathering import gather_metadata
 from transcription_bot.data_models import EpisodeStatus, PodcastRssEntry, SguListEntry
+from transcription_bot.episode_segments import (
+    BaseSegment,
+    InterviewSegment,
+    NonNewsSegmentMixin,
+    ScienceOrFictionSegment,
+    get_first_segment_of_type,
+)
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import init_logging, logger
 from transcription_bot.helpers import get_year_from_episode_number
@@ -24,9 +31,6 @@ from transcription_bot.wiki import (
     get_episode_wiki_page,
     update_episode_list,
 )
-
-if TYPE_CHECKING:
-    from mwparserfromhell.wikicode import Wikicode
 
 if not config.local_mode:
     sentry_sdk.init(dsn=config.sentry_dsn, environment="production")
@@ -44,8 +48,9 @@ def main() -> None:
     # modified_episode_pages = get_recently_modified_episode_pages(http_client)
     # logger.info(f"Found {len(modified_episode_pages)} modified episode pages")
 
-    modified_episode_pages = [1011]  # Episode with all data
-    # modified_episode_pages = [1011] # Episode missing data
+    # modified_episode_pages = [990]  # Episode with all data
+    # modified_episode_pages = [991]  # Episode missing data (lyrics returns a list instead of str)
+    modified_episode_pages = [984]
 
     logger.info("Getting episodes from podcast RSS feed...")
     rss_entries = get_podcast_rss_entries(http_client)
@@ -69,12 +74,9 @@ def process_modified_episode_page(episode_rss_entry: PodcastRssEntry) -> None:
 
     expected_episode_entry = expected_episode_entry | current_episode_entry
 
-    if current_episode_entry == expected_episode_entry:
-        logger.info("Episode entry is already up to date")
-    else:
-        logger.info("Updating episode entry...")
-        create_or_update_episode_entry(year, episode_list_page, expected_episode_entry)
-        logger.info(f"Entry updated for episode #{episode_rss_entry.episode_number}")
+    logger.info("Updating episode entry...")
+    create_or_update_episode_entry(year, episode_list_page, expected_episode_entry)
+    logger.info(f"Entry updated for episode #{episode_rss_entry.episode_number}")
 
 
 def create_expected_episode_entry(episode_rss_entry: PodcastRssEntry) -> SguListEntry:
@@ -90,49 +92,18 @@ def create_expected_episode_entry(episode_rss_entry: PodcastRssEntry) -> SguList
     logger.debug("Converting data to segments...")
     episode_segments = convert_episode_data_to_episode_segments(episode_metadata)
 
-    non_news_segments = get_non_news_segments()
-    sof_theme = get_sof_theme()
-    interviewee = get_interviewee()
-    guest_rogues = get_guest_rogues()
-
     return SguListEntry(
         str(episode_number),
         date,
         status,
-        other=non_news_segments,
-        theme=sof_theme,
-        interviewee=interviewee,
-        rogue=guest_rogues,
+        other=get_other_segments(episode_number, episode_segments),
+        theme=get_sof_theme(episode_number, episode_segments),
+        interviewee=get_interviewee(episode_number, episode_segments),
+        rogue=None,
     )
 
 
-def get_non_news_segments():
-    """Replace this. #TODO: Replace."""
-    # Get all segments
-    # Filter for qualifying segments
-    # TODO:Implement
-    return
-
-
-def get_sof_theme():
-    """Replace this. #TODO: Replace."""
-    # TODO:Implement
-    return
-
-
-def get_interviewee():
-    """Replace this. #TODO: Replace."""
-    # TODO:Implement
-    return
-
-
-def get_guest_rogues():
-    """Replace this. #TODO: Replace."""
-    # TODO:Implement
-    return
-
-
-def get_episode_status(episode_page: "Wikicode") -> EpisodeStatus:
+def get_episode_status(episode_page: Wikicode) -> EpisodeStatus:
     """Get the status of a transcript."""
     templates: list[Template] = episode_page.filter_templates()
 
@@ -156,7 +127,7 @@ def get_episode_status(episode_page: "Wikicode") -> EpisodeStatus:
     return EpisodeStatus.UNKNOWN
 
 
-def create_or_update_episode_entry(year: int, episode_list: "Wikicode", expected_entry: SguListEntry) -> None:
+def create_or_update_episode_entry(year: int, episode_list: Wikicode, expected_entry: SguListEntry) -> None:
     """Create or update the entry in the episode list."""
     template = get_episode_template_from_list(episode_list, expected_entry.episode)
 
@@ -175,6 +146,36 @@ def create_or_update_episode_entry(year: int, episode_list: "Wikicode", expected
     expected_entry.update_template(template)
 
     update_episode_list(http_client, year, str(episode_list))
+
+
+def get_other_segments(episode_number: int, segments: list[BaseSegment]) -> str | None:
+    """Return segments for inclusion in the wiki list's "other" section."""
+    anchors = [
+        f"[[SGU Episode {episode_number}#{segment.wiki_anchor_tag}|{segment.title}]]"
+        for segment in segments
+        if isinstance(segment, NonNewsSegmentMixin)
+    ]
+
+    if not anchors:
+        return None
+
+    return "<br>".join(anchors)
+
+
+def get_sof_theme(episode_number: int, segments: list[BaseSegment]) -> str | None:
+    """Return the SoF theme or "n" for no theme."""
+    if (segment := get_first_segment_of_type(segments, ScienceOrFictionSegment)) and segment.theme:
+        return f"[[SGU Episode {episode_number}#{segment.wiki_anchor_tag}|{segment.theme}]]"
+
+    return None
+
+
+def get_interviewee(episode_number: int, segments: list[BaseSegment]) -> str | None:
+    """Return the name of the interviewee, or "n" if no interview."""
+    if (segment := get_first_segment_of_type(segments, InterviewSegment)) and segment.name:
+        return f"[[SGU Episode {episode_number}#{segment.wiki_anchor_tag}|{segment.name}]]"
+
+    return None
 
 
 if __name__ == "__main__":

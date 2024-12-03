@@ -2,7 +2,7 @@ import math
 import re
 from abc import ABC, abstractmethod
 from dataclasses import field
-from typing import Any, ClassVar
+from typing import Any, ClassVar, TypeVar
 from urllib.parse import urlparse
 
 from bs4 import Tag
@@ -13,14 +13,16 @@ from transcription_bot.global_logger import logger
 from transcription_bot.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
 from transcription_bot.templating import get_template
 
+T = TypeVar("T", bound="BaseSegment")
+Segments = list["BaseSegment"]
+
+
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
     "special guest",
     "live from",
     "live recording",
 ]
-
-Segments = list["BaseSegment"]
 
 
 # region components
@@ -91,6 +93,16 @@ class BaseSegment(ABC):
             transcript=format_transcript_for_wiki(self.transcript),
             **template_values,
         )
+
+
+@dataclass(kw_only=True)
+class NonNewsSegmentMixin:
+    """Mixin for segments that are not news / in each episode.
+
+    This is used to populate the "other" section of the episode entry.
+    """
+
+    title: str
 
 
 class FromSummaryTextSegment(BaseSegment, ABC):
@@ -239,8 +251,10 @@ class OutroSegment(BaseSegment):
 
 
 @dataclass(kw_only=True)
-class LogicalFallacySegment(FromLyricsSegment):
+class LogicalFallacySegment(FromLyricsSegment, NonNewsSegmentMixin):
     topic: str
+
+    title: str = "Name That Logical Fallacy"
 
     @property
     def template_name(self) -> str:
@@ -278,7 +292,7 @@ class LogicalFallacySegment(FromLyricsSegment):
 
 
 @dataclass(kw_only=True)
-class QuickieSegment(FromLyricsSegment):
+class QuickieSegment(FromLyricsSegment, NonNewsSegmentMixin):
     title: str
     subject: str
     url: str
@@ -345,8 +359,10 @@ class QuickieSegment(FromLyricsSegment):
 
 
 @dataclass(kw_only=True)
-class WhatsTheWordSegment(FromLyricsSegment):
+class WhatsTheWordSegment(FromLyricsSegment, NonNewsSegmentMixin):
     word: str
+
+    title: str = "What's the Word?"
 
     @property
     def template_name(self) -> str:
@@ -456,11 +472,13 @@ class TikTokSegment(FromLyricsSegment):
 
 
 @dataclass(kw_only=True)
-class DumbestThingOfTheWeekSegment(FromLyricsSegment):
+class DumbestThingOfTheWeekSegment(FromLyricsSegment, NonNewsSegmentMixin):
     topic: str
     url: str
     article_title: str | None
     article_publication: str | None
+
+    title: str = "Dumbest Thing of the Week"
 
     @property
     def template_name(self) -> str:
@@ -633,7 +651,7 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
 
     @property
     def wiki_anchor_tag(self) -> str:
-        return "sof"
+        return "theme"
 
     def get_template_values(self) -> dict[str, Any]:
         return {"items": self.items, "theme": self.theme}
@@ -956,8 +974,10 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
 
 
 @dataclass(kw_only=True)
-class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSegment):
+class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSegmentMixin):
     subject: str = "N/A<!-- Failed to extract subject -->"
+
+    title: str = "Forgotten Superheroes of Science"
 
     @property
     def template_name(self) -> str:
@@ -999,8 +1019,10 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
 
 
 @dataclass(kw_only=True)
-class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment):
+class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSegmentMixin):
     topic: str = "N/A<!-- Failed to extract topic -->"
+
+    title: str = "Swindler's List"
 
     @property
     def template_name(self) -> str:
@@ -1104,9 +1126,20 @@ def format_time(time: float | None) -> str:
 
 
 # endregion
-PARSER_SEGMENT_TYPES = (FromLyricsSegment, FromSummaryTextSegment, FromShowNotesSegment)
+# region helpers
+def get_first_segment_of_type(segments: Segments, segment_type: type[T]) -> "T | None":
+    """Get the first segment of a given type from a list of segments."""
+    for segment in segments:
+        if isinstance(segment, segment_type):
+            return segment
+
+    return None
+
+
+# endregion
+_PARSER_SEGMENT_TYPES = (FromLyricsSegment, FromSummaryTextSegment, FromShowNotesSegment)
 segment_types = [
     value
     for value in globals().values()
-    if isinstance(value, type) and issubclass(value, PARSER_SEGMENT_TYPES) and value not in PARSER_SEGMENT_TYPES
+    if isinstance(value, type) and issubclass(value, _PARSER_SEGMENT_TYPES) and value not in _PARSER_SEGMENT_TYPES
 ]

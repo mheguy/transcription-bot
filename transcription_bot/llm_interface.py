@@ -1,20 +1,23 @@
 """When heuristics aren't enough to find the start of a segment, maybe an LLM can help."""
 
+import functools
 import json
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from typing import ParamSpec, TypeVar
 
 from openai import OpenAI
 
-from transcription_bot.caching import cache_for_episode, cache_llm
+from transcription_bot.caching import cache_for_episode, get_cache_dir, load_cache, save_cache
 from transcription_bot.config import config
+from transcription_bot.data_models import DiarizedTranscript, PodcastRssEntry
 from transcription_bot.episode_segments import BaseSegment, ScienceOrFictionSegment, Segments
 from transcription_bot.global_logger import logger
 
-if TYPE_CHECKING:
-    from transcription_bot.data_models import DiarizedTranscript, PodcastRssEntry
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
-def enhance_transcribed_segments(_podcast_episode: "PodcastRssEntry", segments: "Segments") -> "Segments":
+def enhance_transcribed_segments(_podcast_episode: PodcastRssEntry, segments: Segments) -> Segments:
     """Enhance segments with metadata that an LLM can deduce from the transcript."""
     # TODO: Add SoF data about who guessed what
     _ask_llm_for_episode_metadata(_podcast_episode, segments)
@@ -26,9 +29,44 @@ def enhance_transcribed_segments(_podcast_episode: "PodcastRssEntry", segments: 
     return segments
 
 
+def cache_llm(
+    func: Callable[[int, BaseSegment, DiarizedTranscript], float | None],
+) -> Callable[[int, BaseSegment, DiarizedTranscript], float | None]:
+    """Provide caching for title page lookups."""
+
+    @functools.wraps(func)
+    def wrapper(_episode_number: int, segment: BaseSegment, transcript: DiarizedTranscript) -> float | None:
+        function_dir = get_cache_dir(func)
+        episode = _episode_number
+        cache_filepath = function_dir / f"{episode}.json_or_pkl"
+
+        segment_type = segment.__class__.__name__
+        transcript_start = transcript[0]["start"]
+
+        cache_key = (segment_type, transcript_start)
+
+        llm_cache = {}
+        if cache_filepath.exists():
+            llm_cache = load_cache(cache_filepath)
+
+        if start_time := llm_cache.get(cache_key):
+            logger.info(f"Using llm cache for segment type:{segment_type}, {transcript_start=}")
+            return start_time
+
+        result = func(_episode_number, segment, transcript)
+
+        if result:
+            llm_cache[cache_key] = result
+            save_cache(cache_filepath, llm_cache)
+
+        return result
+
+    return wrapper
+
+
 @cache_llm
 def ask_llm_for_segment_start(
-    _podcast_episode: "PodcastRssEntry", segment: "BaseSegment", transcript: "DiarizedTranscript"
+    _episode_number: int, segment: BaseSegment, transcript: DiarizedTranscript
 ) -> float | None:
     """Ask an LLM for the start time of a segment."""
     client = OpenAI(
@@ -74,7 +112,7 @@ def ask_llm_for_segment_start(
 
 
 @cache_for_episode
-def ask_llm_for_image_caption(_podcast_episode: "PodcastRssEntry", image_url: str) -> str:
+def ask_llm_for_image_caption(_podcast_episode: PodcastRssEntry, image_url: str) -> str:
     """Ask an LLM to write an image caption."""
     user_prompt = "Please write a 10-15 word caption for this image."
 
@@ -104,12 +142,12 @@ def ask_llm_for_image_caption(_podcast_episode: "PodcastRssEntry", image_url: st
 
 
 @cache_for_episode
-def _ask_llm_for_episode_metadata(_podcast_episode: "PodcastRssEntry", segments: "Segments") -> str:
+def _ask_llm_for_episode_metadata(_podcast_episode: PodcastRssEntry, segments: Segments) -> str:
     """Ask LLM for episode metadata (ex. guests, interviewees)."""
     raise NotImplementedError  # TODO: Implement
 
 
 @cache_for_episode
-def _ask_llm_for_sof_data(_podcast_episode: "PodcastRssEntry", segment: "ScienceOrFictionSegment") -> str:
+def _ask_llm_for_sof_data(_podcast_episode: PodcastRssEntry, segment: ScienceOrFictionSegment) -> str:
     """Ask LLM for SoF data (ex. theme, guesses)."""
     raise NotImplementedError  # TODO: Implement

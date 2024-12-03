@@ -1,21 +1,12 @@
 from datetime import date, timedelta
-from typing import TYPE_CHECKING, TypeVar
 from urllib.parse import urlparse
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from transcription_bot.caching import cache_url_title
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
-
-if TYPE_CHECKING:
-    from bs4 import Tag
-
-    from transcription_bot.episode_segments import BaseSegment, Segments
-
-T = TypeVar("T", bound="BaseSegment")
-
 
 _BASELINE_EPISODE_NUMBER = 1000
 _BASELINE_EPISODE_DATE = date(2024, 9, 7)
@@ -41,7 +32,7 @@ def are_strings_in_string(strings: list[str], string: str) -> bool:
     return all(s in string for s in strings)
 
 
-def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str | None) -> "Tag":
+def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str | None) -> Tag:
     """Extract a single HTML element from a BeautifulSoup object or Tag.
 
     Args:
@@ -82,15 +73,6 @@ def get_article_title(url: str) -> str | None:
         return None
 
     return title_element.text
-
-
-def get_first_segment_of_type(segments: "Segments", segment_type: type[T]) -> "T | None":
-    """Get the first segment of a given type from a list of segments."""
-    for segment in segments:
-        if isinstance(segment, segment_type):
-            return segment
-
-    return None
 
 
 def string_is_url(text: str) -> bool:

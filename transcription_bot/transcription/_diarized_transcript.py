@@ -1,20 +1,15 @@
 import concurrent.futures
-from typing import TYPE_CHECKING
 
 import numpy as np
+import pandas as pd
 
-from transcription_bot.data_models import DiarizedTranscript, DiarizedTranscriptChunk
+from transcription_bot.data_models import DiarizedTranscript, DiarizedTranscriptChunk, PodcastRssEntry
 from transcription_bot.global_logger import logger
 from transcription_bot.transcription._diarization import create_diarization
 from transcription_bot.transcription._transcription import RawTranscript, create_transcription
 
-if TYPE_CHECKING:
-    import pandas as pd
 
-    from transcription_bot.data_models import PodcastRssEntry
-
-
-def get_diarized_transcript(podcast: "PodcastRssEntry") -> DiarizedTranscript:
+def get_diarized_transcript(podcast: PodcastRssEntry) -> DiarizedTranscript:
     """Create a transcript with the audio and podcast information."""
     logger.info("Getting diarized transcript...")
 

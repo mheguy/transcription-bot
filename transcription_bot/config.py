@@ -1,11 +1,9 @@
 import importlib.resources as pkg_resources
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import Any, Protocol, cast
 
 from dynaconf import Dynaconf, Validator
-
-if TYPE_CHECKING:
-    from dynaconf.validator import ValidatorList
+from dynaconf.validator import ValidatorList
 
 # Internal data paths
 DATA_FOLDER = Path(str(pkg_resources.files("transcription_bot").joinpath("data")))
@@ -52,7 +50,7 @@ class ConfigProto(Protocol):
     """Protocol for config object."""
 
     # Built-ins
-    validators: "ValidatorList"
+    validators: ValidatorList
 
     def load_file(  # noqa: D102
         self,

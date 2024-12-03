@@ -1,30 +1,21 @@
+from collections.abc import Container
 from functools import cache
 from http.client import NOT_FOUND
-from typing import TYPE_CHECKING
 
 import pywikibot
+from mwparserfromhell.nodes import Template
+from mwparserfromhell.nodes.extras.parameter import Parameter
 from mwparserfromhell.utils import parse_anything as parse_wiki
-from requests import RequestException
+from mwparserfromhell.wikicode import Wikicode
+from requests import RequestException, Session
 
 from transcription_bot.config import config
-from transcription_bot.data_models import SguListEntry
-from transcription_bot.episode_segments import QuoteSegment, Segments
+from transcription_bot.data_models import EpisodeData, SguListEntry
+from transcription_bot.episode_segments import QuoteSegment, Segments, get_first_segment_of_type
 from transcription_bot.global_logger import logger
-from transcription_bot.helpers import get_first_segment_of_type
 from transcription_bot.llm_interface import ask_llm_for_image_caption
 from transcription_bot.parsers.show_notes import get_episode_image_url
 from transcription_bot.templating import get_template
-
-if TYPE_CHECKING:
-    from collections.abc import Container
-
-    from mwparserfromhell.nodes import Template
-    from mwparserfromhell.nodes.extras.parameter import Parameter
-    from mwparserfromhell.wikicode import Wikicode
-    from requests import Session
-
-    from transcription_bot.data_models import EpisodeData
-
 
 _EPISODE_PAGE_PREFIX = "SGU_Episode_"
 _EPISODE_LIST_PAGE_PREFIX = "Template:EpisodeList"
@@ -32,10 +23,10 @@ _EPISODE_LIST_PAGE_PREFIX = "Template:EpisodeList"
 
 # region public functions
 def create_podcast_wiki_page(
-    client: "Session",
-    episode_data: "EpisodeData",
+    client: Session,
+    episode_data: EpisodeData,
     episode_segments: Segments,
-    rogues: "Container[str]",
+    rogues: Container[str],
     *,
     allow_page_editing: bool,
 ) -> None:
@@ -70,7 +61,7 @@ def create_podcast_wiki_page(
     save_wiki_page(client, page_title, wiki_page, allow_page_editing=allow_page_editing)
 
 
-def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
+def episode_has_wiki_page(client: Session, episode_number: int) -> bool:
     """Check if an episode has a wiki page.
 
     Args:
@@ -91,7 +82,7 @@ def episode_has_wiki_page(client: "Session", episode_number: int) -> bool:
 
 
 @cache
-def log_into_wiki(client: "Session") -> str:
+def log_into_wiki(client: Session) -> str:
     """Perform a login to the wiki and return the csrf token."""
     login_token = _get_login_token(client)
     _send_credentials(client, login_token)
@@ -100,7 +91,7 @@ def log_into_wiki(client: "Session") -> str:
 
 
 def save_wiki_page(
-    client: "Session",
+    client: Session,
     page_title: str,
     page_text: str,
     *,
@@ -134,22 +125,22 @@ def save_wiki_page(
     logger.debug(data)
 
 
-def update_episode_list(client: "Session", year: int, page_text: str) -> None:
+def update_episode_list(client: Session, year: int, page_text: str) -> None:
     """Update an episode list."""
     save_wiki_page(client, f"{_EPISODE_LIST_PAGE_PREFIX}{year}", page_text, allow_page_editing=True)
 
 
-def get_episode_wiki_page(episode_number: int) -> "Wikicode":
+def get_episode_wiki_page(episode_number: int) -> Wikicode:
     """Retrieve the wiki page with the episode number."""
     return get_wiki_page(f"{_EPISODE_PAGE_PREFIX}{episode_number}")
 
 
-def get_episode_list_wiki_page(year: int) -> "Wikicode":
+def get_episode_list_wiki_page(year: int) -> Wikicode:
     """Retrieve the wiki page with the episode number."""
     return get_wiki_page(f"{_EPISODE_LIST_PAGE_PREFIX}{year}")
 
 
-def get_episode_entry_from_list(episode_list_page: "Wikicode", episode_number: str) -> SguListEntry | None:
+def get_episode_entry_from_list(episode_list_page: Wikicode, episode_number: str) -> SguListEntry | None:
     """Convert a wiki page to an SguListEntry."""
     template = get_episode_template_from_list(episode_list_page, episode_number)
     if template is None:
@@ -158,7 +149,7 @@ def get_episode_entry_from_list(episode_list_page: "Wikicode", episode_number: s
     return SguListEntry.from_template(template)
 
 
-def get_episode_template_from_list(episode_list_page: "Wikicode", episode_number: str) -> "Template | None":
+def get_episode_template_from_list(episode_list_page: Wikicode, episode_number: str) -> Template | None:
     """Return the raw tuple from a wiki episode list."""
     templates: list[Template] = episode_list_page.filter_templates()
     for template in templates:
@@ -172,7 +163,7 @@ def get_episode_template_from_list(episode_list_page: "Wikicode", episode_number
 
 
 @cache
-def get_wiki_page(page_title: str) -> "Wikicode":
+def get_wiki_page(page_title: str) -> Wikicode:
     """Retrieve the wiki page with the given name."""
     logger.debug(f"Retrieving wiki page: {page_title}")
     site = pywikibot.Site(url=config.wiki_base_url)
@@ -182,7 +173,7 @@ def get_wiki_page(page_title: str) -> "Wikicode":
 
 # endregion
 # region private functions
-def _find_image_upload(client: "Session", episode_number: str) -> str:
+def _find_image_upload(client: Session, episode_number: str) -> str:
     params = {"action": "query", "list": "allimages", "aiprefix": episode_number, "format": "json"}
     response = client.get(config.wiki_api_base, params=params)
     data = response.json()
@@ -191,7 +182,7 @@ def _find_image_upload(client: "Session", episode_number: str) -> str:
     return files[0]["name"] if files else ""
 
 
-def _upload_image_to_wiki(client: "Session", csrf_token: str, image_url: str, episode_number: int) -> str:
+def _upload_image_to_wiki(client: Session, csrf_token: str, image_url: str, episode_number: int) -> str:
     image_response = client.get(image_url)
     image_data = image_response.content
 
@@ -216,12 +207,12 @@ def _upload_image_to_wiki(client: "Session", csrf_token: str, image_url: str, ep
 
 
 def _construct_wiki_page(
-    episode_data: "EpisodeData",
+    episode_data: EpisodeData,
     episode_icon_name: str,
     episode_icon_caption: str,
     segment_text: str,
     qotw_segment: QuoteSegment | None,
-    rogues: "Container[str]",
+    rogues: Container[str],
 ) -> str:
     template = get_template("base")
 
@@ -254,7 +245,7 @@ def _construct_wiki_page(
     )
 
 
-def _get_login_token(client: "Session") -> str:
+def _get_login_token(client: Session) -> str:
     params = {"action": "query", "meta": "tokens", "type": "login", "format": "json"}
 
     resp = client.get(url=config.wiki_api_base, params=params)
@@ -264,7 +255,7 @@ def _get_login_token(client: "Session") -> str:
     return data["query"]["tokens"]["logintoken"]
 
 
-def _send_credentials(client: "Session", login_token: str) -> None:
+def _send_credentials(client: Session, login_token: str) -> None:
     payload = {
         "action": "login",
         "lgname": config.wiki_username,
@@ -280,7 +271,7 @@ def _send_credentials(client: "Session", login_token: str) -> None:
         raise ValueError(f"Login failed: {resp.json()}")
 
 
-def _get_csrf_token(client: "Session") -> str:
+def _get_csrf_token(client: Session) -> str:
     params = {"action": "query", "meta": "tokens", "format": "json"}
 
     resp = client.get(url=config.wiki_api_base, params=params)
