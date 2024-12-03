@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date
 from urllib.parse import urlparse
 
 import requests
@@ -58,13 +58,13 @@ def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str 
 def get_article_title(url: str) -> str | None:
     """Get the title of an article from its URL."""
     try:
-        resp = http_client.get(url)
+        resp = http_client.get(url, timeout=2)
     except requests.exceptions.RequestException as e:
         logger.exception(f"Error fetching article title at {url} : {e}")
         return None
 
     if not resp.ok:
-        logger.error(f"Error fetching article title: {url}")
+        logger.error(f"Error fetching article title: {url} : {resp.status_code}")
         return None
 
     soup = BeautifulSoup(resp.text, "html.parser")
@@ -87,13 +87,3 @@ def download_file(url: str, client: requests.Session) -> bytes:
     response.raise_for_status()
 
     return response.content
-
-
-def get_year_from_episode_number(episode_number: int) -> int:
-    """Get the year of a given episode number."""
-    if year := _MISALIGNED_EPISODES.get(episode_number):
-        return year
-
-    expected_date = _BASELINE_EPISODE_DATE - timedelta(days=7 * (_BASELINE_EPISODE_NUMBER - episode_number))
-
-    return expected_date.year

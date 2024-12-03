@@ -1,7 +1,7 @@
 import itertools
 from dataclasses import asdict, field
+from datetime import date
 from enum import Enum
-from time import struct_time
 from typing import Any, ClassVar, TypedDict
 
 from mwparserfromhell.nodes import Comment, Template
@@ -166,7 +166,12 @@ class PodcastRssEntry:
     summary: str
     download_url: str
     episode_url: str
-    published_time: struct_time
+    date: date
+
+    @property
+    def year(self) -> int:
+        """Get the year of the episode."""
+        return self.date.year
 
 
 @dataclass

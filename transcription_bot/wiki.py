@@ -137,7 +137,11 @@ def get_episode_wiki_page(episode_number: int) -> Wikicode:
 
 def get_episode_list_wiki_page(year: int) -> Wikicode:
     """Retrieve the wiki page with the episode number."""
-    return get_wiki_page(f"{_EPISODE_LIST_PAGE_PREFIX}{year}")
+    episode_list = get_wiki_page(f"{_EPISODE_LIST_PAGE_PREFIX}{year}")
+    if not episode_list:
+        raise ValueError(f"Could not find episode list for year {year}")
+
+    return episode_list
 
 
 def get_episode_entry_from_list(episode_list_page: Wikicode, episode_number: str) -> SguListEntry | None:
@@ -156,7 +160,7 @@ def get_episode_template_from_list(episode_list_page: Wikicode, episode_number: 
         if template.name.matches(SguListEntry.identifier) and template.has("episode"):
             param: Parameter = template.get("episode")
 
-            if param.value.strip_code() == str(episode_number):
+            if param.value.strip_code().strip() == str(episode_number):
                 return template
 
     return None

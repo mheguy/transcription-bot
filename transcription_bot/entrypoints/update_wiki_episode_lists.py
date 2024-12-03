@@ -3,8 +3,6 @@
 Check the most recently updated episode pages and update the episode list to match the current state of the episodes.
 """
 
-import time
-
 import sentry_sdk
 from mwparserfromhell.nodes.template import Template
 from mwparserfromhell.wikicode import Wikicode
@@ -22,8 +20,7 @@ from transcription_bot.episode_segments import (
 )
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import init_logging, logger
-from transcription_bot.helpers import get_year_from_episode_number
-from transcription_bot.parsers.rss_feed import get_podcast_rss_entries  # get_recently_modified_episode_pages,
+from transcription_bot.parsers.rss_feed import get_podcast_rss_entries  # get_recently_modified_episode_numbers
 from transcription_bot.wiki import (
     get_episode_entry_from_list,
     get_episode_list_wiki_page,
@@ -45,31 +42,38 @@ def main() -> None:
 
     # TODO: Uncomment this
     # logger.info("Getting recently modified episode wiki pages...")
-    # modified_episode_pages = get_recently_modified_episode_pages(http_client)
-    # logger.info(f"Found {len(modified_episode_pages)} modified episode pages")
+    # episode_numbers = get_recently_modified_episode_numbers(http_client)
+    # logger.info(f"Found {len(episode_numbers)} modified episode pages")
 
-    # modified_episode_pages = [990]  # Episode with all data
-    # modified_episode_pages = [991]  # Episode missing data (lyrics returns a list instead of str)
-    # modified_episode_pages = [983]
-    modified_episode_pages = list(range(1010, 1013))
+    # if not episode_numbers:
+    #     logger.info("No modified episode pages found. Exiting.")
+    #     return
+
+    # episode_numbers = [990]  # Episode with all data
+    # episode_numbers = [991]  # Episode missing data (lyrics returns a list instead of str)
+    episode_numbers = list(range(965, 992))
+    # episode_numbers = [979]
 
     logger.info("Getting episodes from podcast RSS feed...")
-    rss_entries = get_podcast_rss_entries(http_client)
+    rss_map = {episode.episode_number: episode for episode in get_podcast_rss_entries(http_client)}
 
-    for episode_number in modified_episode_pages:
+    logger.info("Getting episode list pages...")
+    episode_years = {episode_number: rss_map[episode_number].year for episode_number in episode_numbers}
+    episode_lists = {year: get_episode_list_wiki_page(year) for year in set(episode_years.values())}
+
+    for episode_number in episode_numbers:
         logger.info(f"Processing episode #{episode_number}")
-        episode_rss_entry = next(episode for episode in rss_entries if episode.episode_number == episode_number)
-        process_modified_episode_page(episode_rss_entry)
+
+        episode_rss_entry = rss_map[episode_number]
+        process_episode_page(episode_rss_entry, episode_lists[episode_rss_entry.year])
+
+    for year, episode_list in episode_lists.items():
+        input("Go?")
+        update_episode_list(http_client, year, str(episode_list))
 
 
-def process_modified_episode_page(episode_rss_entry: PodcastRssEntry) -> None:
-    """Process a modified episode page."""
-    year = get_year_from_episode_number(episode_rss_entry.episode_number)
-    episode_list_page = get_episode_list_wiki_page(year)
-
-    if not episode_list_page:
-        raise TypeError(f"Unable to find episode list for year {year}")
-
+def process_episode_page(episode_rss_entry: PodcastRssEntry, episode_list_page: Wikicode) -> None:
+    """Update the episode list based on the information about an episode."""
     current_episode_entry = get_episode_entry_from_list(episode_list_page, str(episode_rss_entry.episode_number))
     expected_episode_entry = create_expected_episode_entry(episode_rss_entry)
 
@@ -77,15 +81,15 @@ def process_modified_episode_page(episode_rss_entry: PodcastRssEntry) -> None:
         expected_episode_entry = expected_episode_entry | current_episode_entry
 
     logger.info("Updating episode entry...")
-    create_or_update_episode_entry(year, episode_list_page, expected_episode_entry)
-    logger.info(f"Entry updated for episode #{episode_rss_entry.episode_number}")
+    create_or_update_episode_entry(episode_list_page, expected_episode_entry)
+    logger.info(f"Entry created/updated for episode {episode_rss_entry.episode_number}")
 
 
 def create_expected_episode_entry(episode_rss_entry: PodcastRssEntry) -> SguListEntry:
     """Construct an episode entry based on the contents of the episode page."""
     episode_number = episode_rss_entry.episode_number
     episode_page = get_episode_wiki_page(episode_number)
-    date = time.strftime("%m-%d", episode_rss_entry.published_time)
+    date = episode_rss_entry.date.strftime("%m-%d")
     status = get_episode_status(episode_page)
 
     logger.debug("Gathering episode metadata...")
@@ -129,7 +133,7 @@ def get_episode_status(episode_page: Wikicode) -> EpisodeStatus:
     return EpisodeStatus.UNKNOWN
 
 
-def create_or_update_episode_entry(year: int, episode_list: Wikicode, expected_entry: SguListEntry) -> None:
+def create_or_update_episode_entry(episode_list: Wikicode, expected_entry: SguListEntry) -> None:
     """Create or update the entry in the episode list."""
     template = get_episode_template_from_list(episode_list, expected_entry.episode)
 
@@ -146,8 +150,6 @@ def create_or_update_episode_entry(year: int, episode_list: Wikicode, expected_e
         episode_list.insert_before(previous_episode_template, template)
 
     expected_entry.update_template(template)
-
-    update_episode_list(http_client, year, str(episode_list))
 
 
 def get_other_segments(episode_number: int, segments: list[BaseSegment]) -> str:

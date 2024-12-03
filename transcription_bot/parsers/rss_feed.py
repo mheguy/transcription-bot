@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 import feedparser
 from requests import Session
@@ -26,6 +27,14 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
             logger.debug(f"Skipping episode due to number: {entry["title"]}")
             continue
 
+        filename: str = entry["links"][0]["href"].split("/")[-1].lower()
+        date_string = filename.replace("skepticast", "").replace(".mp3", "")
+
+        try:
+            time = datetime.strptime(date_string, "%Y-%m-%d")
+        except ValueError:
+            time = datetime.strptime(date_string, "%y-%d-%m")
+
         feed_entries.append(
             PodcastRssEntry(
                 episode_number=int(entry["link"].split("/")[-1]),
@@ -33,14 +42,14 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
                 summary=entry["summary"],
                 download_url=entry["links"][0]["href"],
                 episode_url=entry["link"],
-                published_time=entry["published_parsed"],
+                date=time.date(),
             )
         )
 
     return sorted(feed_entries, key=lambda e: e.episode_number, reverse=True)
 
 
-def get_recently_modified_episode_pages(client: Session) -> set[int]:
+def get_recently_modified_episode_numbers(client: Session) -> set[int]:
     """Retrieve the list of recently modified episode transcripts."""
     response = client.get(config.wiki_rss_url, timeout=10)
     response.raise_for_status()
