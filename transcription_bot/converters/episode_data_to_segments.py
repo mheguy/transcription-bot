@@ -75,13 +75,7 @@ def convert_episode_data_to_episode_segments(episode_data: EpisodeData) -> Segme
     """Converts episode data into segments.
 
     This function takes the episode data and parses the lyrics, show notes, and summary text
-    into separate segments. It then joins the segments together.
-
-    Args:
-        episode_data (EpisodeData): The episode data.
-
-    Returns:
-        Segments: The joined segments.
+    into separate segments. It then merges the segments together to capture all the data.
     """
     lyric_segments = parse_lyrics(episode_data.lyrics)
     show_note_segments = parse_show_notes(episode_data.show_notes)
