@@ -10,10 +10,8 @@ from transcription_bot.parsers.summary_text import parse_summary_text
 from transcription_bot.segment_merger import merge_segments
 
 if TYPE_CHECKING:
-    from transcription_bot.data_gathering import EpisodeData
+    from transcription_bot.data_models import DiarizedTranscript, EpisodeData, PodcastRssEntry
     from transcription_bot.episode_segments import Segments
-    from transcription_bot.parsers.rss_feed import PodcastRssEntry
-    from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 _THIRTY_MINUTES = 30 * 60
 

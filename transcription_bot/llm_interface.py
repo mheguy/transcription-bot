@@ -11,8 +11,7 @@ from transcription_bot.episode_segments import BaseSegment, ScienceOrFictionSegm
 from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
-    from transcription_bot.parsers.rss_feed import PodcastRssEntry
-    from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
+    from transcription_bot.data_models import DiarizedTranscript, PodcastRssEntry
 
 
 def enhance_transcribed_segments(_podcast_episode: "PodcastRssEntry", segments: "Segments") -> "Segments":

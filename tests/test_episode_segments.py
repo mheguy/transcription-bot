@@ -2,7 +2,7 @@ import pytest
 from bs4 import BeautifulSoup, Tag
 
 from transcription_bot import episode_segments
-from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
+from transcription_bot.data_models import DiarizedTranscript
 
 # Constants for test data
 TEST_ARTICLE_URL = "http://example.com"

@@ -5,9 +5,8 @@ import pytest
 from requests import RequestException, Session
 
 from transcription_bot import wiki
-from transcription_bot.data_gathering import EpisodeData
+from transcription_bot.data_models import EpisodeData, PodcastRssEntry
 from transcription_bot.episode_segments import QuoteSegment, Segments
-from transcription_bot.parsers.rss_feed import PodcastRssEntry
 
 # Test constants
 TEST_EPISODE_NUMBER = "123"

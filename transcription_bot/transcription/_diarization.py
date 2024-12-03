@@ -10,7 +10,7 @@ from transcription_bot.global_logger import logger
 from transcription_bot.webhook_server import WebhookServer
 
 if TYPE_CHECKING:
-    from transcription_bot.parsers.rss_feed import PodcastRssEntry
+    from transcription_bot.data_models import PodcastRssEntry
 
 
 @cache_for_episode

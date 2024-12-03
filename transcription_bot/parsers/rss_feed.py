@@ -1,30 +1,16 @@
 import re
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import feedparser
 
 from transcription_bot.config import config
+from transcription_bot.data_models import PodcastRssEntry
 from transcription_bot.global_logger import logger
 
 if TYPE_CHECKING:
-    from time import struct_time
-
     from requests import Session
 
 EPISODE_PATTERN = r"^SGU Episode (\d{1,4})$"
-
-
-@dataclass
-class PodcastRssEntry:
-    """Basic information about a podcast episode."""
-
-    episode_number: int
-    official_title: str
-    summary: str
-    download_url: str
-    episode_url: str
-    published_time: "struct_time"
 
 
 def get_podcast_rss_entries(client: "Session") -> list[PodcastRssEntry]:

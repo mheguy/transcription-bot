@@ -10,8 +10,8 @@ from transcription_bot.global_logger import logger
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from transcription_bot.data_models import DiarizedTranscript
     from transcription_bot.episode_segments import BaseSegment
-    from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 P = ParamSpec("P")
 R = TypeVar("R")

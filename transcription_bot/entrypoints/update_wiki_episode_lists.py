@@ -10,15 +10,13 @@ import sentry_sdk
 from mwparserfromhell.nodes.template import Template
 
 from transcription_bot.config import config
-from transcription_bot.data_models import EpisodeStatus, SguListEntry
+from transcription_bot.converters.episode_data_to_segments import convert_episode_data_to_episode_segments
+from transcription_bot.data_gathering import gather_metadata
+from transcription_bot.data_models import EpisodeStatus, PodcastRssEntry, SguListEntry
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import init_logging, logger
 from transcription_bot.helpers import get_year_from_episode_number
-from transcription_bot.parsers.rss_feed import (
-    PodcastRssEntry,
-    get_podcast_rss_entries,
-    # get_recently_modified_episode_pages,
-)
+from transcription_bot.parsers.rss_feed import get_podcast_rss_entries  # get_recently_modified_episode_pages,
 from transcription_bot.wiki import (
     get_episode_entry_from_list,
     get_episode_list_wiki_page,
@@ -46,7 +44,7 @@ def main() -> None:
     # modified_episode_pages = get_recently_modified_episode_pages(http_client)
     # logger.info(f"Found {len(modified_episode_pages)} modified episode pages")
 
-    modified_episode_pages = [990]  # Episode with all data
+    modified_episode_pages = [1011]  # Episode with all data
     # modified_episode_pages = [1011] # Episode missing data
 
     logger.info("Getting episodes from podcast RSS feed...")
@@ -85,6 +83,12 @@ def create_expected_episode_entry(episode_rss_entry: PodcastRssEntry) -> SguList
     episode_page = get_episode_wiki_page(episode_number)
     date = time.strftime("%m-%d", episode_rss_entry.published_time)
     status = get_episode_status(episode_page)
+
+    logger.debug("Gathering episode metadata...")
+    episode_metadata = gather_metadata(episode_rss_entry, http_client)
+
+    logger.debug("Converting data to segments...")
+    episode_segments = convert_episode_data_to_episode_segments(episode_metadata)
 
     non_news_segments = get_non_news_segments()
     sof_theme = get_sof_theme()

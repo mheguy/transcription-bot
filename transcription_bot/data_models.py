@@ -1,9 +1,9 @@
 import itertools
-
-# from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Any, ClassVar
+from time import struct_time
+from typing import TYPE_CHECKING, Any, ClassVar, TypedDict
 
+from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
 if TYPE_CHECKING:
@@ -130,3 +130,49 @@ class SguListEntry:
 
         for k, v in self._get_optional_params(template).items():
             template.add(k, v)
+
+
+class DiarizedTranscriptChunk(TypedDict):
+    """A chunk of a diarized transcript.
+
+    Attributes:
+        start (float): The start time of the chunk.
+        end (float): The end time of the chunk.
+        text (str): The text content of the chunk.
+        speaker (str): The speaker associated with the chunk.
+    """
+
+    start: float
+    end: float
+    text: str
+    speaker: str
+
+
+@dataclass(config=ConfigDict(arbitrary_types_allowed=True))
+class PodcastRssEntry:
+    """Basic information about a podcast episode."""
+
+    episode_number: int
+    official_title: str
+    summary: str
+    download_url: str
+    episode_url: str
+    published_time: struct_time
+
+
+@dataclass
+class EpisodeData:
+    """Detailed data about a podcast episode.
+
+    Attributes:
+        podcast: The basic information about the episode.
+        lyrics: The lyrics that were embedded in the MP3 file.
+        show_notes: The show notes of the episode from the website.
+    """
+
+    podcast: PodcastRssEntry
+    lyrics: str
+    show_notes: bytes
+
+
+DiarizedTranscript = list[DiarizedTranscriptChunk]

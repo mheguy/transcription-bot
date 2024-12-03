@@ -4,9 +4,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from transcription_bot import caching
+from transcription_bot.data_models import DiarizedTranscript, PodcastRssEntry
 from transcription_bot.episode_segments import BaseSegment
-from transcription_bot.parsers.rss_feed import PodcastRssEntry
-from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 # Test constants
 TEST_EPISODE_NUMBER = "123"

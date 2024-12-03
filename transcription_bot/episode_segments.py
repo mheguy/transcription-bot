@@ -1,18 +1,17 @@
 import math
 import re
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar
+from dataclasses import field
+from typing import Any, ClassVar
 from urllib.parse import urlparse
 
 from bs4 import Tag
+from pydantic.dataclasses import dataclass
 
+from transcription_bot.data_models import DiarizedTranscript
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
 from transcription_bot.templating import get_template
-
-if TYPE_CHECKING:
-    from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
@@ -44,7 +43,7 @@ class BaseSegment(ABC):
 
     start_time: float | None = None
     end_time: float = math.inf
-    transcript: "DiarizedTranscript" = field(default_factory=list)
+    transcript: DiarizedTranscript = field(default_factory=list)
 
     @property
     @abstractmethod
@@ -71,7 +70,7 @@ class BaseSegment(ABC):
         """Get the text representation of the segment (for the wiki page)."""
 
     @abstractmethod
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         """Get the text representation of the segment (for the wiki page)."""
 
     @property
@@ -151,7 +150,7 @@ class UnknownSegment(BaseSegment):
     def match_string(lowercase_text: str) -> bool:
         raise NotImplementedError
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(self.title.split(), chunk["text"].lower()):
                 return chunk["start"]
@@ -202,7 +201,7 @@ class IntroSegment(BaseSegment):
     def match_string(lowercase_text: str) -> bool:
         raise NotImplementedError
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         del transcript
         return 0.0
 
@@ -228,7 +227,7 @@ class OutroSegment(BaseSegment):
     def match_string(lowercase_text: str) -> bool:
         raise NotImplementedError
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(
                 ["skeptic", "guide", "to", "the", "universe", "produced", "by", "sgu", "productions"],
@@ -262,7 +261,7 @@ class LogicalFallacySegment(FromLyricsSegment):
     def match_string(lowercase_text: str) -> bool:
         return "name that logical fallacy" in lowercase_text
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(["name", "logical", "fallacy"], chunk["text"].lower()):
                 return chunk["start"]
@@ -311,7 +310,7 @@ class QuickieSegment(FromLyricsSegment):
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("quickie with")
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(["quickie", "with"], chunk["text"].lower()):
                 return chunk["start"]
@@ -371,7 +370,7 @@ class WhatsTheWordSegment(FromLyricsSegment):
     def match_string(lowercase_text: str) -> bool:
         return bool(re.match(r"what.s the word", lowercase_text))
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if re.match(r"what.?s the word", chunk["text"].lower()):
                 return chunk["start"]
@@ -431,7 +430,7 @@ class TikTokSegment(FromLyricsSegment):
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("from tiktok")
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(self.title.split(), chunk["text"].lower()):
                 return chunk["start"]
@@ -490,7 +489,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment):
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("dumbest thing of the week")
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for segment in transcript:
             if are_strings_in_string(["dumb", "thing", "of", "the", "week"], segment["text"].lower()):
                 return segment["start"]
@@ -545,7 +544,7 @@ class NoisySegment(FromLyricsSegment, FromShowNotesSegment):
     def match_string(lowercase_text: str) -> bool:
         return bool(re.search(r"who.s that noisy", lowercase_text))
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for segment in transcript:
             if are_strings_in_string(["who", "that", "noisy"], segment["text"].lower()):
                 return segment["start"]
@@ -596,7 +595,7 @@ class QuoteSegment(FromLyricsSegment):
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("skeptical quote of the week")
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for segment in transcript:
             text = segment["text"].lower()
             if "quote" in text and segment["speaker"] == "Steve":
@@ -643,7 +642,7 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
     def match_string(lowercase_text: str) -> bool:
         return "science or fiction" in lowercase_text
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for segment in transcript:
             if "time for science or fiction" in segment["text"].lower():
                 return segment["start"]
@@ -759,7 +758,7 @@ class NewsItem(BaseSegment):
     def match_string(lowercase_text: str) -> bool:
         raise NotImplementedError
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         del transcript
 
         return None
@@ -790,7 +789,7 @@ class NewsMetaSegment(FromLyricsSegment):
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("news item")
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         raise NotImplementedError
 
     @staticmethod
@@ -856,7 +855,7 @@ class InterviewSegment(FromLyricsSegment, FromShowNotesSegment):
             "url": self.url,
         }
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(["go", "to", "interview"], chunk["text"].lower()):
                 return chunk["start"]
@@ -912,7 +911,7 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("question #") or all(s in lowercase_text for s in ["your", "question", "mail"])
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for segment in transcript:
             if "mail" in segment["text"].lower() and segment["speaker"] == "Steve":
                 return segment["start"]
@@ -979,7 +978,7 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
     def match_string(lowercase_text: str) -> bool:
         return bool(re.match(r"forgotten superhero(es)? of science", lowercase_text))
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(["forgotten", "hero", "science"], chunk["text"].lower()):
                 return chunk["start"]
@@ -1022,7 +1021,7 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment):
     def match_string(lowercase_text: str) -> bool:
         return bool(re.match(r"swindler.s list", lowercase_text))
 
-    def get_start_time(self, transcript: "DiarizedTranscript") -> float | None:
+    def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(["swindler", "list"], chunk["text"].lower()):
                 return chunk["start"]
@@ -1042,14 +1041,14 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment):
 # region formatters
 
 
-def _trim_whitespace(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
+def _trim_whitespace(transcript: DiarizedTranscript) -> DiarizedTranscript:
     for chunk in transcript:
         chunk["text"] = chunk["text"].strip()
 
     return transcript
 
 
-def _join_speaker_transcription_chunks(transcript: "DiarizedTranscript") -> "DiarizedTranscript":
+def _join_speaker_transcription_chunks(transcript: DiarizedTranscript) -> DiarizedTranscript:
     current_speaker = None
 
     speaker_chunks: DiarizedTranscript = []
@@ -1064,7 +1063,7 @@ def _join_speaker_transcription_chunks(transcript: "DiarizedTranscript") -> "Dia
     return speaker_chunks
 
 
-def _abbreviate_speakers(transcript: "DiarizedTranscript") -> None:
+def _abbreviate_speakers(transcript: DiarizedTranscript) -> None:
     for chunk in transcript:
         if chunk["speaker"] == "Voice-over":
             continue
@@ -1076,7 +1075,7 @@ def _abbreviate_speakers(transcript: "DiarizedTranscript") -> None:
             chunk["speaker"] = chunk["speaker"][0]
 
 
-def format_transcript_for_wiki(transcript: "DiarizedTranscript") -> str:
+def format_transcript_for_wiki(transcript: DiarizedTranscript) -> str:
     """Format the transcript for the wiki."""
     transcript = _trim_whitespace(transcript)
     transcript = _join_speaker_transcription_chunks(transcript)

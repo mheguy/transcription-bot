@@ -1,10 +1,10 @@
-from dataclasses import dataclass
 from io import BytesIO
 from typing import TYPE_CHECKING
 
 from mutagen.id3 import ID3
 
 from transcription_bot.caching import cache_for_episode
+from transcription_bot.data_models import EpisodeData
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import download_file
 
@@ -13,22 +13,7 @@ if TYPE_CHECKING:
     from mutagen.id3._frames import TXXX, USLT
     from requests import Session
 
-    from transcription_bot.parsers.rss_feed import PodcastRssEntry
-
-
-@dataclass
-class EpisodeData:
-    """Detailed data about a podcast episode.
-
-    Attributes:
-        podcast: The basic information about the episode.
-        lyrics: The lyrics that were embedded in the MP3 file.
-        show_notes: The show notes of the episode from the website.
-    """
-
-    podcast: "PodcastRssEntry"
-    lyrics: str
-    show_notes: bytes
+    from transcription_bot.data_models import PodcastRssEntry
 
 
 def gather_metadata(rss_entry: "PodcastRssEntry", client: "requests.Session") -> EpisodeData:

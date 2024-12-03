@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from mwparserfromhell.wikicode import Wikicode
     from requests import Session
 
-    from transcription_bot.data_gathering import EpisodeData
+    from transcription_bot.data_models import EpisodeData
 
 
 _EPISODE_PAGE_PREFIX = "SGU_Episode_"

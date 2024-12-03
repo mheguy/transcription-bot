@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from transcription_bot.converters import episode_data_to_segments
-from transcription_bot.data_gathering import EpisodeData
+from transcription_bot.data_models import DiarizedTranscript, EpisodeData, PodcastRssEntry
 from transcription_bot.episode_segments import (
     ForgottenSuperheroesOfScienceSegment,
     IntroSegment,
@@ -12,8 +12,6 @@ from transcription_bot.episode_segments import (
     QuickieSegment,
     Segments,
 )
-from transcription_bot.parsers.rss_feed import PodcastRssEntry
-from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
 
 HOST_LINE_1 = "Welcome to the show"
 HOST_LINE_1_START_TIME = 0.0

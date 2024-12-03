@@ -151,6 +151,7 @@ runtime-evaluated-base-classes = [
     "pydantic.BaseModel",
     "sqlalchemy.orm.DeclarativeBase",
 ]
+runtime-evaluated-decorators = ["pydantic.dataclasses.dataclass"]
 
 [tool.ruff.lint.flake8-implicit-str-concat]
 
