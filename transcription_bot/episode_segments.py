@@ -466,7 +466,7 @@ class TikTokSegment(FromLyricsSegment):
             raise ValueError(f"Failed to extract title from: {text}")
 
         if not url or not string_is_url(url):
-            raise ValueError(f"Failed to extract valid URL from: {text}")
+            logger.error(f"Failed to extract valid URL from: {text}")
 
         return TikTokSegment(title=title, url=url)
 
@@ -1021,6 +1021,9 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
 @dataclass(kw_only=True)
 class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSegmentMixin):
     topic: str = "N/A<!-- Failed to extract topic -->"
+    url: str
+    article_title: str | None
+    article_publication: str | None
 
     title: str = "Swindler's List"
 
@@ -1034,7 +1037,7 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSeg
 
     @property
     def wiki_anchor_tag(self) -> str:
-        raise NotImplementedError
+        return "swindlers"
 
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
@@ -1052,11 +1055,35 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSeg
 
     @staticmethod
     def from_summary_text(text: str) -> "SwindlersListSegment":
-        return SwindlersListSegment(topic=text.split(":")[1].strip())
+        topic = text.split(":")[1].strip()
+        url = ""
+        article_title = None
+        article_publication = None
+        return SwindlersListSegment(
+            topic=topic, url=url, article_title=article_title, article_publication=article_publication
+        )
 
     @staticmethod
     def from_lyrics(text: str) -> "SwindlersListSegment":
-        raise NotImplementedError
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        lines += [""] * (3 - len(lines))
+        _segment_name, topic, url, *extra = lines
+
+        if extra:
+            logger.warning(f"Unexpected extra lines in dumbest thing of the week segment: {extra}")
+
+        article_publication = None
+        article_title = None
+        if url:
+            article_publication = urlparse(url).netloc
+            article_title = get_article_title(url) or url
+
+        return SwindlersListSegment(
+            topic=topic,
+            url=url,
+            article_publication=article_publication,
+            article_title=article_title,
+        )
 
 
 # endregion
