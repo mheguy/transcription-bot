@@ -12,7 +12,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 T = TypeVar("T", bound="HasEpisodeNumber")
 Url = str
-UrlCache = dict[Url, str]
+UrlCache = dict[Url, str | None]
 
 _TEMP_DATA_FOLDER = Path("data/").resolve()
 _CACHE_FOLDER = _TEMP_DATA_FOLDER / "cache"
@@ -67,9 +67,8 @@ def cache_url_title(func: Callable[Concatenate[Url, P], str | None]) -> Callable
 
         result = func(url, *args, **kwargs)
 
-        if result:
-            url_cache[url] = result
-            save_cache(cache_filepath, url_cache)
+        url_cache[url] = result
+        save_cache(cache_filepath, url_cache)
 
         return result
 
