@@ -50,7 +50,8 @@ def main() -> None:
 
     # modified_episode_pages = [990]  # Episode with all data
     # modified_episode_pages = [991]  # Episode missing data (lyrics returns a list instead of str)
-    modified_episode_pages = [984]
+    # modified_episode_pages = [983]
+    modified_episode_pages = list(range(1010, 1013))
 
     logger.info("Getting episodes from podcast RSS feed...")
     rss_entries = get_podcast_rss_entries(http_client)
@@ -72,7 +73,8 @@ def process_modified_episode_page(episode_rss_entry: PodcastRssEntry) -> None:
     current_episode_entry = get_episode_entry_from_list(episode_list_page, str(episode_rss_entry.episode_number))
     expected_episode_entry = create_expected_episode_entry(episode_rss_entry)
 
-    expected_episode_entry = expected_episode_entry | current_episode_entry
+    if current_episode_entry:
+        expected_episode_entry = expected_episode_entry | current_episode_entry
 
     logger.info("Updating episode entry...")
     create_or_update_episode_entry(year, episode_list_page, expected_episode_entry)
@@ -148,7 +150,7 @@ def create_or_update_episode_entry(year: int, episode_list: Wikicode, expected_e
     update_episode_list(http_client, year, str(episode_list))
 
 
-def get_other_segments(episode_number: int, segments: list[BaseSegment]) -> str | None:
+def get_other_segments(episode_number: int, segments: list[BaseSegment]) -> str:
     """Return segments for inclusion in the wiki list's "other" section."""
     anchors = [
         f"[[SGU Episode {episode_number}#{segment.wiki_anchor_tag}|{segment.title}]]"
@@ -157,25 +159,25 @@ def get_other_segments(episode_number: int, segments: list[BaseSegment]) -> str 
     ]
 
     if not anchors:
-        return None
+        return "n"
 
     return "<br>".join(anchors)
 
 
-def get_sof_theme(episode_number: int, segments: list[BaseSegment]) -> str | None:
+def get_sof_theme(episode_number: int, segments: list[BaseSegment]) -> str:
     """Return the SoF theme or "n" for no theme."""
     if (segment := get_first_segment_of_type(segments, ScienceOrFictionSegment)) and segment.theme:
         return f"[[SGU Episode {episode_number}#{segment.wiki_anchor_tag}|{segment.theme}]]"
 
-    return None
+    return "n"
 
 
-def get_interviewee(episode_number: int, segments: list[BaseSegment]) -> str | None:
+def get_interviewee(episode_number: int, segments: list[BaseSegment]) -> str:
     """Return the name of the interviewee, or "n" if no interview."""
     if (segment := get_first_segment_of_type(segments, InterviewSegment)) and segment.name:
         return f"[[SGU Episode {episode_number}#{segment.wiki_anchor_tag}|{segment.name}]]"
 
-    return None
+    return "n"
 
 
 if __name__ == "__main__":
