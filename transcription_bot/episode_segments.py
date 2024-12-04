@@ -24,6 +24,8 @@ SPECIAL_SUMMARY_PATTERNS = [
     "live recording",
 ]
 
+fsos_pattern = re.compile(r"^([-'A-Za-z ]*?)\s*(?=[,\(0-9-]|$)")
+
 
 # region components
 @dataclass(kw_only=True)
@@ -976,7 +978,6 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
 @dataclass(kw_only=True)
 class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSegmentMixin):
     subject: str = "N/A<!-- Failed to extract subject -->"
-    years_alive: str = "N/A<!-- Failed to extract years alive -->"
     description: str = "N/A<!-- Failed to extract description -->"
 
     title: str = "Forgotten Superheroes of Science"
@@ -998,7 +999,9 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
-        return bool(re.match(r"forgotten superhero(es)? of science", lowercase_text))
+        first_format = bool(re.match(r"forgotten superhero(es)? of science", lowercase_text))
+        second_format = bool(re.match(r"fsos", lowercase_text))
+        return first_format or second_format
 
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
@@ -1024,20 +1027,22 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
         if extra:
             logger.warning(f"Unexpected extra lines in dumbest thing of the week segment: {extra}")
 
-        regex = r"^(?P<name>.*?)\s*(?P<years>\d{4}-\d{4})\s*(?P<description>.*$)"
-        match = re.match(regex, full_subject)
+        match = fsos_pattern.match(full_subject)
         if not match:
-            raise ValueError(f"Failed to extract subject from: {full_subject}")
+            raise ValueError(f"Unable to extract name from {full_subject}")
 
-        subject = match.group("name").strip()
-        years_alive = match.group("years").strip()
-        description = match.group("description").strip()
+        name = match.group(0)
+        messy_description = full_subject[len(name) :]
 
         return ForgottenSuperheroesOfScienceSegment(
-            subject=subject,
-            years_alive=years_alive,
-            description=description,
+            subject=ForgottenSuperheroesOfScienceSegment.cleanup_str(name),
+            description=ForgottenSuperheroesOfScienceSegment.cleanup_str(messy_description),
         )
+
+    @staticmethod
+    def cleanup_str(text: str) -> str:
+        """Strip leading and trailing symbols and spaces."""
+        return text.strip(" -,")
 
 
 @dataclass(kw_only=True)
