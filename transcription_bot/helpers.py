@@ -1,4 +1,3 @@
-from datetime import date
 from urllib.parse import urlparse
 
 import requests
@@ -8,23 +7,8 @@ from transcription_bot.caching import cache_url_title
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
 
-_BASELINE_EPISODE_NUMBER = 1000
-_BASELINE_EPISODE_DATE = date(2024, 9, 7)
-_MISALIGNED_EPISODES = {
-    442: 2014,
-    390: 2013,
-    338: 2012,
-    234: 2009,
-    233: 2010,
-    232: 2010,
-    181: 2009,
-    129: 2008,
-    128: 2008,
-    77: 2007,
-    76: 2007,
-    25: 2006,
-    24: 2006,
-}
+_CONNECT_TIMEOUT = 10
+_READ_TIMEOUT = 5
 
 
 def are_strings_in_string(strings: list[str], string: str) -> bool:
@@ -58,7 +42,7 @@ def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str 
 def get_article_title(url: str) -> str | None:
     """Get the title of an article from its URL."""
     try:
-        resp = http_client.get(url, timeout=2)
+        resp = http_client.get(url, timeout=(_CONNECT_TIMEOUT, _READ_TIMEOUT))
     except requests.exceptions.RequestException as e:
         logger.exception(f"Error fetching article title at {url} : {e}")
         return None
