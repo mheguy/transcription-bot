@@ -279,7 +279,7 @@ def test_forgotten_superheroes_segment():
 
 def test_swindlers_list_segment():
     # Act
-    segment = episode_segments.SwindlersListSegment()
+    segment = episode_segments.SwindlersListSegment(url=None, article_title=None, article_publication=None)
 
     # Assert
     assert segment.topic == "N/A<!-- Failed to extract topic -->"

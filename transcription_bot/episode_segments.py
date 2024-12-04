@@ -976,6 +976,8 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
 @dataclass(kw_only=True)
 class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSegmentMixin):
     subject: str = "N/A<!-- Failed to extract subject -->"
+    years_alive: str = "N/A<!-- Failed to extract years alive -->"
+    description: str = "N/A<!-- Failed to extract description -->"
 
     title: str = "Forgotten Superheroes of Science"
 
@@ -989,7 +991,7 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
 
     @property
     def wiki_anchor_tag(self) -> str:
-        raise NotImplementedError
+        return "fss"
 
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
@@ -1015,13 +1017,33 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
 
     @staticmethod
     def from_lyrics(text: str) -> "ForgottenSuperheroesOfScienceSegment":
-        raise NotImplementedError
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        lines += [""] * (2 - len(lines))
+        _segment_name, full_subject, *extra = lines
+
+        if extra:
+            logger.warning(f"Unexpected extra lines in dumbest thing of the week segment: {extra}")
+
+        regex = r"^(?P<name>.*?)\s*(?P<years>\d{4}-\d{4})\s*(?P<description>.*$)"
+        match = re.match(regex, full_subject)
+        if not match:
+            raise ValueError(f"Failed to extract subject from: {full_subject}")
+
+        subject = match.group("name").strip()
+        years_alive = match.group("years").strip()
+        description = match.group("description").strip()
+
+        return ForgottenSuperheroesOfScienceSegment(
+            subject=subject,
+            years_alive=years_alive,
+            description=description,
+        )
 
 
 @dataclass(kw_only=True)
 class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSegmentMixin):
     topic: str = "N/A<!-- Failed to extract topic -->"
-    url: str
+    url: str | None
     article_title: str | None
     article_publication: str | None
 
@@ -1056,7 +1078,7 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSeg
     @staticmethod
     def from_summary_text(text: str) -> "SwindlersListSegment":
         topic = text.split(":")[1].strip()
-        url = ""
+        url = None
         article_title = None
         article_publication = None
         return SwindlersListSegment(

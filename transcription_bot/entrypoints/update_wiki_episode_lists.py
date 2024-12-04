@@ -7,7 +7,7 @@ import sentry_sdk
 from mwparserfromhell.nodes.template import Template
 from mwparserfromhell.wikicode import Wikicode
 
-from transcription_bot.config import config
+from transcription_bot.config import UNPROCESSABLE_EPISODES, config
 from transcription_bot.converters.episode_data_to_segments import convert_episode_data_to_episode_segments
 from transcription_bot.data_gathering import gather_metadata
 from transcription_bot.data_models import EpisodeStatus, PodcastRssEntry, SguListEntry
@@ -62,6 +62,10 @@ def main() -> None:
     episode_lists = {year: get_episode_list_wiki_page(year) for year in set(episode_years.values())}
 
     for episode_number in episode_numbers:
+        if episode_number in UNPROCESSABLE_EPISODES:
+            logger.error(f"Unable to process episode {episode_number}. See UNPROCESSABLE_EPISODES.")
+            continue
+
         logger.info(f"Processing episode #{episode_number}")
 
         episode_rss_entry = rss_map[episode_number]

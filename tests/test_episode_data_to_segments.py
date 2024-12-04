@@ -1,4 +1,4 @@
-from time import strptime
+from datetime import date
 from unittest.mock import Mock, patch
 
 import pytest
@@ -45,7 +45,7 @@ def sample_podcast_episode() -> PodcastRssEntry:
         summary="This is a test episode summary",
         download_url="http://example.com/download",
         episode_url="http://example.com/episode",
-        published_time=strptime("2024-01-01", "%Y-%m-%d"),
+        date=date(2000, 1, 1),
     )
 
 

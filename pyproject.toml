@@ -76,6 +76,7 @@ reportUnknownArgumentType = "none"
 reportUnknownLambdaType = "none"
 reportUnknownMemberType = "none"
 reportUnknownVariableType = "none"
+reportUnnecessaryTypeIgnoreComment = "information"
 
 [tool.pytest]
 ignore-glob = [".venv"]

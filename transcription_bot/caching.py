@@ -3,7 +3,7 @@ import json
 import pickle
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Concatenate, ParamSpec, Protocol, TypeVar
+from typing import Any, Concatenate, ParamSpec, Protocol, TypeVar, cast
 
 from transcription_bot.config import config
 from transcription_bot.global_logger import logger
@@ -13,6 +13,7 @@ R = TypeVar("R")
 T = TypeVar("T", bound="HasEpisodeNumber")
 Url = str
 UrlCache = dict[Url, str | None]
+_sentinel = object()
 
 _TEMP_DATA_FOLDER = Path("data/").resolve()
 _CACHE_FOLDER = _TEMP_DATA_FOLDER / "cache"
@@ -61,9 +62,11 @@ def cache_url_title(func: Callable[Concatenate[Url, P], str | None]) -> Callable
         if cache_filepath.exists():
             url_cache = load_cache(cache_filepath)
 
-        if title := url_cache.get(url):
+        title = url_cache.get(url, _sentinel)
+
+        if title is not _sentinel:
             logger.debug(f"Using url cache for: {url}")
-            return title
+            return cast(str | None, title)
 
         result = func(url, *args, **kwargs)
 
