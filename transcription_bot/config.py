@@ -14,7 +14,7 @@ CONFIG_FILE = DATA_FOLDER / "config.toml"
 # Episodes that will raise exceptions when processed
 UNPROCESSABLE_EPISODES = {
     # No lyrics - these episodes do not have embedded lyrics
-    *range(1, 208),
+    *range(1, 208 + 1),
     277,
     625,
     652,

@@ -6,6 +6,7 @@ from typing import Any, ClassVar, TypeVar
 from urllib.parse import urlparse
 
 from bs4 import Tag
+from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
 from transcription_bot.data_models import DiarizedTranscript
@@ -121,7 +122,7 @@ class FromShowNotesSegment(BaseSegment, ABC):
 
     @staticmethod
     @abstractmethod
-    def from_show_notes(segment_data: list["Tag"]) -> "FromShowNotesSegment":
+    def from_show_notes(segment_data: list[Tag]) -> "FromShowNotesSegment":
         """Create a segment from the show notes."""
 
 
@@ -298,8 +299,6 @@ class QuickieSegment(FromLyricsSegment, NonNewsSegmentMixin):
     title: str
     subject: str
     url: str
-    article_title: str | None
-    article_publication: str | None
 
     @property
     def template_name(self) -> str:
@@ -314,12 +313,19 @@ class QuickieSegment(FromLyricsSegment, NonNewsSegmentMixin):
         return "quickie"
 
     def get_template_values(self) -> dict[str, Any]:
+        article_publication = None
+        article_title = None
+
+        if self.url:
+            article_publication = urlparse(self.url).netloc
+            article_title = get_article_title(self.url) or self.url
+
         return {
             "title": self.title,
             "subject": self.subject,
             "url": self.url,
-            "article_title": self.article_title,
-            "article_publication": self.article_publication,
+            "article_title": article_title,
+            "article_publication": article_publication,
         }
 
     @staticmethod
@@ -345,18 +351,10 @@ class QuickieSegment(FromLyricsSegment, NonNewsSegmentMixin):
         if extra:
             logger.warning(f"Unexpected extra lines in quickie segment: {extra}")
 
-        article_publication = None
-        article_title = None
-        if url:
-            article_publication = urlparse(url).netloc
-            article_title = get_article_title(url) or url
-
         return QuickieSegment(
             title=title,
             subject=subject,
             url=url,
-            article_title=article_title,
-            article_publication=article_publication,
         )
 
 
@@ -477,8 +475,6 @@ class TikTokSegment(FromLyricsSegment):
 class DumbestThingOfTheWeekSegment(FromLyricsSegment, NonNewsSegmentMixin):
     topic: str
     url: str
-    article_title: str | None
-    article_publication: str | None
 
     title: str = "Dumbest Thing of the Week"
 
@@ -498,11 +494,17 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment, NonNewsSegmentMixin):
         return "dumbest"
 
     def get_template_values(self) -> dict[str, Any]:
+        article_publication = None
+        article_title = None
+        if self.url:
+            article_publication = urlparse(self.url).netloc
+            article_title = get_article_title(self.url) or self.url
+
         return {
             "topic": self.topic,
             "url": self.url,
-            "article_title": self.article_title,
-            "article_publication": self.article_publication,
+            "article_title": article_title,
+            "article_publication": article_publication,
         }
 
     @staticmethod
@@ -525,17 +527,9 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment, NonNewsSegmentMixin):
         if extra:
             logger.warning(f"Unexpected extra lines in dumbest thing of the week segment: {extra}")
 
-        article_publication = None
-        article_title = None
-        if url:
-            article_publication = urlparse(url).netloc
-            article_title = get_article_title(url) or url
-
         return DumbestThingOfTheWeekSegment(
             topic=topic,
             url=url,
-            article_publication=article_publication,
-            article_title=article_title,
         )
 
 
@@ -572,7 +566,7 @@ class NoisySegment(FromLyricsSegment, FromShowNotesSegment):
         return None
 
     @staticmethod
-    def from_show_notes(segment_data: list["Tag"]) -> "NoisySegment":
+    def from_show_notes(segment_data: list[Tag]) -> "NoisySegment":
         """Create a NoisySegment that will be merged with the lyrics segment."""
         if len(segment_data) == 1:
             return NoisySegment()
@@ -638,9 +632,9 @@ class QuoteSegment(FromLyricsSegment):
         return QuoteSegment(quote=quote, attribution=attribution)
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, config=ConfigDict(arbitrary_types_allowed=True))
 class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
-    items: list[ScienceOrFictionItem]
+    raw_items: list[Tag]
     theme: str | None = None
 
     @property
@@ -656,7 +650,8 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
         return "theme"
 
     def get_template_values(self) -> dict[str, Any]:
-        return {"items": self.items, "theme": self.theme}
+        items = ScienceOrFictionSegment.process_raw_items(self.raw_items)
+        return {"items": items, "theme": self.theme}
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -670,15 +665,12 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
         return None
 
     @staticmethod
-    def from_show_notes(segment_data: list["Tag"]) -> "ScienceOrFictionSegment":
+    def from_show_notes(segment_data: list[Tag]) -> "ScienceOrFictionSegment":
         raw_items = [i for i in segment_data[1].children if isinstance(i, Tag)]
-
-        items = ScienceOrFictionSegment.process_raw_items(raw_items)
-
-        return ScienceOrFictionSegment(items=items)
+        return ScienceOrFictionSegment(raw_items=raw_items)
 
     @staticmethod
-    def process_raw_items(raw_items: list["Tag"]) -> list[ScienceOrFictionItem]:
+    def process_raw_items(raw_items: list[Tag]) -> list[ScienceOrFictionItem]:
         items: list[ScienceOrFictionItem] = []
 
         science_items = 1
@@ -741,7 +733,7 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
                 theme = line.split(":")[1].strip()
                 break
 
-        return ScienceOrFictionSegment(items=[], theme=theme)
+        return ScienceOrFictionSegment(raw_items=[], theme=theme)
 
 
 @dataclass(kw_only=True)
@@ -750,28 +742,31 @@ class NewsItem(BaseSegment):
     topic: str
     url: str | None
 
-    article_title: str | None
-    article_publication: str | None
-
     @property
     def template_name(self) -> str:
         return "news"
 
     @property
     def llm_prompt(self) -> str:
-        return f"Please identify the start of the news segment whose topic is: {self.article_title or self.topic}"
+        return f"Please identify the start of the news segment whose topic is: {self.topic}"
 
     @property
     def wiki_anchor_tag(self) -> str:
         raise NotImplementedError
 
     def get_template_values(self) -> dict[str, Any]:
+        article_publication = None
+        article_title = None
+        if self.url:
+            article_publication = urlparse(self.url).netloc
+            article_title = get_article_title(self.url) or self.url
+
         return {
             "item_number": self.item_number,
             "topic": self.topic,
             "url": self.url,
-            "article_title": self.article_title,
-            "article_publication": self.article_publication,
+            "article_title": article_title,
+            "article_publication": article_publication,
         }
 
     @staticmethod
@@ -828,26 +823,12 @@ class NewsMetaSegment(FromLyricsSegment):
                 if next_index < len(lines) and string_is_url(lines[next_index]):
                     url = lines[next_index]
 
-                publication = None
-                article_title = None
-                if url:
-                    publication = urlparse(url).netloc
-                    article_title = get_article_title(url) or url
-
                 match = re.match(r"news item ?#?\d+\s*.\s*(.+)", line, re.IGNORECASE)
                 if not match:
                     raise ValueError(f"Failed to extract news topic from: {line}")
                 topic = match.group(1).strip()
 
-                items.append(
-                    NewsItem(
-                        item_number=item_counter,
-                        topic=topic,
-                        url=url,
-                        article_publication=publication,
-                        article_title=article_title,
-                    )
-                )
+                items.append(NewsItem(item_number=item_counter, topic=topic, url=url))
 
         return NewsMetaSegment(news_segments=items)
 
@@ -887,7 +868,7 @@ class InterviewSegment(FromLyricsSegment, FromShowNotesSegment):
         return lowercase_text.startswith("interview with")
 
     @staticmethod
-    def from_show_notes(segment_data: list["Tag"]) -> "InterviewSegment":
+    def from_show_notes(segment_data: list[Tag]) -> "InterviewSegment":
         text = segment_data[0].text
         name = re.split(r"[w|W]ith", text)[1]
 
@@ -948,7 +929,7 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
         return EmailSegment(items=items)
 
     @staticmethod
-    def from_show_notes(segment_data: list["Tag"]) -> "EmailSegment":
+    def from_show_notes(segment_data: list[Tag]) -> "EmailSegment":
         text = segment_data[0].text
         if ": " not in text:
             return EmailSegment(items=[])
@@ -1049,8 +1030,6 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
 class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSegmentMixin):
     topic: str = "N/A<!-- Failed to extract topic -->"
     url: str | None
-    article_title: str | None
-    article_publication: str | None
 
     title: str = "Swindler's List"
 
@@ -1067,7 +1046,18 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSeg
         return "swindlers"
 
     def get_template_values(self) -> dict[str, Any]:
-        raise NotImplementedError
+        article_publication = None
+        article_title = None
+        if self.url:
+            article_publication = urlparse(self.url).netloc
+            article_title = get_article_title(self.url) or self.url
+
+        return {
+            "topic": self.topic,
+            "url": self.url,
+            "article_title": article_title,
+            "article_publication": article_publication,
+        }
 
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
@@ -1083,12 +1073,7 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSeg
     @staticmethod
     def from_summary_text(text: str) -> "SwindlersListSegment":
         topic = text.split(":")[1].strip()
-        url = None
-        article_title = None
-        article_publication = None
-        return SwindlersListSegment(
-            topic=topic, url=url, article_title=article_title, article_publication=article_publication
-        )
+        return SwindlersListSegment(topic=topic, url=None)
 
     @staticmethod
     def from_lyrics(text: str) -> "SwindlersListSegment":
@@ -1099,46 +1084,11 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSeg
         if extra:
             logger.warning(f"Unexpected extra lines in dumbest thing of the week segment: {extra}")
 
-        article_publication = None
-        article_title = None
-        if url:
-            article_publication = urlparse(url).netloc
-            article_title = get_article_title(url) or url
-
-        return SwindlersListSegment(
-            topic=topic,
-            url=url,
-            article_publication=article_publication,
-            article_title=article_title,
-        )
+        return SwindlersListSegment(topic=topic, url=url)
 
 
 # endregion
 # region formatters
-
-
-def _trim_whitespace(transcript: DiarizedTranscript) -> DiarizedTranscript:
-    for chunk in transcript:
-        chunk["text"] = chunk["text"].strip()
-
-    return transcript
-
-
-def _join_speaker_transcription_chunks(transcript: DiarizedTranscript) -> DiarizedTranscript:
-    current_speaker = None
-
-    speaker_chunks: DiarizedTranscript = []
-    for chunk in transcript:
-        if chunk["speaker"] != current_speaker:
-            speaker_chunks.append(chunk)
-            current_speaker = chunk["speaker"]
-        else:
-            speaker_chunks[-1]["text"] += " " + chunk["text"]
-            speaker_chunks[-1]["end"] = chunk["end"]
-
-    return speaker_chunks
-
-
 def _abbreviate_speakers(transcript: DiarizedTranscript) -> None:
     for chunk in transcript:
         if chunk["speaker"] == "Voice-over":
@@ -1177,6 +1127,28 @@ def format_time(time: float | None) -> str:
     seconds = f"{int(time) % 60:02d}"
 
     return f"{hour}{minutes}{seconds}"
+
+
+def _trim_whitespace(transcript: DiarizedTranscript) -> DiarizedTranscript:
+    for chunk in transcript:
+        chunk["text"] = chunk["text"].strip()
+
+    return transcript
+
+
+def _join_speaker_transcription_chunks(transcript: DiarizedTranscript) -> DiarizedTranscript:
+    current_speaker = None
+
+    speaker_chunks: DiarizedTranscript = []
+    for chunk in transcript:
+        if chunk["speaker"] != current_speaker:
+            speaker_chunks.append(chunk)
+            current_speaker = chunk["speaker"]
+        else:
+            speaker_chunks[-1]["text"] += " " + chunk["text"]
+            speaker_chunks[-1]["end"] = chunk["end"]
+
+    return speaker_chunks
 
 
 # endregion

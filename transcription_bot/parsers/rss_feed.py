@@ -33,7 +33,7 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
         try:
             time = datetime.strptime(date_string, "%Y-%m-%d")
         except ValueError:
-            time = datetime.strptime(date_string, "%y-%d-%m")
+            time = datetime.strptime(date_string, "%m-%d-%y")
 
         feed_entries.append(
             PodcastRssEntry(

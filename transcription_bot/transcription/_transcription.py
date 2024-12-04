@@ -95,7 +95,6 @@ def wait_for_transcription_completion(transcription_url: str) -> str:
             break
 
         if status == "Failed":
-            logger.error(f"Transcription failed. {resp_object}")
             raise RuntimeError(f"Transcription failed. {resp_object}")
 
         logger.info(f"Waiting 1 minute, status: {status}")

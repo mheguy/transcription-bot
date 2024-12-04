@@ -6,6 +6,7 @@ from requests import Session
 
 from transcription_bot.caching import cache_for_episode
 from transcription_bot.data_models import EpisodeData, PodcastRssEntry
+from transcription_bot.exceptions import NoLyricsTagError
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import download_file
 
@@ -29,7 +30,7 @@ def get_lyrics_from_mp3(_rss_entry: PodcastRssEntry, raw_bytes: bytes) -> str:
     if (tag := audio.getall("TXXX:lyrics-eng")) or (tag := audio.getall("USLT::eng")):
         frame = tag[0]
     else:
-        raise ValueError("Could not find lyrics tag")
+        raise NoLyricsTagError("Could not find lyrics tag")
 
     result: str | list[str] | None = getattr(frame, "text", None)
 

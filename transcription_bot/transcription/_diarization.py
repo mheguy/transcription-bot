@@ -23,7 +23,7 @@ def create_diarization(podcast: PodcastRssEntry) -> pd.DataFrame:
     try:
         raw_diarization = json.loads(response_content)
     except (TypeError, OverflowError, json.JSONDecodeError, UnicodeDecodeError):
-        logger.error(f"Failed to decode to JSON: {response_content}")
+        logger.exception(f"Failed to decode to JSON: {response_content}")
         raise
 
     return pd.DataFrame(raw_diarization["output"]["identification"])

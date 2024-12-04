@@ -6,6 +6,7 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import ConnectTimeout, ReadTimeout, RequestException
 
 from transcription_bot.caching import cache_url_title
+from transcription_bot.config import UNPROCESSABLE_EPISODES
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
 
@@ -43,17 +44,19 @@ def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str 
 @cache_url_title
 def get_article_title(url: str) -> str | None:
     """Get the title of an article from its URL."""
+    url = url.replace("http://", "https://")
+
     try:
         resp = http_client.get(url, timeout=(_CONNECT_TIMEOUT, _READ_TIMEOUT))
     except (ValueError, ConnectTimeout, ReadTimeout, RequestsConnectionError) as e:
-        logger.error(f"{type(e).__name__} error for {url}")
+        logger.warning(f"{type(e).__name__} error for {url}")
         return None
     except RequestException as e:
         logger.exception(f"{type(e).__name__} error fetching article title at {url} : {e}")
         return None
 
     if not resp.ok:
-        logger.error(f"Error fetching article title: {url} : {resp.status_code}")
+        logger.warning(f"Error fetching article title: {url} : {resp.status_code}")
         return None
 
     soup = BeautifulSoup(resp.text, "html.parser")
@@ -76,3 +79,14 @@ def download_file(url: str, client: requests.Session) -> bytes:
     response.raise_for_status()
 
     return response.content
+
+
+def filter_bad_episodes(episode_numbers: set[int]) -> list[int]:
+    """Removes episodes that cannot be processed and issues a warning."""
+    bad_episode_numbers = episode_numbers.intersection(UNPROCESSABLE_EPISODES)
+    if bad_episode_numbers:
+        logger.warning(f"Unable to process episodes: {bad_episode_numbers}. See UNPROCESSABLE_EPISODES.")
+
+    good_episodes = episode_numbers.difference(UNPROCESSABLE_EPISODES)
+
+    return sorted(good_episodes)

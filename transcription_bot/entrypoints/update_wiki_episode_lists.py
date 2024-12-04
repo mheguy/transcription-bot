@@ -4,10 +4,11 @@ Check the most recently updated episode pages and update the episode list to mat
 """
 
 import sentry_sdk
+from mutagen.id3._util import ID3NoHeaderError
 from mwparserfromhell.nodes.template import Template
 from mwparserfromhell.wikicode import Wikicode
 
-from transcription_bot.config import UNPROCESSABLE_EPISODES, config
+from transcription_bot.config import config
 from transcription_bot.converters.episode_data_to_segments import convert_episode_data_to_episode_segments
 from transcription_bot.data_gathering import gather_metadata
 from transcription_bot.data_models import EpisodeStatus, PodcastRssEntry, SguListEntry
@@ -18,8 +19,10 @@ from transcription_bot.episode_segments import (
     ScienceOrFictionSegment,
     get_first_segment_of_type,
 )
+from transcription_bot.exceptions import NoLyricsTagError
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import init_logging, logger
+from transcription_bot.helpers import filter_bad_episodes
 from transcription_bot.parsers.rss_feed import get_podcast_rss_entries  # get_recently_modified_episode_numbers
 from transcription_bot.wiki import (
     get_episode_entry_from_list,
@@ -51,21 +54,23 @@ def main() -> None:
 
     # episode_numbers = [990]  # Episode with all data
     # episode_numbers = [991]  # Episode missing data (lyrics returns a list instead of str)
-    episode_numbers = list(range(965, 992))
-    # episode_numbers = [979]
+    # episode_numbers = set(range(1, 652))
+    episode_numbers = set(range(1, 652))
+    episode_numbers.remove(411)
+    # episode_numbers = []
+
+    good_episode_numbers = filter_bad_episodes(episode_numbers)
+
+    # TODO: Is it possible to delay getting article titles until later?
 
     logger.info("Getting episodes from podcast RSS feed...")
     rss_map = {episode.episode_number: episode for episode in get_podcast_rss_entries(http_client)}
 
     logger.info("Getting episode list pages...")
-    episode_years = {episode_number: rss_map[episode_number].year for episode_number in episode_numbers}
+    episode_years = {episode_number: rss_map[episode_number].year for episode_number in good_episode_numbers}
     episode_lists = {year: get_episode_list_wiki_page(year) for year in set(episode_years.values())}
 
-    for episode_number in episode_numbers:
-        if episode_number in UNPROCESSABLE_EPISODES:
-            logger.error(f"Unable to process episode {episode_number}. See UNPROCESSABLE_EPISODES.")
-            continue
-
+    for episode_number in good_episode_numbers:
         logger.info(f"Processing episode #{episode_number}")
 
         episode_rss_entry = rss_map[episode_number]
@@ -74,9 +79,11 @@ def main() -> None:
             process_episode(episode_rss_entry, episode_lists[episode_rss_entry.year])
         except ID3NoHeaderError:
             logger.error(f"Unable to process mp3 for episode {episode_number}")
+        except NoLyricsTagError:
+            logger.error(f"Cannot process episode {episode_number} due to missing lyrics tag.")
 
     for year, episode_list in episode_lists.items():
-        input("Go?")
+        input("Go?")  # TODO :Remove this debug code
         update_episode_list(http_client, year, str(episode_list))
 
 
