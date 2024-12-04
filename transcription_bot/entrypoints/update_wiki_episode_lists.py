@@ -69,14 +69,18 @@ def main() -> None:
         logger.info(f"Processing episode #{episode_number}")
 
         episode_rss_entry = rss_map[episode_number]
-        process_episode_page(episode_rss_entry, episode_lists[episode_rss_entry.year])
+
+        try:
+            process_episode(episode_rss_entry, episode_lists[episode_rss_entry.year])
+        except ID3NoHeaderError:
+            logger.error(f"Unable to process mp3 for episode {episode_number}")
 
     for year, episode_list in episode_lists.items():
         input("Go?")
         update_episode_list(http_client, year, str(episode_list))
 
 
-def process_episode_page(episode_rss_entry: PodcastRssEntry, episode_list_page: Wikicode) -> None:
+def process_episode(episode_rss_entry: PodcastRssEntry, episode_list_page: Wikicode) -> None:
     """Update the episode list based on the information about an episode."""
     current_episode_entry = get_episode_entry_from_list(episode_list_page, str(episode_rss_entry.episode_number))
     expected_episode_entry = create_expected_episode_entry(episode_rss_entry)

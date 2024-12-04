@@ -48,7 +48,7 @@ def get_lyrics_from_mp3(_rss_entry: PodcastRssEntry, raw_bytes: bytes) -> str:
 @cache_for_episode
 def get_audio_file(rss_entry: PodcastRssEntry, client: Session) -> bytes:
     """Retrieve the audio file for a podcast episode."""
-    logger.info("Downloading episode...")
+    logger.info("Downloading episode mp3...")
     return download_file(rss_entry.download_url, client)
 
 
