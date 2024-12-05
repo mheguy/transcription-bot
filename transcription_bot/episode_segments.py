@@ -26,8 +26,6 @@ SPECIAL_SUMMARY_PATTERNS = [
     "live recording",
 ]
 
-fsos_pattern = re.compile(r"^([-'A-Za-z ]*?)\s*(?=[,\(0-9-]|$)")
-
 
 # region components
 @dataclass(kw_only=True)
@@ -625,7 +623,10 @@ class QuoteSegment(FromLyricsSegment):
         _segment_name, quote, attribution, *extra = lines
 
         if extra:
-            logger.warning(f"Unexpected extra lines in quote segment: {extra}")
+            logger.warning(f"Unexpected extra lines in quote segment (which will be added to the quote): {extra}")
+
+        for ex in extra:
+            quote += f" {ex}"
 
         if not quote:
             logger.warning("Unable to extract quote attribution from lyrics.")
@@ -824,7 +825,7 @@ class NewsMetaSegment(FromLyricsSegment):
                 if next_index < len(lines) and string_is_url(lines[next_index]):
                     url = lines[next_index]
 
-                match = re.match(r"news item ?#?\d+\s*.\s*(.+)", line, re.IGNORECASE)
+                match = re.match(r"news items? ?[#$]?\d+\s*.\s*(.+)", line, re.IGNORECASE)
                 if not match:
                     raise StringMatchError(f"Failed to extract news topic from: {line}")
                 topic = match.group(1).strip()
@@ -1004,27 +1005,14 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
     def from_lyrics(text: str) -> "ForgottenSuperheroesOfScienceSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
         lines += [""] * (2 - len(lines))
-        _segment_name, full_subject, *extra = lines
+        _segment_name, subject, *extra = lines
 
         if extra:
             logger.warning(f"Unexpected extra lines in dumbest thing of the week segment: {extra}")
 
-        match = fsos_pattern.match(full_subject)
-        if not match:
-            raise StringMatchError(f"Unable to extract name from {full_subject}")
-
-        name = match.group(0)
-        messy_description = full_subject[len(name) :]
-
         return ForgottenSuperheroesOfScienceSegment(
-            subject=ForgottenSuperheroesOfScienceSegment.cleanup_str(name),
-            description=ForgottenSuperheroesOfScienceSegment.cleanup_str(messy_description),
+            subject=subject,
         )
-
-    @staticmethod
-    def cleanup_str(text: str) -> str:
-        """Strip leading and trailing symbols and spaces."""
-        return text.strip(" -,")
 
 
 @dataclass(kw_only=True)

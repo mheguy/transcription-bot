@@ -25,12 +25,10 @@ UNPROCESSABLE_EPISODES = {
     791,
     812,
     862,
-    # "Corrupt" episodes
-    455,
-    471,
-    495,
-    540,
-    772,
+    # Episodes that we cannot process
+    300,  # Missing news item text
+    320,  # News item #3 has unexpected line break
+    502,  # News items contains a non-standard item
 }
 
 

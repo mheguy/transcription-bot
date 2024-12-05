@@ -19,11 +19,11 @@ from transcription_bot.episode_segments import (
     ScienceOrFictionSegment,
     get_first_segment_of_type,
 )
-from transcription_bot.exceptions import NoLyricsTagError, StringMatchError
+from transcription_bot.exceptions import NoLyricsTagError
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import init_logging, logger
 from transcription_bot.helpers import filter_bad_episodes
-from transcription_bot.parsers.rss_feed import get_podcast_rss_entries  # get_recently_modified_episode_numbers
+from transcription_bot.parsers.rss_feed import get_podcast_rss_entries, get_recently_modified_episode_numbers
 from transcription_bot.wiki import (
     get_episode_entry_from_list,
     get_episode_list_wiki_page,
@@ -41,21 +41,13 @@ def main() -> None:
     init_logging()
     config.validators.validate_all()
 
-    # TODO: Run this against all episodes.
+    logger.info("Getting recently modified episode wiki pages...")
+    episode_numbers = get_recently_modified_episode_numbers(http_client)
+    logger.info(f"Found {len(episode_numbers)} modified episode pages")
 
-    # TODO: Uncomment this
-    # logger.info("Getting recently modified episode wiki pages...")
-    # episode_numbers = get_recently_modified_episode_numbers(http_client)
-    # logger.info(f"Found {len(episode_numbers)} modified episode pages")
-
-    # if not episode_numbers:
-    #     logger.info("No modified episode pages found. Exiting.")
-    #     return
-
-    # episode_numbers = set(range(301, 652))
-    episode_numbers = set(range(331, 652))
-    episode_numbers.remove(411)
-    # episode_numbers = {330}
+    if not episode_numbers:
+        logger.info("No modified episode pages found. Exiting.")
+        return
 
     good_episode_numbers = filter_bad_episodes(episode_numbers)
 
@@ -65,8 +57,6 @@ def main() -> None:
     logger.info("Getting episode list pages...")
     episode_years = {episode_number: rss_map[episode_number].year for episode_number in good_episode_numbers}
     episode_lists = {year: get_episode_list_wiki_page(year) for year in set(episode_years.values())}
-
-    uncaught_exceptions = []  # TODO: Remove after debugging
 
     for episode_number in good_episode_numbers:
         logger.info(f"Processing episode #{episode_number}")
@@ -79,16 +69,8 @@ def main() -> None:
             logger.error(f"Unable to process mp3 for episode {episode_number}")
         except NoLyricsTagError:
             logger.error(f"Cannot process episode {episode_number} due to missing lyrics tag.")
-        except StringMatchError:
-            logger.exception(f"Cannot process episode {episode_number} due to string matching error.")
-            uncaught_exceptions.append(episode_number)
-        except Exception:  # TODO: Remove after debugging
-            uncaught_exceptions.append(episode_number)  # TODO: Remove after debugging
-
-    print(f"Uncaught exceptions: {uncaught_exceptions}")
 
     for year, episode_list in episode_lists.items():
-        input(f"Go for {year}?")  # TODO :Remove this debug code
         update_episode_list(http_client, year, str(episode_list))
 
 
