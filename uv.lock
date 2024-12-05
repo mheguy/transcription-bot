@@ -329,6 +329,12 @@ wheels = [
 ]
 
 [[package]]
+name = "mwparserfromhell"
+version = "0.6.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/47/aa/358f9af602b743ac8898353f240f678b69722801bd0625507c69d9755936/mwparserfromhell-0.6.6.tar.gz", hash = "sha256:71afec1e9784ba576e95d6f34845582d3c733a3a52ba770dd8a9c3a40e5b649f", size = 138899 }
+
+[[package]]
 name = "ngrok"
 version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -613,6 +619,20 @@ wheels = [
 ]
 
 [[package]]
+name = "pywikibot"
+version = "9.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mwparserfromhell" },
+    { name = "packaging" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7d/04/56cfb39ee052859bab94a36fcadf8a1cfb25540d71035b68e048a7a4fb3b/pywikibot-9.5.0.tar.gz", hash = "sha256:6543ac89a750db37a440373ec1cf4cbcd80b05742482ebeb0ee7e90bcfb590ba", size = 621768 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/29/43/2b8c910683a7e08591d16ac15f3470a7c6316272234223d99f0a2a109605/pywikibot-9.5.0-py3-none-any.whl", hash = "sha256:4f2e3d8c00bf6410418dc78489a13d139354c832df312f78a693a27d0fffa53f", size = 726064 },
+]
+
+[[package]]
 name = "requests"
 version = "2.32.3"
 source = { registry = "https://pypi.org/simple" }
@@ -721,11 +741,13 @@ dependencies = [
     { name = "httpx" },
     { name = "loguru" },
     { name = "mutagen" },
+    { name = "mwparserfromhell" },
     { name = "ngrok" },
     { name = "numpy" },
     { name = "openai" },
     { name = "pandas" },
     { name = "pyarrow" },
+    { name = "pywikibot" },
     { name = "requests" },
     { name = "sentry-sdk" },
 ]
@@ -753,11 +775,13 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.27.2" },
     { name = "loguru", specifier = ">=0.7.2" },
     { name = "mutagen", specifier = ">=1.47.0" },
+    { name = "mwparserfromhell", specifier = ">=0.6.6" },
     { name = "ngrok", specifier = ">=1.4.0" },
     { name = "numpy", specifier = ">=2.1.3" },
     { name = "openai", specifier = ">=1.54.4" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pyarrow", specifier = ">=18.0.0" },
+    { name = "pywikibot", specifier = ">=9.5.0" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "sentry-sdk", specifier = ">=2.18.0" },
 ]

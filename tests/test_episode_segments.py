@@ -1,8 +1,8 @@
 import pytest
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 
 from transcription_bot import episode_segments
-from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
+from transcription_bot.data_models import DiarizedTranscript
 
 # Constants for test data
 TEST_ARTICLE_URL = "http://example.com"
@@ -106,28 +106,9 @@ def test_science_or_fiction_item():
     assert item.article_url == TEST_ARTICLE_URL
 
 
-def test_science_or_fiction_segment(sample_show_notes: list[Tag]):
-    # Act
-    segment = episode_segments.ScienceOrFictionSegment.from_show_notes(sample_show_notes)
-
-    # Assert
-    assert len(segment.items) == 2
-    assert segment.items[0].show_notes_text == TEST_ITEM_TEXT
-    assert segment.items[0].article_url == TEST_ARTICLE_URL
-    assert segment.items[0].sof_result == "science1"
-    assert segment.items[1].show_notes_text == TEST_ITEM_TEXT_2
-    assert segment.items[1].sof_result == "fiction"
-
-
 def test_news_item():
     # Arrange
-    item = episode_segments.NewsItem(
-        item_number=1,
-        topic=TEST_TOPIC,
-        url=TEST_ARTICLE_URL,
-        article_title=TEST_ARTICLE_TITLE,
-        article_publication=TEST_ARTICLE_PUBLICATION,
-    )
+    item = episode_segments.NewsItem(item_number=1, topic=TEST_TOPIC, url=TEST_ARTICLE_URL)
 
     # Assert
     assert item.item_number == 1
@@ -140,20 +121,8 @@ def test_news_meta_segment():
     news_topic = "News 1"
 
     news_items = [
-        episode_segments.NewsItem(
-            item_number=1,
-            topic=news_topic,
-            url=f"{TEST_ARTICLE_URL}1",
-            article_title=f"{TEST_ARTICLE_TITLE} 1",
-            article_publication=f"{TEST_ARTICLE_PUBLICATION} 1",
-        ),
-        episode_segments.NewsItem(
-            item_number=2,
-            topic="News 2",
-            url=f"{TEST_ARTICLE_URL}2",
-            article_title=f"{TEST_ARTICLE_TITLE} 2",
-            article_publication=f"{TEST_ARTICLE_PUBLICATION} 2",
-        ),
+        episode_segments.NewsItem(item_number=1, topic=news_topic, url=f"{TEST_ARTICLE_URL}1"),
+        episode_segments.NewsItem(item_number=2, topic="News 2", url=f"{TEST_ARTICLE_URL}2"),
     ]
 
     # Act
@@ -220,13 +189,7 @@ def test_quickie_segment():
     # Arrange/Act
     title = "Quick News"
     subject = "Science"
-    segment = episode_segments.QuickieSegment(
-        title=title,
-        subject=subject,
-        url=TEST_ARTICLE_URL,
-        article_title=TEST_ARTICLE_TITLE,
-        article_publication=TEST_ARTICLE_PUBLICATION,
-    )
+    segment = episode_segments.QuickieSegment(title=title, subject=subject, url=TEST_ARTICLE_URL)
 
     # Assert
     assert segment.title == title
@@ -249,12 +212,7 @@ def test_tiktok_segment():
 
 def test_dumbest_thing_segment():
     # Arrange/Act
-    segment = episode_segments.DumbestThingOfTheWeekSegment(
-        topic=TEST_TOPIC,
-        url=TEST_ARTICLE_URL,
-        article_title=TEST_ARTICLE_TITLE,
-        article_publication=TEST_ARTICLE_PUBLICATION,
-    )
+    segment = episode_segments.DumbestThingOfTheWeekSegment(topic=TEST_TOPIC, url=TEST_ARTICLE_URL)
 
     # Assert
     assert segment.topic == TEST_TOPIC
@@ -279,7 +237,7 @@ def test_forgotten_superheroes_segment():
 
 def test_swindlers_list_segment():
     # Act
-    segment = episode_segments.SwindlersListSegment()
+    segment = episode_segments.SwindlersListSegment(url=None)
 
     # Assert
     assert segment.topic == "N/A<!-- Failed to extract topic -->"

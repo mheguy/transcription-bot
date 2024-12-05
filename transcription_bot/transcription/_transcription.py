@@ -1,16 +1,14 @@
 import json
 import time
-from typing import TYPE_CHECKING, Any, TypedDict
+from typing import Any, TypedDict
 
 import requests
 
 from transcription_bot.caching import cache_for_episode
 from transcription_bot.config import config
+from transcription_bot.data_models import PodcastRssEntry
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import download_file
-
-if TYPE_CHECKING:
-    from transcription_bot.parsers.rss_feed import PodcastEpisode
 
 # At the time of writing, API version 2024-11-15 is not yet available
 # When it becomes available, switch api version param and remove the version from the endpoint
@@ -34,7 +32,7 @@ _HTTP_TIMEOUT = 30
 # One tick is 100 nanoseconds
 _TICKS_PER_SECONDS = 10_000_000
 
-Transcription = list["TranscriptSegment"]
+RawTranscript = list["TranscriptSegment"]
 
 session = requests.Session()
 session.headers.update(_AUTH_HEADER)
@@ -56,7 +54,7 @@ class RecognizedPhrase(TypedDict):
     nBest: list[PhraseInfo]
 
 
-def create_transcription(podcast: "PodcastEpisode") -> Transcription:
+def create_transcription(podcast: PodcastRssEntry) -> RawTranscript:
     """Send a transcription request."""
     transcription_id = send_transcription_request(podcast, _TRANSCRIPTIONS_ENDPOINT)
     transcription_url = f"{_TRANSCRIPTIONS_ENDPOINT}/{transcription_id}"
@@ -65,7 +63,7 @@ def create_transcription(podcast: "PodcastEpisode") -> Transcription:
 
 
 @cache_for_episode
-def send_transcription_request(podcast: "PodcastEpisode", transcriptions_endpoint: str) -> str:
+def send_transcription_request(podcast: PodcastRssEntry, transcriptions_endpoint: str) -> str:
     payload = {
         "contentUrls": [podcast.download_url],
         "properties": _TRANSCRIPTION_CONFIG,
@@ -97,7 +95,6 @@ def wait_for_transcription_completion(transcription_url: str) -> str:
             break
 
         if status == "Failed":
-            logger.error(f"Transcription failed. {resp_object}")
             raise RuntimeError(f"Transcription failed. {resp_object}")
 
         logger.info(f"Waiting 1 minute, status: {status}")
@@ -106,7 +103,7 @@ def wait_for_transcription_completion(transcription_url: str) -> str:
     return resp_object["links"]["files"]
 
 
-def get_transcription_results(files_url: str) -> Transcription:
+def get_transcription_results(files_url: str) -> RawTranscript:
     resp = session.get(files_url, params=_API_VERSION_PARAM, timeout=_HTTP_TIMEOUT)
     resp.raise_for_status()
 
@@ -123,10 +120,10 @@ def get_transcription_results(files_url: str) -> Transcription:
     return convert_raw_transcription(json.loads(download_file(content_url, session)))
 
 
-def convert_raw_transcription(raw_transcription: dict[str, Any]) -> Transcription:
+def convert_raw_transcription(raw_transcription: dict[str, Any]) -> RawTranscript:
     recognized_phrases: list[RecognizedPhrase] = raw_transcription["recognizedPhrases"]
 
-    transcription: Transcription = []
+    transcription: RawTranscript = []
 
     for recognized_phrase in recognized_phrases:
         best_guess = recognized_phrase["nBest"]

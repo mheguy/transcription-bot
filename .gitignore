@@ -4,6 +4,10 @@
 /data/
 .vscode/
 
+# pywikibot
+throttle.ctrl
+apicache/
+
 # Python
 .venv/
 __pycache__/

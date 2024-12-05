@@ -1,0 +1,25 @@
+<noinclude>
+Programatically-generated episode list managed by SGU Transcripts Maintainer: https://github.com/mheguy/sgu-transcripts-maintainer
+</noinclude>
+<span id="(((year)))"></span>
+{|class="sortable wikitable sortable mw-collapsible"  {{SGU list headers
+|year = (((year))) [[#jump|[↑]]]
+|range = (((episode_range)))}}
+((* for entry in episode_entries *))|-
+{{SGU list entry
+|episode          = (((entry.episode)))
+|date             = (((entry.date)))
+|status           = (((entry.status)))
+|other            = (((entry.other)))
+|sort_other       = (((entry.sort_other)))
+|theme            = (((entry.theme)))
+|sort_theme       = (((entry.sort_theme)))
+|interviewee      = (((entry.interviewee)))
+|sort_interviewee = (((entry.sort_interviewee)))
+|rogue            = (((entry.rogue)))
+|sort_rogue       = (((entry.sort_rogue)))
+}}((* endfor *))
+|}
+|-
+|style="border: 1px solid darkgray;background:#F8F9F9;text-align:left;background:#CCD9EA;" |&nbsp;&nbsp;<big>'''(((year)))&nbsp;[[#jump|[↑]]]'''</big> &nbsp;&nbsp;(((episode_range)))
+|}

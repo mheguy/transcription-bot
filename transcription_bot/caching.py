@@ -1,117 +1,85 @@
 import functools
 import json
 import pickle
+from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
+from typing import Any, Concatenate, ParamSpec, Protocol, TypeVar, cast
 
 from transcription_bot.config import config
 from transcription_bot.global_logger import logger
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from transcription_bot.episode_segments import BaseSegment
-    from transcription_bot.parsers.rss_feed import PodcastEpisode
-    from transcription_bot.transcription._diarized_transcript import DiarizedTranscript
-
 P = ParamSpec("P")
 R = TypeVar("R")
-UrlCache = dict[str, str]
+T = TypeVar("T", bound="HasEpisodeNumber")
+Url = str
+UrlCache = dict[Url, str | None]
+_sentinel = object()
 
 _TEMP_DATA_FOLDER = Path("data/").resolve()
 _CACHE_FOLDER = _TEMP_DATA_FOLDER / "cache"
 
 
+class HasEpisodeNumber(Protocol):
+    """A protocol that requires an episode number."""
+
+    episode_number: int
+
+
 def cache_for_episode(
-    func: "Callable[Concatenate[PodcastEpisode, P], R]",
-) -> "Callable[Concatenate[PodcastEpisode, P], R]":
+    func: Callable[Concatenate[T, P], R],
+) -> Callable[Concatenate[T, P], R]:
     """Cache the result of the decorated function to a file.
 
     Requires the first positional argument be a PodcastEpisode.
     """
 
     @functools.wraps(func)
-    def wrapper(podcast_episode: "PodcastEpisode", *args: P.args, **kwargs: P.kwargs) -> R:
-        function_dir = _get_cache_dir(func)
+    def wrapper(podcast_episode: T, *args: P.args, **kwargs: P.kwargs) -> R:
+        function_dir = get_cache_dir(func)
         cache_filepath = function_dir / f"{podcast_episode.episode_number}.json_or_pkl"
 
         if cache_filepath.exists():
             logger.info(f"Using cache for func: {func.__name__}, ep: {podcast_episode.episode_number}")
-            return _load_cache(cache_filepath)
+            return load_cache(cache_filepath)
 
         result = func(podcast_episode, *args, **kwargs)
 
-        _save_cache(cache_filepath, result)
+        save_cache(cache_filepath, result)
         return result
 
     return wrapper
 
 
-def cache_url_title(func: "Callable[Concatenate[str, P], str|None]") -> "Callable[Concatenate[str, P], str|None]":
+def cache_url_title(func: Callable[Concatenate[Url, P], str | None]) -> Callable[Concatenate[Url, P], str | None]:
     """Provide caching for title page lookups."""
 
     @functools.wraps(func)
-    def wrapper(url: "str", *args: P.args, **kwargs: P.kwargs) -> str | None:
-        function_dir = _get_cache_dir(func)
+    def wrapper(url: Url, *args: P.args, **kwargs: P.kwargs) -> str | None:
+        function_dir = get_cache_dir(func)
         cache_filepath = function_dir / "urls.json_or_pkl"
 
         url_cache: UrlCache = {}
         if cache_filepath.exists():
-            url_cache = _load_cache(cache_filepath)
+            url_cache = load_cache(cache_filepath)
 
-        if title := url_cache.get(url):
-            logger.info(f"Using url cache for: {url}")
-            return title
+        title = url_cache.get(url, _sentinel)
+
+        if title is not _sentinel:
+            logger.debug(f"Using url cache for: {url}")
+            return cast(str | None, title)
 
         result = func(url, *args, **kwargs)
 
-        if result:
-            url_cache[url] = result
-            _save_cache(cache_filepath, url_cache)
+        url_cache[url] = result
+        save_cache(cache_filepath, url_cache)
 
         return result
 
     return wrapper
 
 
-def cache_llm(
-    func: "Callable[[PodcastEpisode, BaseSegment, DiarizedTranscript], float | None]",
-) -> "Callable[[PodcastEpisode, BaseSegment, DiarizedTranscript], float | None]":
-    """Provide caching for title page lookups."""
-
-    @functools.wraps(func)
-    def wrapper(
-        _podcast_episode: "PodcastEpisode", segment: "BaseSegment", transcript: "DiarizedTranscript"
-    ) -> float | None:
-        function_dir = _get_cache_dir(func)
-        episode = _podcast_episode.episode_number
-        cache_filepath = function_dir / f"{episode}.json_or_pkl"
-
-        segment_type = segment.__class__.__name__
-        transcript_start = transcript[0]["start"]
-
-        cache_key = (segment_type, transcript_start)
-
-        llm_cache = {}
-        if cache_filepath.exists():
-            llm_cache = _load_cache(cache_filepath)
-
-        if start_time := llm_cache.get(cache_key):
-            logger.info(f"Using llm cache for segment type:{segment_type}, {transcript_start=}")
-            return start_time
-
-        result = func(_podcast_episode, segment, transcript)
-
-        if result:
-            llm_cache[cache_key] = result
-            _save_cache(cache_filepath, llm_cache)
-
-        return result
-
-    return wrapper
-
-
-def _get_cache_dir(func: "Callable[..., Any]") -> Path:
+def get_cache_dir(func: Callable[..., Any]) -> Path:
+    """Get the cache directory for the given function."""
     function_dir = _CACHE_FOLDER / func.__module__ / func.__name__
 
     if config.local_mode:
@@ -122,7 +90,8 @@ def _get_cache_dir(func: "Callable[..., Any]") -> Path:
     return function_dir
 
 
-def _save_cache(file: "Path", data: Any) -> None:
+def save_cache(file: Path, data: Any) -> None:
+    """Save data to the cache file."""
     if not config.local_mode:
         return
 
@@ -132,7 +101,8 @@ def _save_cache(file: "Path", data: Any) -> None:
         file.write_bytes(pickle.dumps(data))
 
 
-def _load_cache(file: "Path") -> Any:
+def load_cache(file: Path) -> Any:
+    """Load the cache file."""
     try:
         return json.loads(file.read_text())
     except (TypeError, OverflowError, json.JSONDecodeError, UnicodeDecodeError):

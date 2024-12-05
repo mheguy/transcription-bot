@@ -5,9 +5,8 @@ import pytest
 from requests import RequestException, Session
 
 from transcription_bot import wiki
-from transcription_bot.data_gathering import EpisodeData
+from transcription_bot.data_models import EpisodeData, PodcastRssEntry
 from transcription_bot.episode_segments import QuoteSegment, Segments
-from transcription_bot.parsers.rss_feed import PodcastEpisode
 
 # Test constants
 TEST_EPISODE_NUMBER = "123"
@@ -41,7 +40,7 @@ def mock_session() -> MagicMock:
 @pytest.fixture()
 def mock_episode_data() -> MagicMock:
     episode_data = MagicMock(spec=EpisodeData)
-    episode_data.podcast = MagicMock(spec=PodcastEpisode)
+    episode_data.podcast = MagicMock(spec=PodcastRssEntry)
     episode_data.podcast.episode_number = TEST_EPISODE_NUMBER
     episode_data.transcript = [{"speaker": "Bob"}, {"speaker": "Alice"}]
     episode_data.show_notes = TEST_SHOW_NOTES
@@ -114,13 +113,13 @@ def test_episode_has_wiki_page_error(mock_session: MagicMock):
         wiki.episode_has_wiki_page(mock_session, 123)
 
 
-def test_create_page(mock_session: MagicMock):
+def test_save_wiki_page(mock_session: MagicMock):
     # Arrange
     with patch("transcription_bot.wiki.log_into_wiki") as mock_login:
         mock_login.return_value = TEST_CSRF_TOKEN
 
         # Act
-        wiki.create_page(mock_session, TEST_PAGE_TITLE, TEST_PAGE_CONTENT, allow_page_editing=True)
+        wiki.save_wiki_page(mock_session, TEST_PAGE_TITLE, TEST_PAGE_CONTENT, allow_page_editing=True)
 
         # Assert
         mock_session.post.assert_called_once()
@@ -140,7 +139,9 @@ def test_create_podcast_wiki_page(mock_session: MagicMock, mock_episode_data: Ma
         ask_llm_for_image_caption=MagicMock(return_value=TEST_IMAGE_CAPTION),
     ):
         # Act
-        wiki.create_podcast_wiki_page(mock_session, mock_episode_data, mock_segments, allow_page_editing=True)
+        wiki.create_podcast_wiki_page(
+            mock_session, mock_episode_data, mock_segments, rogues=[], allow_page_editing=True
+        )
 
         # Assert
         mock_session.post.assert_called()
@@ -165,4 +166,6 @@ def test_create_podcast_wiki_page_failed_image_upload(
         pytest.raises(RequestException),
     ):
         # Act
-        wiki.create_podcast_wiki_page(mock_session, mock_episode_data, mock_segments, allow_page_editing=True)
+        wiki.create_podcast_wiki_page(
+            mock_session, mock_episode_data, mock_segments, rogues=[], allow_page_editing=True
+        )

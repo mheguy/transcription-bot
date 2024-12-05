@@ -1,69 +1,67 @@
-import logging
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+import re
+from datetime import datetime
 
 import feedparser
+from requests import Session
 
 from transcription_bot.config import config
+from transcription_bot.data_models import PodcastRssEntry
+from transcription_bot.global_logger import logger
 
-if TYPE_CHECKING:
-    from time import struct_time
-
-    import requests
-
-
-@dataclass
-class PodcastEpisode:
-    """Basic information about a podcast episode."""
-
-    episode_number: int
-    official_title: str
-    summary: str
-    download_url: str
-    episode_url: str
-    published_time: "struct_time"
+EPISODE_PATTERN = r"^SGU Episode (\d{1,4})$"
 
 
-def get_podcast_episodes(client: "requests.Session") -> list[PodcastEpisode]:
-    """Retrieve the list of SGU podcast episodes.
-
-    Args:
-        client (requests.Session): The HTTP client to use for making requests.
-
-    Returns:
-        list[PodcastEpisode]: A list of podcast episodes, sorted by episode number in descending order.
-    """
-    raw_feed_entries = _get_raw_rss_feed_entries(client)
-    feed_entries = _convert_feed_entries_to_episodes(raw_feed_entries)
-    return sorted(feed_entries, key=lambda e: e.episode_number, reverse=True)
-
-
-def _get_raw_rss_feed_entries(client: "requests.Session") -> list[dict[str, Any]]:
-    response = client.get(config.rss_url, timeout=10)
+def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
+    """Retrieve the list of SGU podcast episodes from  the RSS feed."""
+    response = client.get(config.podcast_rss_url, timeout=10)
     response.raise_for_status()
 
-    return feedparser.parse(response.text)["entries"]
+    raw_feed_entries = feedparser.parse(response.text)["entries"]
 
-
-def _convert_feed_entries_to_episodes(feed_entries: list[dict[str, Any]]) -> list[PodcastEpisode]:
-    podcast_episodes: list[PodcastEpisode] = []
-    for entry in feed_entries:
+    feed_entries: list[PodcastRssEntry] = []
+    for entry in raw_feed_entries:
         episode_number = int(entry["link"].split("/")[-1])
 
         # Skip episodes that don't have a number.
         if episode_number <= 0:
-            logging.info("Skipping episode due to number: %s", entry["title"])
+            logger.debug(f"Skipping episode due to number: {entry["title"]}")
             continue
 
-        podcast_episodes.append(
-            PodcastEpisode(
+        filename: str = entry["links"][0]["href"].split("/")[-1].lower()
+        date_string = filename.replace("skepticast", "").replace(".mp3", "")
+
+        try:
+            time = datetime.strptime(date_string, "%Y-%m-%d")
+        except ValueError:
+            time = datetime.strptime(date_string, "%m-%d-%y")
+
+        feed_entries.append(
+            PodcastRssEntry(
                 episode_number=int(entry["link"].split("/")[-1]),
                 official_title=entry["title"],
                 summary=entry["summary"],
                 download_url=entry["links"][0]["href"],
                 episode_url=entry["link"],
-                published_time=entry["published_parsed"],
+                date=time.date(),
             )
         )
 
-    return podcast_episodes
+    return sorted(feed_entries, key=lambda e: e.episode_number, reverse=True)
+
+
+def get_recently_modified_episode_numbers(client: Session) -> set[int]:
+    """Retrieve the list of recently modified episode transcripts."""
+    response = client.get(config.wiki_rss_url, timeout=10)
+    response.raise_for_status()
+
+    episode_numbers: list[int] = []
+
+    for rss_entry in feedparser.parse(response.text)["entries"]:
+        match = re.match(EPISODE_PATTERN, rss_entry["title"])
+        if not match:
+            continue
+
+        episode_number = int(match.group(1))
+        episode_numbers.append(episode_number)
+
+    return set(episode_numbers)

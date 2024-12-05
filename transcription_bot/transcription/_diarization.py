@@ -1,20 +1,17 @@
 import json
-from typing import TYPE_CHECKING
 
 import pandas as pd
 import requests
 
 from transcription_bot.caching import cache_for_episode
 from transcription_bot.config import VOICEPRINT_FILE, config
+from transcription_bot.data_models import PodcastRssEntry
 from transcription_bot.global_logger import logger
 from transcription_bot.webhook_server import WebhookServer
 
-if TYPE_CHECKING:
-    from transcription_bot.parsers.rss_feed import PodcastEpisode
-
 
 @cache_for_episode
-def create_diarization(podcast: "PodcastEpisode") -> pd.DataFrame:
+def create_diarization(podcast: PodcastRssEntry) -> pd.DataFrame:
     logger.info("Creating diarization...")
     webhook_server = WebhookServer()
     server_url = webhook_server.start_server_thread()
@@ -26,7 +23,7 @@ def create_diarization(podcast: "PodcastEpisode") -> pd.DataFrame:
     try:
         raw_diarization = json.loads(response_content)
     except (TypeError, OverflowError, json.JSONDecodeError, UnicodeDecodeError):
-        logger.error(f"Failed to decode to JSON: {response_content}")
+        logger.exception(f"Failed to decode to JSON: {response_content}")
         raise
 
     return pd.DataFrame(raw_diarization["output"]["identification"])

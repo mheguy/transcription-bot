@@ -1,37 +1,15 @@
 import concurrent.futures
-from typing import TYPE_CHECKING, TypedDict
 
 import numpy as np
+import pandas as pd
 
+from transcription_bot.data_models import DiarizedTranscript, DiarizedTranscriptChunk, PodcastRssEntry
 from transcription_bot.global_logger import logger
 from transcription_bot.transcription._diarization import create_diarization
-from transcription_bot.transcription._transcription import Transcription, create_transcription
-
-if TYPE_CHECKING:
-    import pandas as pd
-
-    from transcription_bot.parsers.rss_feed import PodcastEpisode
-
-DiarizedTranscript = list["DiarizedTranscriptChunk"]
+from transcription_bot.transcription._transcription import RawTranscript, create_transcription
 
 
-class DiarizedTranscriptChunk(TypedDict):
-    """A chunk of a diarized transcript.
-
-    Attributes:
-        start (float): The start time of the chunk.
-        end (float): The end time of the chunk.
-        text (str): The text content of the chunk.
-        speaker (str): The speaker associated with the chunk.
-    """
-
-    start: float
-    end: float
-    text: str
-    speaker: str
-
-
-def get_diarized_transcript(podcast: "PodcastEpisode") -> "DiarizedTranscript":
+def get_diarized_transcript(podcast: PodcastRssEntry) -> DiarizedTranscript:
     """Create a transcript with the audio and podcast information."""
     logger.info("Getting diarized transcript...")
 
@@ -45,7 +23,7 @@ def get_diarized_transcript(podcast: "PodcastEpisode") -> "DiarizedTranscript":
     return merge_transcript_and_diarization(transcription, diarization)
 
 
-def merge_transcript_and_diarization(transcription: "Transcription", diarization: "pd.DataFrame") -> DiarizedTranscript:
+def merge_transcript_and_diarization(transcription: RawTranscript, diarization: "pd.DataFrame") -> DiarizedTranscript:
     logger.info("Merging transcript and diarization...")
     diarized_transcript: DiarizedTranscript = []
 
@@ -79,7 +57,7 @@ def merge_transcript_and_diarization(transcription: "Transcription", diarization
     return diarized_transcript
 
 
-def adjust_transcript_for_voiceover(complete_transcript: "DiarizedTranscript") -> None:
+def adjust_transcript_for_voiceover(complete_transcript: DiarizedTranscript) -> None:
     """Adjust the transcript for voiceover."""
     voiceover = complete_transcript[0]["speaker"]
 

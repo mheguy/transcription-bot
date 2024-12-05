@@ -1,10 +1,6 @@
 import re
-from typing import TYPE_CHECKING
 
 from transcription_bot.episode_segments import BaseSegment, FromLyricsSegment, Segments, UnknownSegment, segment_types
-
-if TYPE_CHECKING:
-    from transcription_bot.episode_segments import BaseSegment
 
 
 def parse_lyrics(lyrics: str) -> Segments:
