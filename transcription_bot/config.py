@@ -41,9 +41,9 @@ _REQUIRED_ENV_VARS = [
     "openai_project",
     "openai_api_key",
     "pyannote_token",
-    "cronitor_api_key",
-    "cronitor_job_id",
 ]
+
+_REQUIRED_ONLY_IN_PROD_ENV_VARS = ["sentry_dsn", "cronitor_api_key", "cronitor_job_id"]
 
 
 class ConfigProto(Protocol):
@@ -100,13 +100,16 @@ class ConfigProto(Protocol):
     cronitor_job_id: str
 
 
-_sentry_validator = Validator(
-    "sentry_dsn",
-    required=True,
-    ne="",
-    messages={"operations": "{name} must not be blank when in production"},
-    when=Validator("local_mode", eq=False),
-)
+_prod_only_validators = [
+    Validator(
+        var_name,
+        required=True,
+        ne="",
+        messages={"operations": "{name} must not be blank when in production"},
+        when=Validator("local_mode", eq=False),
+    )
+    for var_name in _REQUIRED_ONLY_IN_PROD_ENV_VARS
+]
 
 config = Dynaconf(
     envvar_prefix="TB",
@@ -122,7 +125,7 @@ config = Dynaconf(
 config = cast(ConfigProto, config)
 
 config.validators.register(
-    _sentry_validator,
+    *_prod_only_validators,
     *(
         Validator(env_var, required=True, ne="", messages={"operations": "{name} must not be blank"})
         for env_var in _REQUIRED_ENV_VARS
