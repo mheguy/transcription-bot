@@ -2,7 +2,7 @@ import math
 import re
 from abc import ABC, abstractmethod
 from dataclasses import field
-from typing import Any, ClassVar, TypeVar
+from typing import Any, ClassVar, TypeVar, override
 from urllib.parse import urlparse
 
 from bs4 import Tag
@@ -146,24 +146,30 @@ class UnknownSegment(BaseSegment):
     url: str | None
 
     @property
+    @override
     def template_name(self) -> str:
         return "unknown"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return f"Please identify the start of the segment whose title is: {self.title}, {self.extra_text}"
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         raise NotImplementedError
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         return {"title": self.title, "extra_text": self.extra_text, "url": self.url}
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         raise NotImplementedError
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(self.title.split(), chunk["text"].lower()):
@@ -197,24 +203,30 @@ class IntroSegment(BaseSegment):
     """The segment that introduces the show and has banter betweeen the rogues."""
 
     @property
+    @override
     def template_name(self) -> str:
         return "intro"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         raise NotImplementedError
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "intro"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         return {}
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         raise NotImplementedError
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         del transcript
         return 0.0
@@ -223,24 +235,30 @@ class IntroSegment(BaseSegment):
 @dataclass(kw_only=True)
 class OutroSegment(BaseSegment):
     @property
+    @override
     def template_name(self) -> str:
         return "outro"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return "Please find the start of the outro. This is typically where Steve says 'Skeptics' Guide to the Universe is produced by SGU Productions'"
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         raise NotImplementedError
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         return {}
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         raise NotImplementedError
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(
@@ -259,24 +277,30 @@ class LogicalFallacySegment(FromLyricsSegment, NonNewsSegmentMixin):
     title: str = "Name That Logical Fallacy"
 
     @property
+    @override
     def template_name(self) -> str:
         return "logical_fallacy"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'name that logical fallacy' segment."
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "ntlf"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         return {"topic": self.topic}
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return "name that logical fallacy" in lowercase_text
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(["name", "logical", "fallacy"], chunk["text"].lower()):
@@ -284,6 +308,7 @@ class LogicalFallacySegment(FromLyricsSegment, NonNewsSegmentMixin):
 
         return None
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "LogicalFallacySegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
@@ -300,17 +325,21 @@ class QuickieSegment(FromLyricsSegment, NonNewsSegmentMixin):
     url: str
 
     @property
+    @override
     def template_name(self) -> str:
         return "quickie"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return f"Please find the start of the 'quickie' segment: {self.title}. The subject is: {self.subject}"
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "quickie"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         article_publication = None
         article_title = None
@@ -327,6 +356,7 @@ class QuickieSegment(FromLyricsSegment, NonNewsSegmentMixin):
             "article_publication": article_publication,
         }
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("quickie with")
@@ -341,6 +371,7 @@ class QuickieSegment(FromLyricsSegment, NonNewsSegmentMixin):
 
         return None
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "QuickieSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
@@ -364,10 +395,12 @@ class WhatsTheWordSegment(FromLyricsSegment, NonNewsSegmentMixin):
     title: str = "What's the Word?"
 
     @property
+    @override
     def template_name(self) -> str:
         return "whats_the_word"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return (
             "Please find the start of the 'what's the word' segment."
@@ -375,16 +408,20 @@ class WhatsTheWordSegment(FromLyricsSegment, NonNewsSegmentMixin):
         )
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "wtw"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         return {"word": self.word}
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return bool(re.match(r"what.s the word", lowercase_text))
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if re.match(r"what.?s the word", chunk["text"].lower()):
@@ -395,17 +432,7 @@ class WhatsTheWordSegment(FromLyricsSegment, NonNewsSegmentMixin):
 
         return None
 
-    @staticmethod
-    def from_summary_text(text: str) -> "WhatsTheWordSegment":
-        lines = text.split(":")
-
-        if len(lines) > 1:
-            word = lines[1].strip()
-        else:
-            word = "N/A<!-- Failed to extract word -->"
-
-        return WhatsTheWordSegment(word=word)
-
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "WhatsTheWordSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
@@ -427,24 +454,30 @@ class TikTokSegment(FromLyricsSegment):
     url: str
 
     @property
+    @override
     def template_name(self) -> str:
         return "tiktok"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return f"Please identify the start of the 'from tiktok' segment. The topic is: {self.title}"
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "tiktok"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         return {"title": self.title, "url": self.url}
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("from tiktok")
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(self.title.split(), chunk["text"].lower()):
@@ -452,6 +485,7 @@ class TikTokSegment(FromLyricsSegment):
 
         return None
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "TikTokSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
@@ -478,10 +512,12 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment, NonNewsSegmentMixin):
     title: str = "Dumbest Thing of the Week"
 
     @property
+    @override
     def template_name(self) -> str:
         return "dumbest"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return (
             "Please identify the start of the 'dumbest thing of the week' segment."
@@ -489,9 +525,11 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment, NonNewsSegmentMixin):
         )
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "dumbest"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         article_publication = None
         article_title = None
@@ -506,10 +544,12 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment, NonNewsSegmentMixin):
             "article_publication": article_publication,
         }
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("dumbest thing of the week")
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for segment in transcript:
             if are_strings_in_string(["dumb", "thing", "of", "the", "week"], segment["text"].lower()):
@@ -517,6 +557,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment, NonNewsSegmentMixin):
 
         return None
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "DumbestThingOfTheWeekSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
@@ -539,24 +580,30 @@ class NoisySegment(FromLyricsSegment, FromShowNotesSegment):
     last_week_answer: str = "<!-- Failed to extract last week's answer -->"
 
     @property
+    @override
     def template_name(self) -> str:
         return "noisy"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'who's that noisy' segment."
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "wtn"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         return {"last_week_answer": self.last_week_answer}
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return bool(re.search(r"who.s that noisy", lowercase_text))
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for segment in transcript:
             if are_strings_in_string(["who", "that", "noisy"], segment["text"].lower()):
@@ -564,6 +611,7 @@ class NoisySegment(FromLyricsSegment, FromShowNotesSegment):
 
         return None
 
+    @override
     @staticmethod
     def from_show_notes(segment_data: list[Tag]) -> "NoisySegment":
         """Create a NoisySegment that will be merged with the lyrics segment."""
@@ -578,6 +626,7 @@ class NoisySegment(FromLyricsSegment, FromShowNotesSegment):
 
         return NoisySegment()
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "NoisySegment":
         del text
@@ -590,24 +639,30 @@ class QuoteSegment(FromLyricsSegment):
     attribution: str
 
     @property
+    @override
     def template_name(self) -> str:
         return "quote"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'quote' segment. This is usually Steve asking Evan for the quote."
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "qow"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         return {"quote": self.quote, "attribution": self.attribution}
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("skeptical quote of the week")
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for segment in transcript:
             text = segment["text"].lower()
@@ -616,6 +671,7 @@ class QuoteSegment(FromLyricsSegment):
 
         return None
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "QuoteSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
@@ -640,25 +696,31 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
     theme: str | None = None
 
     @property
+    @override
     def template_name(self) -> str:
         return "science_or_fiction"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'science or fiction' segment."
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "theme"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
-        items = ScienceOrFictionSegment.process_raw_items(self.raw_items)
+        items = ScienceOrFictionSegment._process_raw_items(self.raw_items)
         return {"items": items, "theme": self.theme}
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return "science or fiction" in lowercase_text
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for segment in transcript:
             if "time for science or fiction" in segment["text"].lower():
@@ -666,13 +728,14 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
 
         return None
 
+    @override
     @staticmethod
     def from_show_notes(segment_data: list[Tag]) -> "ScienceOrFictionSegment":
         raw_items = [i for i in segment_data[1].children if isinstance(i, Tag)]
         return ScienceOrFictionSegment(raw_items=raw_items)
 
     @staticmethod
-    def process_raw_items(raw_items: list[Tag]) -> list[ScienceOrFictionItem]:
+    def _process_raw_items(raw_items: list[Tag]) -> list[ScienceOrFictionItem]:
         items: list[ScienceOrFictionItem] = []
 
         science_items = 1
@@ -725,6 +788,7 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
 
         return items
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "ScienceOrFictionSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
@@ -745,17 +809,21 @@ class NewsItem(BaseSegment):
     url: str | None
 
     @property
+    @override
     def template_name(self) -> str:
         return "news"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return f"Please identify the start of the news segment whose topic is: {self.topic}"
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         raise NotImplementedError
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         article_publication = None
         article_title = None
@@ -771,10 +839,12 @@ class NewsItem(BaseSegment):
             "article_publication": article_publication,
         }
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         raise NotImplementedError
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         del transcript
 
@@ -788,27 +858,34 @@ class NewsMetaSegment(FromLyricsSegment):
     news_segments: list[NewsItem]
 
     @property
+    @override
     def template_name(self) -> str:
         raise NotImplementedError
 
     @property
+    @override
     def llm_prompt(self) -> str:
         raise NotImplementedError
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         raise NotImplementedError
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("news item")
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         raise NotImplementedError
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "NewsMetaSegment":
         lines = text.split("\n")[1:]
@@ -841,23 +918,28 @@ class InterviewSegment(FromLyricsSegment, FromShowNotesSegment):
     url: str
 
     @property
+    @override
     def template_name(self) -> str:
         return "interview"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return f"Please identity the beginning of the interview with {self.name}."
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "interview"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "url": self.url,
         }
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(["go", "to", "interview"], chunk["text"].lower()):
@@ -865,10 +947,12 @@ class InterviewSegment(FromLyricsSegment, FromShowNotesSegment):
 
         return None
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("interview with")
 
+    @override
     @staticmethod
     def from_show_notes(segment_data: list[Tag]) -> "InterviewSegment":
         text = segment_data[0].text
@@ -876,6 +960,7 @@ class InterviewSegment(FromLyricsSegment, FromShowNotesSegment):
 
         return InterviewSegment(name=name.strip(":- "), url="")
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "InterviewSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
@@ -896,24 +981,30 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
     items: list[str]
 
     @property
+    @override
     def template_name(self) -> str:
         return "email"
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'email' segment."
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "email"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         return {"items": self.items}
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("question #") or all(s in lowercase_text for s in ["your", "question", "mail"])
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for segment in transcript:
             if "mail" in segment["text"].lower() and segment["speaker"] == "Steve":
@@ -921,15 +1012,7 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
 
         return None
 
-    @staticmethod
-    def from_summary_text(text: str) -> "EmailSegment":
-        if ": " not in text:
-            return EmailSegment(items=[])
-
-        raw_items = text.split(":")[1].split(",")
-        items = [raw_item.strip() for raw_item in raw_items]
-        return EmailSegment(items=items)
-
+    @override
     @staticmethod
     def from_show_notes(segment_data: list[Tag]) -> "EmailSegment":
         text = segment_data[0].text
@@ -940,6 +1023,7 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
         items = [raw_item.strip() for raw_item in raw_items]
         return EmailSegment(items=items)
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "EmailSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()][1:] + [None]  # sentinel value
@@ -966,26 +1050,33 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
     title: str = "Forgotten Superheroes of Science"
 
     @property
+    @override
     def template_name(self) -> str:
         raise NotImplementedError
 
     @property
+    @override
     def llm_prompt(self) -> str:
         return "Please identify the start of the 'forgotten superheroes of science' segment."
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "fss"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         raise NotImplementedError
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         first_format = bool(re.match(r"forgotten superhero(es)? of science", lowercase_text))
         second_format = bool(re.match(r"fsos", lowercase_text))
         return first_format or second_format
 
+    @override
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(["forgotten", "hero", "science"], chunk["text"].lower()):
@@ -993,6 +1084,7 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
 
         return None
 
+    @override
     @staticmethod
     def from_summary_text(text: str) -> "ForgottenSuperheroesOfScienceSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
@@ -1001,6 +1093,7 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
 
         return ForgottenSuperheroesOfScienceSegment(subject=subject)
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "ForgottenSuperheroesOfScienceSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
@@ -1023,17 +1116,21 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSeg
     title: str = "Swindler's List"
 
     @property
+    @override
     def template_name(self) -> str:
         raise NotImplementedError
 
     @property
+    @override
     def llm_prompt(self) -> str:
         raise NotImplementedError
 
     @property
+    @override
     def wiki_anchor_tag(self) -> str:
         return "swindlers"
 
+    @override
     def get_template_values(self) -> dict[str, Any]:
         article_publication = None
         article_title = None
@@ -1048,10 +1145,12 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSeg
             "article_publication": article_publication,
         }
 
+    @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
         return bool(re.match(r"swindler.s list", lowercase_text))
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(["swindler", "list"], chunk["text"].lower()):
@@ -1059,11 +1158,13 @@ class SwindlersListSegment(FromLyricsSegment, FromSummaryTextSegment, NonNewsSeg
 
         return None
 
+    @override
     @staticmethod
     def from_summary_text(text: str) -> "SwindlersListSegment":
         topic = text.split(":")[1].strip()
         return SwindlersListSegment(topic=topic, url=None)
 
+    @override
     @staticmethod
     def from_lyrics(text: str) -> "SwindlersListSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
