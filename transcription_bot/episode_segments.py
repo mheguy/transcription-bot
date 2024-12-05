@@ -10,6 +10,7 @@ from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
 from transcription_bot.data_models import DiarizedTranscript
+from transcription_bot.exceptions import StringMatchError
 from transcription_bot.global_logger import logger
 from transcription_bot.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
 from transcription_bot.templating import get_template
@@ -417,7 +418,7 @@ class WhatsTheWordSegment(FromLyricsSegment, NonNewsSegmentMixin):
             logger.warning(f"Unexpected extra lines in whatstheword segment: {extra}")
 
         if not word:
-            raise ValueError(f"Failed to extract title from: {text}")
+            raise StringMatchError(f"Failed to extract title from: {text}")
 
         return WhatsTheWordSegment(word=word)
 
@@ -463,7 +464,7 @@ class TikTokSegment(FromLyricsSegment):
             logger.warning(f"Unexpected extra lines in tiktok segment: {extra}")
 
         if not title:
-            raise ValueError(f"Failed to extract title from: {text}")
+            raise StringMatchError(f"Failed to extract title from: {text}")
 
         if not url or not string_is_url(url):
             logger.error(f"Failed to extract valid URL from: {text}")
@@ -678,7 +679,7 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
             title_text = find_single_element(raw_item, "span", "science-fiction__item-title").text
             match = re.search(r"(\d+)", title_text)
             if not match:
-                raise ValueError(f"Failed to extract item number from: {title_text}")
+                raise StringMatchError(f"Failed to extract item number from: {title_text}")
 
             item_number = int(match.group(1))
 
@@ -825,7 +826,7 @@ class NewsMetaSegment(FromLyricsSegment):
 
                 match = re.match(r"news item ?#?\d+\s*.\s*(.+)", line, re.IGNORECASE)
                 if not match:
-                    raise ValueError(f"Failed to extract news topic from: {line}")
+                    raise StringMatchError(f"Failed to extract news topic from: {line}")
                 topic = match.group(1).strip()
 
                 items.append(NewsItem(item_number=item_counter, topic=topic, url=url))
@@ -1010,7 +1011,7 @@ class ForgottenSuperheroesOfScienceSegment(FromLyricsSegment, FromSummaryTextSeg
 
         match = fsos_pattern.match(full_subject)
         if not match:
-            raise ValueError(f"Unable to extract name from {full_subject}")
+            raise StringMatchError(f"Unable to extract name from {full_subject}")
 
         name = match.group(0)
         messy_description = full_subject[len(name) :]

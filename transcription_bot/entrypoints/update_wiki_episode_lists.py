@@ -19,7 +19,7 @@ from transcription_bot.episode_segments import (
     ScienceOrFictionSegment,
     get_first_segment_of_type,
 )
-from transcription_bot.exceptions import NoLyricsTagError
+from transcription_bot.exceptions import NoLyricsTagError, StringMatchError
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import init_logging, logger
 from transcription_bot.helpers import filter_bad_episodes
@@ -52,16 +52,12 @@ def main() -> None:
     #     logger.info("No modified episode pages found. Exiting.")
     #     return
 
-    # episode_numbers = [990]  # Episode with all data
-    # episode_numbers = [991]  # Episode missing data (lyrics returns a list instead of str)
-    # episode_numbers = set(range(1, 652))
-    episode_numbers = set(range(1, 652))
+    # episode_numbers = set(range(301, 652))
+    episode_numbers = set(range(331, 652))
     episode_numbers.remove(411)
-    # episode_numbers = []
+    # episode_numbers = {330}
 
     good_episode_numbers = filter_bad_episodes(episode_numbers)
-
-    # TODO: Is it possible to delay getting article titles until later?
 
     logger.info("Getting episodes from podcast RSS feed...")
     rss_map = {episode.episode_number: episode for episode in get_podcast_rss_entries(http_client)}
@@ -69,6 +65,8 @@ def main() -> None:
     logger.info("Getting episode list pages...")
     episode_years = {episode_number: rss_map[episode_number].year for episode_number in good_episode_numbers}
     episode_lists = {year: get_episode_list_wiki_page(year) for year in set(episode_years.values())}
+
+    uncaught_exceptions = []  # TODO: Remove after debugging
 
     for episode_number in good_episode_numbers:
         logger.info(f"Processing episode #{episode_number}")
@@ -81,9 +79,16 @@ def main() -> None:
             logger.error(f"Unable to process mp3 for episode {episode_number}")
         except NoLyricsTagError:
             logger.error(f"Cannot process episode {episode_number} due to missing lyrics tag.")
+        except StringMatchError:
+            logger.exception(f"Cannot process episode {episode_number} due to string matching error.")
+            uncaught_exceptions.append(episode_number)
+        except Exception:  # TODO: Remove after debugging
+            uncaught_exceptions.append(episode_number)  # TODO: Remove after debugging
+
+    print(f"Uncaught exceptions: {uncaught_exceptions}")
 
     for year, episode_list in episode_lists.items():
-        input("Go?")  # TODO :Remove this debug code
+        input(f"Go for {year}?")  # TODO :Remove this debug code
         update_episode_list(http_client, year, str(episode_list))
 
 
