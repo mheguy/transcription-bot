@@ -94,5 +94,7 @@ if __name__ == "__main__":
 
     main(selected_episode=_episode_to_process)
 
-    # Sleep to allow sentry to flush
+    # Sleep to allow monitors to flush
     time.sleep(5)
+
+    logger.info("Exiting clean.")

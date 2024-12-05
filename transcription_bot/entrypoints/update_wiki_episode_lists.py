@@ -3,6 +3,8 @@
 Check the most recently updated episode pages and update the episode list to match the current state of the episodes.
 """
 
+import time
+
 import cronitor
 import sentry_sdk
 from mutagen.id3._util import ID3NoHeaderError
@@ -189,3 +191,8 @@ def get_interviewee(episode_number: int, segments: list[BaseSegment]) -> str:
 
 if __name__ == "__main__":
     main()
+
+    # Sleep to allow monitors to flush
+    time.sleep(5)
+
+    logger.info("Exiting clean.")
