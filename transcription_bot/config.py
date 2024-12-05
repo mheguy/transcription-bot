@@ -41,6 +41,8 @@ _REQUIRED_ENV_VARS = [
     "openai_project",
     "openai_api_key",
     "pyannote_token",
+    "cronitor_api_key",
+    "cronitor_job_id",
 ]
 
 
