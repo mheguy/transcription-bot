@@ -134,8 +134,6 @@ def test_add_transcript_to_segments(
             title="Test News",
             subject="Science",
             url="http://example.com",
-            article_title="Test Article",
-            article_publication="Test Publication",
         ),
         ForgottenSuperheroesOfScienceSegment(),
     ]
