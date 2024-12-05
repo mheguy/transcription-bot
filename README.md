@@ -92,7 +92,7 @@ We load the links to extract the article titles which are used in the references
 
 ## update_wiki_episode_lists
 
-This tool helps maintain the transcripts within <https://www.sgutranscripts.org><br>
+This tool helps maintain the episode lists within <https://www.sgutranscripts.org><br>
 
 ### What It Does
 
@@ -101,6 +101,8 @@ For each modified episode page it:
 
 - ensures the episode is present in the appropriate year's page
 - updates the status of the episode based on the templates used in the episode page
+
+Specifically, for the status column it will overwrite the existing value. For all other columns it will only add information, never overwrite or delete it.
 
 ## Development
 
