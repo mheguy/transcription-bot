@@ -620,20 +620,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pywikibot"
-version = "9.6.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "mwparserfromhell" },
-    { name = "packaging" },
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a7/0d/f875805a1588ed2d4325499cea5addc77705be4d77fcf5e0b1eb6d9db3f6/pywikibot-9.6.0.tar.gz", hash = "sha256:f7819593e530580a7b1f7a8cee0394e64c960dbba7bd71aef17d61086ebcaa2d", size = 623949 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/66/d1/18de028868cf58d7226d5597448ef9ff7e88dfd4cad6dfc3eeee3aa46d0a/pywikibot-9.6.0-py3-none-any.whl", hash = "sha256:05d30ca20613a3f04259109134dbe73bfe9054291d2953003e6b08d00cba88a0", size = 726580 },
-]
-
-[[package]]
 name = "requests"
 version = "2.32.3"
 source = { registry = "https://pypi.org/simple" }
@@ -748,7 +734,6 @@ dependencies = [
     { name = "openai" },
     { name = "pandas" },
     { name = "pyarrow" },
-    { name = "pywikibot" },
     { name = "requests" },
     { name = "sentry-sdk" },
 ]
@@ -782,7 +767,6 @@ requires-dist = [
     { name = "openai", specifier = ">=1.54.4" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pyarrow", specifier = ">=18.0.0" },
-    { name = "pywikibot", specifier = ">=9.5.0" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "sentry-sdk", specifier = ">=2.18.0" },
 ]

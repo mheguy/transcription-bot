@@ -2,7 +2,6 @@ from collections.abc import Container
 from functools import cache
 from http.client import NOT_FOUND
 
-import pywikibot
 from mwparserfromhell.nodes import Template
 from mwparserfromhell.nodes.extras.parameter import Parameter
 from mwparserfromhell.utils import parse_anything as parse_wiki
@@ -12,6 +11,7 @@ from requests import RequestException, Session
 from transcription_bot.config import config
 from transcription_bot.data_models import EpisodeData, SguListEntry
 from transcription_bot.episode_segments import QuoteSegment, Segments, get_first_segment_of_type
+from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import logger
 from transcription_bot.llm_interface import ask_llm_for_image_caption
 from transcription_bot.parsers.show_notes import get_episode_image_url
@@ -170,9 +170,26 @@ def get_episode_template_from_list(episode_list_page: Wikicode, episode_number: 
 def get_wiki_page(page_title: str) -> Wikicode:
     """Retrieve the wiki page with the given name."""
     logger.debug(f"Retrieving wiki page: {page_title}")
-    site = pywikibot.Site(url=config.wiki_base_url)
-    page = pywikibot.Page(site, page_title).text
-    return parse_wiki(page)
+
+    params = {
+        "action": "query",
+        "format": "json",
+        "prop": "revisions",
+        "titles": page_title,
+        "rvprop": "content",
+        "rvslots": "main",
+        "rvlimit": 1,
+        "formatversion": "2",
+    }
+    headers = {"User-Agent": "transcription-bot/1.0"}
+
+    req = http_client.get(config.wiki_api_base, headers=headers, params=params, timeout=5)
+    json = req.json()
+
+    revision = json["query"]["pages"][0]["revisions"][0]
+    text = revision["slots"]["main"]["content"]
+
+    return parse_wiki(text)
 
 
 # endregion

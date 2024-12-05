@@ -71,7 +71,6 @@ class ConfigProto(Protocol):
     wiki_username: str
     wiki_password: str
     wiki_episode_url_base: str
-    wiki_base_url: str
     wiki_api_base: str
 
     # Azure / transcription

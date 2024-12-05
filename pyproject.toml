@@ -17,7 +17,6 @@ dependencies = [
     "openai>=1.54.4",
     "pandas>=2.2.3",
     "pyarrow>=18.0.0",
-    "pywikibot>=9.5.0",
     "requests>=2.32.3",
     "sentry-sdk>=2.18.0",
 ]
