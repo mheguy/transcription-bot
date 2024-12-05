@@ -12,7 +12,6 @@ wiki_rss_url = "https://www.sgutranscripts.org/w/api.php?hidebots=0&urlversion=1
 wiki_username = ""
 wiki_password = ""
 wiki_episode_url_base = "https://www.sgutranscripts.org/w/rest.php/v1/page/SGU_Episode_"
-wiki_base_url = "https://www.sgutranscripts.org"
 wiki_api_base = "https://sgutranscripts.org/w/api.php"
 
 # Azure / transcription
