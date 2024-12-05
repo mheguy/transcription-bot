@@ -14,8 +14,6 @@ Please use this template in the Episode skeleton in order to streamline the inse
 
 If for some reason these dates do not match up with the broadcasted release of their respective episodes, please be careful in how you modify the entries so as not to disrupt past episodes' date format data.
 
-[[Template:800s]] is set up just like this one. Perhaps one day a Template:1000s will be useful to compile.
-
 === Usage ===
 Replace NNN with the specific XXX group episode number.
 
@@ -29,8 +27,6 @@ Replace NNN with the specific XXX group episode number.
 [[Category: Templates]]
 </noinclude>
 """
-
-FIRST_EPISODE_DATE = date(2005, 5, 4)
 
 
 def main(group_start: int, first_episode_of_group_date: date) -> None:
