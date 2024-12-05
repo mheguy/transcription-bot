@@ -92,8 +92,10 @@ class ConfigProto(Protocol):
     openai_api_key: str
     llm_model: str
 
-    # Sentry (only in deployed)
+    # Monitoring (only in deployed)
     sentry_dsn: str
+    cronitor_api_key: str
+    cronitor_job_id: str
 
 
 _sentry_validator = Validator(

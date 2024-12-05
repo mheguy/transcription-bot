@@ -6,8 +6,8 @@ If no arguments are provided, it will check for the most recent episode and proc
 import sys
 import time
 
+import cronitor
 import sentry_sdk
-from sentry_sdk.crons import monitor
 
 from transcription_bot.config import UNPROCESSABLE_EPISODES, config
 from transcription_bot.converters.episode_data_to_segments import (
@@ -23,9 +23,10 @@ from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_pa
 
 if not config.local_mode:
     sentry_sdk.init(dsn=config.sentry_dsn, environment="production")
+    cronitor.api_key = config.cronitor_api_key
 
 
-@monitor(monitor_slug="transcription-bot")
+@cronitor.job(config.cronitor_job_id)
 def main(*, selected_episode: int) -> None:
     """Create/update a transcript for an episode of the podcast.
 

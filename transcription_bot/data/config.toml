@@ -35,3 +35,5 @@ llm_model = "gpt-4o-mini"
 
 # Sentry (only in deployed)
 sentry_dsn = ""
+cronitor_api_key = ""
+cronitor_job_id = ""
