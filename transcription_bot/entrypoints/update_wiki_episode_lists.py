@@ -7,6 +7,7 @@ import sentry_sdk
 from mutagen.id3._util import ID3NoHeaderError
 from mwparserfromhell.nodes.template import Template
 from mwparserfromhell.wikicode import Wikicode
+from sentry_sdk.crons import monitor
 
 from transcription_bot.config import config
 from transcription_bot.converters.episode_data_to_segments import convert_episode_data_to_episode_segments
@@ -36,6 +37,7 @@ if not config.local_mode:
     sentry_sdk.init(dsn=config.sentry_dsn, environment="production")
 
 
+@monitor(monitor_slug="sgu-transcript-wiki-maintainer")
 def main() -> None:
     """Update wiki episode lists."""
     init_logging()
