@@ -10,6 +10,7 @@ dependencies = [
     "dynaconf>=3.2.6",
     "feedparser>=6.0.11",
     "httpx>=0.27.2",
+    "import-linter>=2.1",
     "loguru>=0.7.2",
     "mutagen>=1.47.0",
     "mwparserfromhell>=0.6.6",
@@ -58,6 +59,28 @@ exclude_also = [
     "NotImplementedError",
     "def __repr__",
     "if __name__ == .__main__.:",
+]
+
+[tool.importlinter]
+root_package = "transcription_bot"
+exclude_type_checking_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Ensure import structure"
+type = "layers"
+containers = ["transcription_bot"]
+exhaustive = true
+layers = [
+    "entrypoints",                                                                                                 # Program entrypoints
+    "data_processing.transcription | data_processing.episode_metadata | data_processing.episode_data_to_segments", # data_processing
+    "parsers",                                                                                                     # Workers/coordinators
+    "models.episode_segments",                                                                                     # High level models
+    "interfaces.llm_interface | interfaces.wiki",                                                                  # Interfaces
+    "utils.helpers | utils.templating",                                                                            # Helpers
+    "utils.caching | utils.webhook_server",                                                                        # Low level services
+    "models.data_models",                                                                                          # Low level models
+    "utils.config : utils.global_http_client : utils.global_logger",                                               # Low level objects & config
+    "utils.exceptions",                                                                                            # Custom exceptions
 ]
 
 [tool.pyright]
