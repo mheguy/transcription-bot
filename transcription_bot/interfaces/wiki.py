@@ -9,7 +9,7 @@ from mwparserfromhell.wikicode import Wikicode
 from requests import RequestException, Session
 
 from transcription_bot.interfaces.llm_interface import ask_llm_for_image_caption
-from transcription_bot.models.data_models import EpisodeData, SguListEntry
+from transcription_bot.models.data_models import EpisodeMetadata, SguListEntry
 from transcription_bot.models.episode_segments import QuoteSegment, Segments
 from transcription_bot.parsers.show_notes import get_episode_image_url
 from transcription_bot.utils.config import config
@@ -25,7 +25,7 @@ _EPISODE_LIST_PAGE_PREFIX = "Template:EpisodeList"
 # region public functions
 def create_podcast_wiki_page(
     client: Session,
-    episode_data: EpisodeData,
+    episode_metadata: EpisodeMetadata,
     episode_segments: Segments,
     rogues: Container[str],
     *,
@@ -40,26 +40,26 @@ def create_podcast_wiki_page(
     qotw_segment = get_first_segment_of_type(episode_segments, QuoteSegment)
 
     episode_image_url = get_episode_image_url(
-        episode_data.show_notes
+        episode_metadata.show_notes
     )  # TODO: The image URL should already be in the episode data
-    episode_icon_caption = ask_llm_for_image_caption(episode_data.podcast, episode_image_url)
+    episode_icon_caption = ask_llm_for_image_caption(episode_metadata.podcast, episode_image_url)
 
     csrf_token = log_into_wiki(client)
 
     # Image upload
-    episode_icon_name = _find_image_upload(client, str(episode_data.podcast.episode_number))
+    episode_icon_name = _find_image_upload(client, str(episode_metadata.podcast.episode_number))
     if not episode_icon_name:
         logger.debug("Uploading image for episode...")
         episode_icon_name = _upload_image_to_wiki(
-            client, csrf_token, episode_image_url, episode_data.podcast.episode_number
+            client, csrf_token, episode_image_url, episode_metadata.podcast.episode_number
         )
 
     logger.debug("Creating wiki page...")
     wiki_page = _construct_wiki_page(
-        episode_data, episode_icon_name, episode_icon_caption, wiki_segment_text, qotw_segment, rogues
+        episode_metadata, episode_icon_name, episode_icon_caption, wiki_segment_text, qotw_segment, rogues
     )
 
-    page_title = f"{_EPISODE_PAGE_PREFIX}{episode_data.podcast.episode_number}"
+    page_title = f"{_EPISODE_PAGE_PREFIX}{episode_metadata.podcast.episode_number}"
 
     save_wiki_page(client, page_title, wiki_page, allow_page_editing=allow_page_editing)
 
@@ -231,7 +231,7 @@ def _upload_image_to_wiki(client: Session, csrf_token: str, image_url: str, epis
 
 
 def _construct_wiki_page(
-    episode_data: EpisodeData,
+    episode_data: EpisodeMetadata,
     episode_icon_name: str,
     episode_icon_caption: str,
     segment_text: str,

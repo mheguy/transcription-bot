@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from transcription_bot.data_processing import episode_data_to_segments
-from transcription_bot.models.data_models import DiarizedTranscript, EpisodeData, PodcastRssEntry
+from transcription_bot.models.data_models import DiarizedTranscript, EpisodeMetadata, PodcastRssEntry
 from transcription_bot.models.episode_segments import (
     ForgottenSuperheroesOfScienceSegment,
     IntroSegment,
@@ -50,8 +50,8 @@ def sample_podcast_episode() -> PodcastRssEntry:
 
 
 @pytest.fixture()
-def sample_episode_data(sample_podcast_episode: PodcastRssEntry) -> EpisodeData:
-    return EpisodeData(
+def sample_episode_metadata(sample_podcast_episode: PodcastRssEntry) -> EpisodeMetadata:
+    return EpisodeMetadata(
         podcast=sample_podcast_episode,
         lyrics="Test lyrics",
         show_notes=b"""

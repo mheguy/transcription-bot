@@ -74,7 +74,7 @@ class BaseSegment(ABC):
 
     @abstractmethod
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
-        """Get the text representation of the segment (for the wiki page)."""
+        """Get the start time of the segment (or None in the case of failure)."""
 
     @property
     def duration(self) -> float:

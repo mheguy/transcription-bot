@@ -4,14 +4,14 @@ from mutagen.id3 import ID3
 from mutagen.id3._frames import TXXX, USLT
 from requests import Session
 
-from transcription_bot.models.data_models import EpisodeData, PodcastRssEntry
+from transcription_bot.models.data_models import EpisodeMetadata, PodcastRssEntry
 from transcription_bot.utils.caching import cache_for_episode
 from transcription_bot.utils.exceptions import NoLyricsTagError
 from transcription_bot.utils.global_logger import logger
 from transcription_bot.utils.helpers import download_file
 
 
-def gather_metadata(rss_entry: PodcastRssEntry, client: Session) -> EpisodeData:
+def gather_metadata(rss_entry: PodcastRssEntry, client: Session) -> EpisodeMetadata:
     """Gather metadata about a podcast episode."""
     logger.info("Getting show data...")
     mp3 = get_audio_file(rss_entry, client)
@@ -19,7 +19,7 @@ def gather_metadata(rss_entry: PodcastRssEntry, client: Session) -> EpisodeData:
     lyrics = get_lyrics_from_mp3(rss_entry, mp3)
     show_notes = get_show_notes(rss_entry, client)
 
-    return EpisodeData(podcast=rss_entry, lyrics=lyrics, show_notes=show_notes)
+    return EpisodeMetadata(podcast=rss_entry, lyrics=lyrics, show_notes=show_notes)
 
 
 def get_lyrics_from_mp3(_rss_entry: PodcastRssEntry, raw_bytes: bytes) -> str:

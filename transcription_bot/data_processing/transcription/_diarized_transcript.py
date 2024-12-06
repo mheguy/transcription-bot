@@ -40,7 +40,7 @@ def merge_transcript_and_diarization(transcription: RawTranscript, diarization: 
         if len(segment_speakers) > 0:
             # Select the most active speaker
             segment_speaker = (
-                segment_speakers.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
+                segment_speakers.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]  # pyright: ignore[reportCallIssue]
             )
 
             if not isinstance(segment_speaker, str):

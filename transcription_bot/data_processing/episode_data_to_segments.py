@@ -1,7 +1,7 @@
 import itertools
 
 from transcription_bot.interfaces.llm_interface import ask_llm_for_segment_start
-from transcription_bot.models.data_models import DiarizedTranscript, EpisodeData, PodcastRssEntry
+from transcription_bot.models.data_models import DiarizedTranscript, EpisodeMetadata, PodcastRssEntry
 from transcription_bot.models.episode_segments import (
     IntroSegment,
     NewsMetaSegment,
@@ -69,7 +69,7 @@ def add_transcript_to_segments(
             segment.end_time,
         )
         if not segment.transcript:
-            logger.warning(f"Segment {segment} has no transcript")
+            logger.error(f"Segment {segment} has no transcript")
         else:
             logger.debug(
                 f"Segment {segment.__class__.__name__}: {len(segment.transcript)} transcript chunks, {segment.duration:1f} minutes"
@@ -131,15 +131,15 @@ def merge_segments(
     return segments
 
 
-def convert_episode_data_to_episode_segments(episode_data: EpisodeData) -> Segments:
+def convert_episode_metadata_to_episode_segments(episode_metadata: EpisodeMetadata) -> Segments:
     """Converts episode data into segments.
 
     This function takes the episode data and parses the lyrics, show notes, and summary text
     into separate segments. It then merges the segments together to capture all the data.
     """
-    lyric_segments = parse_lyrics(episode_data.lyrics)
-    show_note_segments = parse_show_notes(episode_data.show_notes)
-    summary_text_segments = parse_summary_text(episode_data.podcast.summary)
+    lyric_segments = parse_lyrics(episode_metadata.lyrics)
+    show_note_segments = parse_show_notes(episode_metadata.show_notes)
+    summary_text_segments = parse_summary_text(episode_metadata.podcast.summary)
 
     return merge_segments(lyric_segments, show_note_segments, summary_text_segments)
 

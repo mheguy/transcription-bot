@@ -175,11 +175,11 @@ class PodcastRssEntry:
 
 
 @dataclass
-class EpisodeData:
-    """Detailed data about a podcast episode.
+class EpisodeMetadata:
+    """Metadata about a podcast episode.
 
     Attributes:
-        podcast: The basic information about the episode.
+        podcast: Data from the rss feed
         lyrics: The lyrics that were embedded in the MP3 file.
         show_notes: The show notes of the episode from the website.
     """

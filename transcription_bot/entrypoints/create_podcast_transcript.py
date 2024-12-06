@@ -11,7 +11,7 @@ import sentry_sdk
 
 from transcription_bot.data_processing.episode_data_to_segments import (
     add_transcript_to_segments,
-    convert_episode_data_to_episode_segments,
+    convert_episode_metadata_to_episode_segments,
 )
 from transcription_bot.data_processing.episode_metadata import gather_metadata
 from transcription_bot.data_processing.transcription import get_transcript
@@ -64,7 +64,7 @@ def main(*, selected_episode: int) -> None:
     transcript = get_transcript(podcast_rss_entry)
 
     logger.debug("Converting data to segments...")
-    episode_segments = convert_episode_data_to_episode_segments(episode_metadata)
+    episode_segments = convert_episode_metadata_to_episode_segments(episode_metadata)
 
     logger.info("Merging transcript into episode segments...")
     transcribed_segments = add_transcript_to_segments(episode_metadata.podcast, transcript, episode_segments)
@@ -74,7 +74,7 @@ def main(*, selected_episode: int) -> None:
     logger.info("Creating wiki page...")
     create_podcast_wiki_page(
         client=http_client,
-        episode_data=episode_metadata,
+        episode_metadata=episode_metadata,
         episode_segments=transcribed_segments,
         allow_page_editing=allow_page_editing,
         rogues={s["speaker"].lower() for s in transcript},
