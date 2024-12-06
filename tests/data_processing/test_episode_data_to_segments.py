@@ -3,9 +3,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from transcription_bot.converters import episode_data_to_segments
-from transcription_bot.data_models import DiarizedTranscript, EpisodeData, PodcastRssEntry
-from transcription_bot.episode_segments import (
+from transcription_bot.data_processing import episode_data_to_segments
+from transcription_bot.models.data_models import DiarizedTranscript, EpisodeData, PodcastRssEntry
+from transcription_bot.models.episode_segments import (
     ForgottenSuperheroesOfScienceSegment,
     IntroSegment,
     OutroSegment,
@@ -120,7 +120,7 @@ def test_get_partial_transcript_for_start_time_with_no_skip(sample_diarized_tran
     assert result[0]["text"] == HOST_LINE_1
 
 
-@patch("transcription_bot.converters.episode_data_to_segments.ask_llm_for_segment_start")
+@patch("transcription_bot.data_processing.episode_data_to_segments.ask_llm_for_segment_start")
 def test_add_transcript_to_segments(
     mock_llm: Mock, sample_podcast_episode: PodcastRssEntry, sample_diarized_transcript: DiarizedTranscript
 ):

@@ -2,7 +2,7 @@ import sys
 
 from loguru import logger
 
-from transcription_bot.config import config
+from transcription_bot.utils.config import config
 
 
 def init_logging() -> None:

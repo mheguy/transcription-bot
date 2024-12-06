@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING, TypeVar
 from urllib.parse import urlparse
 
 import requests
@@ -5,11 +6,15 @@ from bs4 import BeautifulSoup, Tag
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import ConnectTimeout, ReadTimeout, RequestException
 
-from transcription_bot.caching import cache_url_title
-from transcription_bot.config import UNPROCESSABLE_EPISODES
-from transcription_bot.global_http_client import http_client
-from transcription_bot.global_logger import logger
+from transcription_bot.utils.caching import cache_url_title
+from transcription_bot.utils.config import UNPROCESSABLE_EPISODES
+from transcription_bot.utils.global_http_client import http_client
+from transcription_bot.utils.global_logger import logger
 
+if TYPE_CHECKING:
+    from transcription_bot.models.episode_segments import BaseSegment, Segments
+
+T = TypeVar("T", bound="BaseSegment")
 _CONNECT_TIMEOUT = 10
 _READ_TIMEOUT = 5
 
@@ -90,3 +95,12 @@ def filter_bad_episodes(episode_numbers: set[int]) -> list[int]:
     good_episodes = episode_numbers.difference(UNPROCESSABLE_EPISODES)
 
     return sorted(good_episodes)
+
+
+def get_first_segment_of_type(segments: "Segments", segment_type: type[T]) -> "T | None":
+    """Get the first segment of a given type from a list of segments."""
+    for segment in segments:
+        if isinstance(segment, segment_type):
+            return segment
+
+    return None

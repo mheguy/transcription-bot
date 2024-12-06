@@ -2,10 +2,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from tests.test_caching import TEST_EPISODE_NUMBER
-from transcription_bot.config import CONFIG_FILE, config
-from transcription_bot.data_models import DiarizedTranscript, PodcastRssEntry
-from transcription_bot.episode_segments import BaseSegment
+from tests.utils.test_caching import TEST_EPISODE_NUMBER
+from transcription_bot.models.data_models import DiarizedTranscript, PodcastRssEntry
+from transcription_bot.models.episode_segments import BaseSegment
+from transcription_bot.utils.config import CONFIG_FILE, config
 
 
 @pytest.fixture(autouse=True, scope="session")

@@ -3,10 +3,10 @@ import concurrent.futures
 import numpy as np
 import pandas as pd
 
-from transcription_bot.data_models import DiarizedTranscript, DiarizedTranscriptChunk, PodcastRssEntry
-from transcription_bot.global_logger import logger
-from transcription_bot.transcription._diarization import create_diarization
-from transcription_bot.transcription._transcription import RawTranscript, create_transcription
+from transcription_bot.data_processing.transcription._diarization import create_diarization
+from transcription_bot.data_processing.transcription._transcription import RawTranscript, create_transcription
+from transcription_bot.models.data_models import DiarizedTranscript, DiarizedTranscriptChunk, PodcastRssEntry
+from transcription_bot.utils.global_logger import logger
 
 
 def get_diarized_transcript(podcast: PodcastRssEntry) -> DiarizedTranscript:
@@ -40,7 +40,7 @@ def merge_transcript_and_diarization(transcription: RawTranscript, diarization: 
         if len(segment_speakers) > 0:
             # Select the most active speaker
             segment_speaker = (
-                segment_speakers.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]  # pyright: ignore[reportCallIssue]
+                segment_speakers.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
             )
 
             if not isinstance(segment_speaker, str):

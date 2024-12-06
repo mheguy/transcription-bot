@@ -8,7 +8,7 @@ import ngrok
 import requests
 from flask import Flask, Response, request, send_file
 
-from transcription_bot.config import config
+from transcription_bot.utils.config import config
 
 # This determines who is being processed!
 ROGUE_TO_PROCESS = "Steve"

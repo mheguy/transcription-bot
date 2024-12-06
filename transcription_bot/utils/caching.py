@@ -5,8 +5,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Concatenate, ParamSpec, Protocol, TypeVar, cast
 
-from transcription_bot.config import config
-from transcription_bot.global_logger import logger
+from transcription_bot.utils.config import config
+from transcription_bot.utils.global_logger import logger
 
 P = ParamSpec("P")
 R = TypeVar("R")

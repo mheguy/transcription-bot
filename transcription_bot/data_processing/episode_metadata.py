@@ -4,11 +4,11 @@ from mutagen.id3 import ID3
 from mutagen.id3._frames import TXXX, USLT
 from requests import Session
 
-from transcription_bot.caching import cache_for_episode
-from transcription_bot.data_models import EpisodeData, PodcastRssEntry
-from transcription_bot.exceptions import NoLyricsTagError
-from transcription_bot.global_logger import logger
-from transcription_bot.helpers import download_file
+from transcription_bot.models.data_models import EpisodeData, PodcastRssEntry
+from transcription_bot.utils.caching import cache_for_episode
+from transcription_bot.utils.exceptions import NoLyricsTagError
+from transcription_bot.utils.global_logger import logger
+from transcription_bot.utils.helpers import download_file
 
 
 def gather_metadata(rss_entry: PodcastRssEntry, client: Session) -> EpisodeData:

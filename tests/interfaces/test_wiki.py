@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from requests import RequestException, Session
 
-from transcription_bot import wiki
-from transcription_bot.data_models import EpisodeData, PodcastRssEntry
-from transcription_bot.episode_segments import QuoteSegment, Segments
+from transcription_bot.interfaces import wiki
+from transcription_bot.models.data_models import EpisodeData, PodcastRssEntry
+from transcription_bot.models.episode_segments import QuoteSegment, Segments
 
 # Test constants
 TEST_EPISODE_NUMBER = "123"
@@ -115,7 +115,7 @@ def test_episode_has_wiki_page_error(mock_session: MagicMock):
 
 def test_save_wiki_page(mock_session: MagicMock):
     # Arrange
-    with patch("transcription_bot.wiki.log_into_wiki") as mock_login:
+    with patch("transcription_bot.interfaces.wiki.log_into_wiki") as mock_login:
         mock_login.return_value = TEST_CSRF_TOKEN
 
         # Act
@@ -131,7 +131,7 @@ def test_save_wiki_page(mock_session: MagicMock):
 def test_create_podcast_wiki_page(mock_session: MagicMock, mock_episode_data: MagicMock, mock_segments: MagicMock):
     # Arrange
     with patch.multiple(
-        "transcription_bot.wiki",
+        "transcription_bot.interfaces.wiki",
         log_into_wiki=MagicMock(return_value=TEST_CSRF_TOKEN),
         _find_image_upload=MagicMock(return_value=TEST_IMAGE_FILENAME),
         _upload_image_to_wiki=MagicMock(return_value=TEST_UPLOADED_IMAGE),
@@ -155,7 +155,7 @@ def test_create_podcast_wiki_page_failed_image_upload(
     # Arrange
     with (
         patch.multiple(
-            "transcription_bot.wiki",
+            "transcription_bot.interfaces.wiki",
             log_into_wiki=MagicMock(return_value=TEST_CSRF_TOKEN),
             _find_image_upload=MagicMock(return_value=None),
             _upload_image_to_wiki=MagicMock(side_effect=RequestException("Upload failed")),

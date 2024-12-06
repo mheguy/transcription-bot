@@ -8,14 +8,15 @@ from mwparserfromhell.utils import parse_anything as parse_wiki
 from mwparserfromhell.wikicode import Wikicode
 from requests import RequestException, Session
 
-from transcription_bot.config import config
-from transcription_bot.data_models import EpisodeData, SguListEntry
-from transcription_bot.episode_segments import QuoteSegment, Segments, get_first_segment_of_type
-from transcription_bot.global_http_client import http_client
-from transcription_bot.global_logger import logger
-from transcription_bot.llm_interface import ask_llm_for_image_caption
+from transcription_bot.interfaces.llm_interface import ask_llm_for_image_caption
+from transcription_bot.models.data_models import EpisodeData, SguListEntry
+from transcription_bot.models.episode_segments import QuoteSegment, Segments
 from transcription_bot.parsers.show_notes import get_episode_image_url
-from transcription_bot.templating import get_template
+from transcription_bot.utils.config import config
+from transcription_bot.utils.global_http_client import http_client
+from transcription_bot.utils.global_logger import logger
+from transcription_bot.utils.helpers import get_first_segment_of_type
+from transcription_bot.utils.templating import get_template
 
 _EPISODE_PAGE_PREFIX = "SGU_Episode_"
 _EPISODE_LIST_PAGE_PREFIX = "Template:EpisodeList"
@@ -38,7 +39,9 @@ def create_podcast_wiki_page(
     wiki_segment_text = "\n".join(s.to_wiki() for s in episode_segments)
     qotw_segment = get_first_segment_of_type(episode_segments, QuoteSegment)
 
-    episode_image_url = get_episode_image_url(episode_data.show_notes)
+    episode_image_url = get_episode_image_url(
+        episode_data.show_notes
+    )  # TODO: The image URL should already be in the episode data
     episode_icon_caption = ask_llm_for_image_caption(episode_data.podcast, episode_image_url)
 
     csrf_token = log_into_wiki(client)

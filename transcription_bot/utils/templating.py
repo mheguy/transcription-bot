@@ -1,6 +1,6 @@
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, Template
 
-from transcription_bot.config import TEMPLATES_FOLDER
+from transcription_bot.utils.config import TEMPLATES_FOLDER
 
 _TEMPLATE_SUFFIX = "j2x"
 template_env = Environment(

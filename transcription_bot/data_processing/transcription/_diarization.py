@@ -3,11 +3,11 @@ import json
 import pandas as pd
 import requests
 
-from transcription_bot.caching import cache_for_episode
-from transcription_bot.config import VOICEPRINT_FILE, config
-from transcription_bot.data_models import PodcastRssEntry
-from transcription_bot.global_logger import logger
-from transcription_bot.webhook_server import WebhookServer
+from transcription_bot.models.data_models import PodcastRssEntry
+from transcription_bot.utils.caching import cache_for_episode
+from transcription_bot.utils.config import VOICEPRINT_FILE, config
+from transcription_bot.utils.global_logger import logger
+from transcription_bot.utils.webhook_server import WebhookServer
 
 
 @cache_for_episode

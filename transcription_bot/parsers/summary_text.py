@@ -1,4 +1,4 @@
-from transcription_bot.episode_segments import (
+from transcription_bot.models.episode_segments import (
     SPECIAL_SUMMARY_PATTERNS,
     BaseSegment,
     FromSummaryTextSegment,

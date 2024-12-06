@@ -6,8 +6,8 @@ from threading import Thread
 
 import ngrok
 
-from transcription_bot.config import config
-from transcription_bot.global_logger import logger
+from transcription_bot.utils.config import config
+from transcription_bot.utils.global_logger import logger
 
 
 class WebhookServer:

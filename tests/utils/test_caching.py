@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from transcription_bot import caching
-from transcription_bot.data_models import PodcastRssEntry
+from transcription_bot.models.data_models import PodcastRssEntry
+from transcription_bot.utils import caching
 
 # Test constants
 TEST_EPISODE_NUMBER = "123"
@@ -19,7 +19,7 @@ def test_cache_for_episode_with_local_mode(tmp_path: Path, podcast_episode: Magi
     # Arrange
     test_func_mock = MagicMock(return_value={TEST_DATA_KEY: TEST_DATA_VALUE})
 
-    with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
+    with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
         @caching.cache_for_episode
         def test_func(_episode: PodcastRssEntry) -> dict[str, str]:  # noqa: PT019
@@ -43,7 +43,7 @@ def test_cache_url_title_with_local_mode(tmp_path: Path):
     # Arrange
     get_title_mock = MagicMock(side_effect=lambda url: f"Title for {url}")
 
-    with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
+    with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
         @caching.cache_url_title
         def get_title(url: str) -> str:
@@ -66,7 +66,7 @@ def test_cache_for_episode_without_local_mode(tmp_path: Path, podcast_episode: M
     # Arrange
     test_func_mock = MagicMock(return_value={TEST_DATA_KEY: TEST_DATA_VALUE})
 
-    with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
+    with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
         @caching.cache_for_episode
         def test_func(_episode: PodcastRssEntry) -> dict[str, str]:  # noqa: PT019
@@ -90,7 +90,7 @@ def test_cache_url_title_without_local_mode(tmp_path: Path):
     # Arrange
     get_title_mock = MagicMock(side_effect=lambda url: f"Title for {url}")
 
-    with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
+    with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
         @caching.cache_url_title
         def get_title(url: str) -> str:
@@ -114,7 +114,7 @@ def test_cache_for_episode_different_episodes(tmp_path: Path):
     # Arrange
     test_func_mock = MagicMock(side_effect=lambda ep: {TEST_DATA_KEY: f"{TEST_DATA_VALUE}_{ep.episode_number}"})
 
-    with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
+    with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
         @caching.cache_for_episode
         def test_func(episode: PodcastRssEntry) -> dict[str, str]:

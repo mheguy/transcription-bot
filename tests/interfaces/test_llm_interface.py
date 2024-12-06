@@ -3,9 +3,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from transcription_bot import llm_interface
-from transcription_bot.data_models import DiarizedTranscript
-from transcription_bot.episode_segments import BaseSegment
+from transcription_bot.interfaces import llm_interface
+from transcription_bot.models.data_models import DiarizedTranscript
+from transcription_bot.models.episode_segments import BaseSegment
 
 TEST_LLM_RESULT = 42.0
 
@@ -15,7 +15,7 @@ def test_cache_llm_without_local_mode(tmp_path: Path, segment: MagicMock, transc
     llm_mock = MagicMock(return_value=TEST_LLM_RESULT)
     episode_num = 332
 
-    with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
+    with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
         @llm_interface.cache_llm
         def test_llm(_episode: int, _segment: BaseSegment, _transcript: DiarizedTranscript) -> float:  # noqa: PT019
@@ -41,7 +41,7 @@ def test_cache_llm_with_local_mode(tmp_path: Path, segment: MagicMock, transcrip
     llm_mock = MagicMock(return_value=TEST_LLM_RESULT)
     episode_num = 332
 
-    with patch("transcription_bot.caching._CACHE_FOLDER", tmp_path):
+    with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
         @llm_interface.cache_llm
         def test_llm(_episode: int, _segment: BaseSegment, _transcript: DiarizedTranscript) -> float:  # noqa: PT019

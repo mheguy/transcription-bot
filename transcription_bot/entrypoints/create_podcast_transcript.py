@@ -9,20 +9,20 @@ import time
 import cronitor
 import sentry_sdk
 
-from transcription_bot.config import UNPROCESSABLE_EPISODES, config
-from transcription_bot.converters.episode_data_to_segments import (
+from transcription_bot.data_processing.episode_data_to_segments import (
     add_transcript_to_segments,
     convert_episode_data_to_episode_segments,
 )
-from transcription_bot.data_models import PodcastRssEntry
-from transcription_bot.episode_metadata import gather_metadata
-from transcription_bot.episode_segments import ScienceOrFictionSegment, Segments
-from transcription_bot.global_http_client import http_client
-from transcription_bot.global_logger import init_logging, logger
-from transcription_bot.llm_interface import ask_llm_for_episode_metadata, ask_llm_for_sof_data
+from transcription_bot.data_processing.episode_metadata import gather_metadata
+from transcription_bot.data_processing.transcription import get_transcript
+from transcription_bot.interfaces.llm_interface import ask_llm_for_episode_metadata, ask_llm_for_sof_data
+from transcription_bot.interfaces.wiki import create_podcast_wiki_page, episode_has_wiki_page
+from transcription_bot.models.data_models import PodcastRssEntry
+from transcription_bot.models.episode_segments import ScienceOrFictionSegment, Segments
 from transcription_bot.parsers.rss_feed import get_podcast_rss_entries
-from transcription_bot.transcription import get_transcript
-from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_page
+from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, config
+from transcription_bot.utils.global_http_client import http_client
+from transcription_bot.utils.global_logger import init_logging, logger
 
 if not config.local_mode:
     sentry_sdk.init(dsn=config.sentry_dsn, environment="production")

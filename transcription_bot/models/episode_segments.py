@@ -2,20 +2,19 @@ import math
 import re
 from abc import ABC, abstractmethod
 from dataclasses import field
-from typing import Any, ClassVar, TypeVar, override
+from typing import Any, ClassVar, override
 from urllib.parse import urlparse
 
 from bs4 import Tag
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
-from transcription_bot.data_models import DiarizedTranscript
-from transcription_bot.exceptions import StringMatchError
-from transcription_bot.global_logger import logger
-from transcription_bot.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
-from transcription_bot.templating import get_template
+from transcription_bot.models.data_models import DiarizedTranscript
+from transcription_bot.utils.exceptions import StringMatchError
+from transcription_bot.utils.global_logger import logger
+from transcription_bot.utils.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
+from transcription_bot.utils.templating import get_template
 
-T = TypeVar("T", bound="BaseSegment")
 Segments = list["BaseSegment"]
 
 
@@ -1239,17 +1238,6 @@ def _join_speaker_transcription_chunks(transcript: DiarizedTranscript) -> Diariz
             speaker_chunks[-1]["end"] = chunk["end"]
 
     return speaker_chunks
-
-
-# endregion
-# region helpers
-def get_first_segment_of_type(segments: Segments, segment_type: type[T]) -> "T | None":
-    """Get the first segment of a given type from a list of segments."""
-    for segment in segments:
-        if isinstance(segment, segment_type):
-            return segment
-
-    return None
 
 
 # endregion

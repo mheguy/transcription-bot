@@ -4,11 +4,11 @@ from typing import Any, TypedDict
 
 import requests
 
-from transcription_bot.caching import cache_for_episode
-from transcription_bot.config import config
-from transcription_bot.data_models import PodcastRssEntry
-from transcription_bot.global_logger import logger
-from transcription_bot.helpers import download_file
+from transcription_bot.models.data_models import PodcastRssEntry
+from transcription_bot.utils.caching import cache_for_episode
+from transcription_bot.utils.config import config
+from transcription_bot.utils.global_logger import logger
+from transcription_bot.utils.helpers import download_file
 
 # At the time of writing, API version 2024-11-15 is not yet available
 # When it becomes available, switch api version param and remove the version from the endpoint
