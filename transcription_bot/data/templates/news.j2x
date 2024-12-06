@@ -1,6 +1,9 @@
-((# TODO: Render the meta news, that way we can get better formatting. #))
+((* if item_number == 1 *))
+{{anchor|((( wiki_anchor )))}}
+== News Items ==
+((* endif *))
 {{anchor|((( wiki_anchor )))((( item_number )))}}
-== News Item #((( item_number ))) - ((( topic ))) <small>((( "(" )))((( start_time )))((( ")" )))</small> ==
+=== ((( topic ))) <small>((( "(" )))((( start_time )))((( ")" )))</small> ===
 {{shownotes
 |weblink = ((( url )))
 |article_title = ((( article_title )))

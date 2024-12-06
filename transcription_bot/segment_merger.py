@@ -19,7 +19,6 @@ def merge_segments(
     """
     _find_duplicate_segments(lyric_segments, show_note_segments, summary_text_segments)
 
-    # TODO: Don't flatten news
     segments = _flatten_news(lyric_segments)
 
     _merge_noisy_segments(segments, show_note_segments)
@@ -34,7 +33,7 @@ def _find_duplicate_segments(*segment_collections: Segments) -> None:
 
         for segment in segment_collection:
             if segment in seen:
-                logger.info(f"Found duplicate segment: {segment}")
+                logger.error(f"Found duplicate segment: {segment}")
 
 
 def _flatten_news(lyric_segments: Segments) -> Segments:
