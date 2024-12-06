@@ -14,7 +14,7 @@ from transcription_bot.converters.episode_data_to_segments import (
     add_transcript_to_segments,
     convert_episode_data_to_episode_segments,
 )
-from transcription_bot.data_gathering import gather_metadata
+from transcription_bot.episode_metadata import gather_metadata
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import init_logging, logger
 from transcription_bot.parsers.rss_feed import get_podcast_rss_entries

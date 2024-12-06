@@ -13,8 +13,8 @@ from mwparserfromhell.wikicode import Wikicode
 
 from transcription_bot.config import config
 from transcription_bot.converters.episode_data_to_segments import convert_episode_data_to_episode_segments
-from transcription_bot.data_gathering import gather_metadata
 from transcription_bot.data_models import EpisodeStatus, PodcastRssEntry, SguListEntry
+from transcription_bot.episode_metadata import gather_metadata
 from transcription_bot.episode_segments import (
     BaseSegment,
     InterviewSegment,
