@@ -158,7 +158,7 @@ class UnknownSegment(BaseSegment):
     @property
     @override
     def wiki_anchor_tag(self) -> str:
-        raise NotImplementedError
+        return "unknown"
 
     @override
     def get_template_values(self) -> dict[str, Any]:
@@ -247,7 +247,7 @@ class OutroSegment(BaseSegment):
     @property
     @override
     def wiki_anchor_tag(self) -> str:
-        raise NotImplementedError
+        return "outro"
 
     @override
     def get_template_values(self) -> dict[str, Any]:
@@ -821,7 +821,7 @@ class NewsItem(BaseSegment):
     @property
     @override
     def wiki_anchor_tag(self) -> str:
-        raise NotImplementedError
+        return "news_item"
 
     @override
     def get_template_values(self) -> dict[str, Any]:
@@ -870,7 +870,7 @@ class NewsMetaSegment(FromLyricsSegment):
     @property
     @override
     def wiki_anchor_tag(self) -> str:
-        raise NotImplementedError
+        return "news_meta"
 
     @override
     def get_template_values(self) -> dict[str, Any]:
