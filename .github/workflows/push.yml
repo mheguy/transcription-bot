@@ -20,7 +20,7 @@ env:
 jobs:
   test-suite:
     timeout-minutes: 10
-    name: Run linters
+    name: Run linters & Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
