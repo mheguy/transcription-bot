@@ -14,9 +14,12 @@ from transcription_bot.converters.episode_data_to_segments import (
     add_transcript_to_segments,
     convert_episode_data_to_episode_segments,
 )
+from transcription_bot.data_models import PodcastRssEntry
 from transcription_bot.episode_metadata import gather_metadata
+from transcription_bot.episode_segments import ScienceOrFictionSegment, Segments
 from transcription_bot.global_http_client import http_client
 from transcription_bot.global_logger import init_logging, logger
+from transcription_bot.llm_interface import ask_llm_for_episode_metadata, ask_llm_for_sof_data
 from transcription_bot.parsers.rss_feed import get_podcast_rss_entries
 from transcription_bot.transcription import get_transcript
 from transcription_bot.wiki import create_podcast_wiki_page, episode_has_wiki_page
@@ -98,3 +101,15 @@ if __name__ == "__main__":
     time.sleep(5)
 
     logger.info("Exiting clean.")
+
+
+def enhance_transcribed_segments(_podcast_episode: PodcastRssEntry, segments: Segments) -> Segments:
+    """Enhance segments with metadata that an LLM can deduce from the transcript."""
+    # TODO: Add SoF data about who guessed what
+    ask_llm_for_episode_metadata(_podcast_episode, segments)
+
+    first_sof_segment = next((seg for seg in segments if isinstance(seg, ScienceOrFictionSegment)), None)
+    if first_sof_segment:
+        ask_llm_for_sof_data(_podcast_episode, first_sof_segment)
+
+    return segments
