@@ -1,4 +1,6 @@
-from typing import TYPE_CHECKING, TypeVar
+import time
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urlparse
 
 import requests
@@ -116,3 +118,16 @@ def resolve_url_redirects(url: str) -> str:
         return url
 
     return response.url
+
+
+def run_main_safely(func: Callable[..., None], *args: Any, **kwargs: Any) -> None:
+    """Run a function safely, logging any exceptions and providing a graceful exit."""
+    try:
+        func(*args, **kwargs)
+    except Exception:
+        logger.exception("Exiting due to exception.")
+        raise
+    else:
+        logger.info("Exiting without exception.")
+    finally:
+        time.sleep(5)  # allow monitors to flush

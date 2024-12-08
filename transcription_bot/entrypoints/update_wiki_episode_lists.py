@@ -3,8 +3,6 @@
 Check the most recently updated episode pages and update the episode list to match the current state of the episodes.
 """
 
-import time
-
 import cronitor
 import sentry_sdk
 from loguru import logger
@@ -33,7 +31,7 @@ from transcription_bot.parsers.rss_feed import get_podcast_rss_entries, get_rece
 from transcription_bot.utils.config import config
 from transcription_bot.utils.exceptions import NoLyricsTagError
 from transcription_bot.utils.global_http_client import http_client
-from transcription_bot.utils.helpers import filter_bad_episodes, get_first_segment_of_type
+from transcription_bot.utils.helpers import filter_bad_episodes, get_first_segment_of_type, run_main_safely
 
 if not config.local_mode:
     sentry_sdk.init(dsn=config.sentry_dsn, environment="production")
@@ -189,10 +187,4 @@ def get_interviewee(episode_number: int, segments: list[BaseSegment]) -> str:
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    finally:
-        # Sleep to allow monitors to flush
-        time.sleep(5)
-
-        logger.info("Exiting clean.")
+    run_main_safely(main)

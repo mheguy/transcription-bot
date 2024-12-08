@@ -4,7 +4,6 @@ If no arguments are provided, it will check for the most recent episode and proc
 """
 
 import sys
-import time
 
 import cronitor
 import sentry_sdk
@@ -22,6 +21,7 @@ from transcription_bot.parsers.rss_feed import get_podcast_rss_entries
 from transcription_bot.serializers.wiki import create_podcast_wiki_page
 from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, config
 from transcription_bot.utils.global_http_client import http_client
+from transcription_bot.utils.helpers import run_main_safely
 
 if not config.local_mode:
     sentry_sdk.init(dsn=config.sentry_dsn, environment="production")
@@ -107,10 +107,4 @@ if __name__ == "__main__":
         else:
             _episode_to_process = int(_episodes_to_process[0])
 
-    try:
-        main(selected_episode=_episode_to_process)
-    finally:
-        # Sleep to allow monitors to flush
-        time.sleep(5)
-
-        logger.info("Exiting clean.")
+    run_main_safely(main, selected_episode=_episode_to_process)
