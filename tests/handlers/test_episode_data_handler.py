@@ -1,5 +1,5 @@
 from datetime import date
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, create_autospec
 
 import pytest
 
@@ -127,9 +127,12 @@ def test_get_partial_transcript_for_start_time_with_no_skip(diarized_transcript:
     assert result[0]["text"] == HOST_LINE_1
 
 
-@patch("transcription_bot.handlers.episode_data_handler.ask_llm_for_segment_start", autospec=True)
-def test_add_transcript_to_segments(mock_llm: Mock, episode_metadata: Mock, diarized_transcript: DiarizedTranscript):
+def test_add_transcript_to_segments(
+    episode_metadata: Mock, diarized_transcript: DiarizedTranscript, monkeypatch: pytest.MonkeyPatch
+):
     # Arrange
+    mock_llm = create_autospec(episode_data_handler.get_segment_start_from_llm)
+    monkeypatch.setattr(episode_data_handler, "get_segment_start_from_llm", mock_llm)
     # Configure mock to return a fixed timestamp
     mock_llm.return_value = HOST_LINE_2_START_TIME
 
