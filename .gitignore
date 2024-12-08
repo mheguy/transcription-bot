@@ -4,6 +4,7 @@
 /data/
 .vscode/
 test.http
+testing_*
 
 # pywikibot
 throttle.ctrl
