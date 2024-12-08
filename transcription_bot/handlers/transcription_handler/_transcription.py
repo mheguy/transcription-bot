@@ -99,7 +99,7 @@ def wait_for_transcription_completion(transcription_url: str) -> str:
 
 
 def get_transcription_results(files_url: str) -> RawTranscript:
-    resp = session.get(files_url, params=_API_VERSION_PARAM, timeout=_HTTP_TIMEOUT)
+    resp = session.get(files_url, timeout=_HTTP_TIMEOUT)
     resp.raise_for_status()
 
     content = resp.json()

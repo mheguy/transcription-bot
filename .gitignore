@@ -3,6 +3,7 @@
 .env
 /data/
 .vscode/
+test.http
 
 # pywikibot
 throttle.ctrl
