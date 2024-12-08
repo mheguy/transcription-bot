@@ -63,7 +63,6 @@ class ConfigProto(Protocol):
 
     # Config variables
     local_mode: bool
-    log_level: str
 
     # RSS feeds
     podcast_rss_url: str

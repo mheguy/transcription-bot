@@ -1,8 +1,7 @@
-# override these settings with env vars, not by editing
+# override these settings with env vars, not by editing this file
 # see .env.sample
 
 local_mode = false
-log_level = "debug"
 
 # RSS feeds
 podcast_rss_url = "https://feed.theskepticsguide.org/feed/rss.aspx?feed=sgu"

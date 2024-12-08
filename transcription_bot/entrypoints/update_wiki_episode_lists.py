@@ -33,7 +33,7 @@ from transcription_bot.parsers.rss_feed import get_podcast_rss_entries, get_rece
 from transcription_bot.utils.config import config
 from transcription_bot.utils.exceptions import NoLyricsTagError
 from transcription_bot.utils.global_http_client import http_client
-from transcription_bot.utils.helpers import filter_bad_episodes, get_first_segment_of_type, init_logging
+from transcription_bot.utils.helpers import filter_bad_episodes, get_first_segment_of_type
 
 if not config.local_mode:
     sentry_sdk.init(dsn=config.sentry_dsn, environment="production")
@@ -43,7 +43,6 @@ if not config.local_mode:
 @cronitor.job(config.cronitor_job_id)
 def main() -> None:
     """Update wiki episode lists."""
-    init_logging()
     config.validators.validate_all()
 
     logger.info("Getting recently modified episode wiki pages...")

@@ -22,7 +22,6 @@ from transcription_bot.parsers.rss_feed import get_podcast_rss_entries
 from transcription_bot.serializers.wiki import create_podcast_wiki_page
 from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, config
 from transcription_bot.utils.global_http_client import http_client
-from transcription_bot.utils.helpers import init_logging
 
 if not config.local_mode:
     sentry_sdk.init(dsn=config.sentry_dsn, environment="production")
@@ -35,7 +34,6 @@ def main(*, selected_episode: int) -> None:
 
     By default, this will transcribe the latest episode (if no wiki page exists for it).
     """
-    init_logging()
     config.validators.validate_all()
 
     logger.info("Getting episodes from RSS feed...")
