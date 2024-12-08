@@ -1,5 +1,6 @@
 from io import BytesIO
 
+from loguru import logger
 from mutagen.id3 import ID3
 from mutagen.id3._frames import TXXX, USLT
 from requests import Session
@@ -11,7 +12,6 @@ from transcription_bot.models.episode_data import EpisodeMetadata
 from transcription_bot.parsers.show_notes import get_episode_image_url
 from transcription_bot.utils.caching import cache_for_episode
 from transcription_bot.utils.exceptions import NoLyricsTagError
-from transcription_bot.utils.global_logger import logger
 from transcription_bot.utils.helpers import download_file
 
 

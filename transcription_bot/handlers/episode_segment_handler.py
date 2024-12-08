@@ -1,3 +1,5 @@
+from loguru import logger
+
 from transcription_bot.models.episode_data import EpisodeMetadata
 from transcription_bot.models.episode_segments import (
     NewsMetaSegment,
@@ -8,7 +10,6 @@ from transcription_bot.models.episode_segments import (
 from transcription_bot.parsers.lyrics import parse_lyrics
 from transcription_bot.parsers.show_notes import parse_show_notes
 from transcription_bot.parsers.summary_text import parse_summary_text
-from transcription_bot.utils.global_logger import logger
 from transcription_bot.utils.helpers import get_first_segment_of_type
 
 

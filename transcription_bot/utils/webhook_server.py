@@ -5,9 +5,9 @@ from queue import Queue
 from threading import Thread
 
 import ngrok
+from loguru import logger
 
 from transcription_bot.utils.config import config
-from transcription_bot.utils.global_logger import logger
 
 
 class WebhookServer:

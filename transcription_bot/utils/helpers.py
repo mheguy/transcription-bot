@@ -1,15 +1,16 @@
+import sys
 from typing import TYPE_CHECKING, TypeVar
 from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup, Tag
+from loguru import logger
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import ConnectTimeout, ReadTimeout, RequestException
 
 from transcription_bot.utils.caching import cache_for_url
-from transcription_bot.utils.config import UNPROCESSABLE_EPISODES
+from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, config
 from transcription_bot.utils.global_http_client import http_client
-from transcription_bot.utils.global_logger import logger
 
 if TYPE_CHECKING:
     from transcription_bot.models.episode_segments import BaseSegment, GenericSegmentList
@@ -116,3 +117,23 @@ def resolve_url_redirects(url: str) -> str:
         return url
 
     return response.url
+
+
+def init_logging() -> None:
+    """Initialize loguru logger."""
+    logger.remove()
+
+    if config.local_mode:
+        logger.add(
+            sys.stdout,
+            format="{time:HH:mm:ss} <level>{level: <8}</level> [transcript-bot] {message}",
+            level=config.log_level,
+            colorize=True,
+        )
+    else:
+        logger.add(
+            sys.stdout,
+            format="[transcript-bot] - {level: <8} - {message}",
+            level=config.log_level,
+            colorize=False,
+        )

@@ -19,7 +19,7 @@ dependencies = [
     "pandas>=2.2.3",
     "pyarrow>=18.0.0",
     "requests>=2.32.3",
-    "sentry-sdk>=2.18.0",
+    "sentry-sdk[loguru]>=2.18.0",
 ]
 
 [dependency-groups]
@@ -93,10 +93,10 @@ type = "layers"
 containers = ["transcription_bot.utils"]
 exhaustive = true
 layers = [
-    "helpers | templating",                        # Helpers
-    "caching | webhook_server",                    # Low level services
-    "config : global_http_client : global_logger", # Low level objects & config
-    "exceptions",                                  # Custom exceptions
+    "helpers | templating",        # Helpers
+    "caching | webhook_server",    # Low level services
+    "config : global_http_client", # Low level objects & config
+    "exceptions",                  # Custom exceptions
 ]
 
 [[tool.importlinter.contracts]] # Entrypoint independence

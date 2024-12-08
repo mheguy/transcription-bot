@@ -2,11 +2,11 @@ import re
 from datetime import datetime
 
 import feedparser
+from loguru import logger
 from requests import Session
 
 from transcription_bot.models.data_models import PodcastRssEntry
 from transcription_bot.utils.config import config
-from transcription_bot.utils.global_logger import logger
 
 EPISODE_PATTERN = r"^SGU Episode (\d{1,4})$"
 

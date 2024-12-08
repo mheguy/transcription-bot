@@ -749,6 +749,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/9c/b1/b03f54c8b379d493bd19f9dca241efdd17f77a8f7a34b80c2d4417dfc7b7/sentry_sdk-2.19.1-py2.py3-none-any.whl", hash = "sha256:b056e04b766f805fdf0aa620482cafe2ff000c8fcb51cb266cdb90873e93837b", size = 322816 },
 ]
 
+[package.optional-dependencies]
+loguru = [
+    { name = "loguru" },
+]
+
 [[package]]
 name = "sgmllib3k"
 version = "1.0.0"
@@ -813,7 +818,7 @@ dependencies = [
     { name = "pandas" },
     { name = "pyarrow" },
     { name = "requests" },
-    { name = "sentry-sdk" },
+    { name = "sentry-sdk", extra = ["loguru"] },
 ]
 
 [package.dev-dependencies]
@@ -848,7 +853,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pyarrow", specifier = ">=18.0.0" },
     { name = "requests", specifier = ">=2.32.3" },
-    { name = "sentry-sdk", specifier = ">=2.18.0" },
+    { name = "sentry-sdk", extras = ["loguru"], specifier = ">=2.18.0" },
 ]
 
 [package.metadata.requires-dev]

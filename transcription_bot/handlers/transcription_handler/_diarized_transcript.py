@@ -2,12 +2,12 @@ import concurrent.futures
 
 import numpy as np
 import pandas as pd
+from loguru import logger
 
 from transcription_bot.handlers.transcription_handler._diarization import create_diarization
 from transcription_bot.handlers.transcription_handler._transcription import RawTranscript, create_transcription
 from transcription_bot.models.data_models import PodcastRssEntry
 from transcription_bot.models.simple_models import DiarizedTranscript, DiarizedTranscriptChunk
-from transcription_bot.utils.global_logger import logger
 
 
 def get_diarized_transcript(podcast: PodcastRssEntry) -> DiarizedTranscript:

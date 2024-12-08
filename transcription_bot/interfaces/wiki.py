@@ -1,6 +1,7 @@
 from functools import cache
 from http.client import NOT_FOUND
 
+from loguru import logger
 from mwparserfromhell.nodes import Template
 from mwparserfromhell.nodes.extras.parameter import Parameter
 from mwparserfromhell.utils import parse_anything as parse_wiki
@@ -10,7 +11,6 @@ from requests import RequestException, Session
 from transcription_bot.models.data_models import SguListEntry
 from transcription_bot.utils.config import config
 from transcription_bot.utils.global_http_client import http_client
-from transcription_bot.utils.global_logger import logger
 
 _EPISODE_PAGE_PREFIX = "SGU_Episode_"
 _EPISODE_LIST_PAGE_PREFIX = "Template:EpisodeList"
