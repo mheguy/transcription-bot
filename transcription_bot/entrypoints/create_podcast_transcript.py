@@ -9,17 +9,16 @@ import time
 import cronitor
 import sentry_sdk
 
-from transcription_bot.data_processing.episode_data_to_segments import (
-    add_transcript_to_segments,
-    convert_episode_metadata_to_episode_segments,
-)
-from transcription_bot.data_processing.episode_metadata import gather_metadata
-from transcription_bot.data_processing.transcription import get_transcript
+from transcription_bot.handlers.episode_data_handler import create_episode_data
+from transcription_bot.handlers.episode_metadata_handler import gather_metadata
+from transcription_bot.handlers.episode_segment_handler import extract_episode_segments_from_episode_metadata
+from transcription_bot.handlers.transcription_handler import get_transcript
 from transcription_bot.interfaces.llm_interface import ask_llm_for_episode_metadata, ask_llm_for_sof_data
-from transcription_bot.interfaces.wiki import create_podcast_wiki_page, episode_has_wiki_page
+from transcription_bot.interfaces.wiki import create_or_update_podcast_page, episode_has_wiki_page
 from transcription_bot.models.data_models import PodcastRssEntry
-from transcription_bot.models.episode_segments import ScienceOrFictionSegment, Segments
+from transcription_bot.models.episode_segments import RawSegments, ScienceOrFictionSegment
 from transcription_bot.parsers.rss_feed import get_podcast_rss_entries
+from transcription_bot.serializers.wiki import create_podcast_wiki_page
 from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, config
 from transcription_bot.utils.global_http_client import http_client
 from transcription_bot.utils.global_logger import init_logging, logger
@@ -64,20 +63,22 @@ def main(*, selected_episode: int) -> None:
     transcript = get_transcript(podcast_rss_entry)
 
     logger.debug("Converting data to segments...")
-    episode_segments = convert_episode_metadata_to_episode_segments(episode_metadata)
+    episode_segments = extract_episode_segments_from_episode_metadata(episode_metadata)
 
     logger.info("Merging transcript into episode segments...")
-    transcribed_segments = add_transcript_to_segments(episode_metadata.podcast, transcript, episode_segments)
+    episode_data = create_episode_data(episode_metadata, transcript, episode_segments)
     # TODO: Enable this
     # transcribed_segments = enhance_transcribed_segments(podcast_rss_entry, transcribed_segments)
 
-    logger.info("Creating wiki page...")
-    create_podcast_wiki_page(
-        client=http_client,
-        episode_metadata=episode_metadata,
-        episode_segments=transcribed_segments,
+    logger.info("Converting episode data to wiki markdown...")
+    wiki_page = create_podcast_wiki_page(episode_data)
+
+    logger.info("Creating (or updating) wiki page...")
+    create_or_update_podcast_page(
+        http_client,
+        episode_metadata.podcast.episode_number,
+        wiki_page,
         allow_page_editing=allow_page_editing,
-        rogues={s["speaker"].lower() for s in transcript},
     )
 
     logger.success(f"Episode #{podcast_rss_entry.episode_number} processed.")
@@ -103,7 +104,7 @@ if __name__ == "__main__":
     logger.info("Exiting clean.")
 
 
-def enhance_transcribed_segments(_podcast_episode: PodcastRssEntry, segments: Segments) -> Segments:
+def enhance_transcribed_segments(_podcast_episode: PodcastRssEntry, segments: RawSegments) -> RawSegments:
     """Enhance segments with metadata that an LLM can deduce from the transcript."""
     # TODO: Add SoF data about who guessed what
     ask_llm_for_episode_metadata(_podcast_episode, segments)

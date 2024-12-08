@@ -1,4 +1,3 @@
-from collections.abc import Container
 from functools import cache
 from http.client import NOT_FOUND
 
@@ -8,62 +7,16 @@ from mwparserfromhell.utils import parse_anything as parse_wiki
 from mwparserfromhell.wikicode import Wikicode
 from requests import RequestException, Session
 
-from transcription_bot.interfaces.llm_interface import ask_llm_for_image_caption
-from transcription_bot.models.data_models import EpisodeMetadata, SguListEntry
-from transcription_bot.models.episode_segments import QuoteSegment, Segments
-from transcription_bot.parsers.show_notes import get_episode_image_url
+from transcription_bot.models.data_models import SguListEntry
 from transcription_bot.utils.config import config
 from transcription_bot.utils.global_http_client import http_client
 from transcription_bot.utils.global_logger import logger
-from transcription_bot.utils.helpers import get_first_segment_of_type
-from transcription_bot.utils.templating import get_template
 
 _EPISODE_PAGE_PREFIX = "SGU_Episode_"
 _EPISODE_LIST_PAGE_PREFIX = "Template:EpisodeList"
 
 
 # region public functions
-def create_podcast_wiki_page(
-    client: Session,
-    episode_metadata: EpisodeMetadata,
-    episode_segments: Segments,
-    rogues: Container[str],
-    *,
-    allow_page_editing: bool,
-) -> None:
-    """Creates a wiki page for a podcast episode.
-
-    This function gathers all the necessary data for the episode, merges the data into segments,
-    and converts the segments into wiki page content.
-    """
-    wiki_segment_text = "\n".join(s.to_wiki() for s in episode_segments)
-    qotw_segment = get_first_segment_of_type(episode_segments, QuoteSegment)
-
-    episode_image_url = get_episode_image_url(
-        episode_metadata.show_notes
-    )  # TODO: The image URL should already be in the episode data
-    episode_icon_caption = ask_llm_for_image_caption(episode_metadata.podcast, episode_image_url)
-
-    csrf_token = log_into_wiki(client)
-
-    # Image upload
-    episode_icon_name = _find_image_upload(client, str(episode_metadata.podcast.episode_number))
-    if not episode_icon_name:
-        logger.debug("Uploading image for episode...")
-        episode_icon_name = _upload_image_to_wiki(
-            client, csrf_token, episode_image_url, episode_metadata.podcast.episode_number
-        )
-
-    logger.debug("Creating wiki page...")
-    wiki_page = _construct_wiki_page(
-        episode_metadata, episode_icon_name, episode_icon_caption, wiki_segment_text, qotw_segment, rogues
-    )
-
-    page_title = f"{_EPISODE_PAGE_PREFIX}{episode_metadata.podcast.episode_number}"
-
-    save_wiki_page(client, page_title, wiki_page, allow_page_editing=allow_page_editing)
-
-
 def episode_has_wiki_page(client: Session, episode_number: int) -> bool:
     """Check if an episode has a wiki page.
 
@@ -126,6 +79,17 @@ def save_wiki_page(
         raise RequestException("Error during page creation: %s", data["error"])
 
     logger.debug(data)
+
+
+def create_or_update_podcast_page(
+    client: Session,
+    episode_number: int,
+    wiki_page: str,
+    *,
+    allow_page_editing: bool,
+) -> None:
+    """Create or update a podcast page."""
+    save_wiki_page(client, f"{_EPISODE_PAGE_PREFIX}{episode_number}", wiki_page, allow_page_editing=allow_page_editing)
 
 
 def update_episode_list(client: Session, year: int, page_text: str) -> None:
@@ -195,9 +159,8 @@ def get_wiki_page(page_title: str) -> Wikicode:
     return parse_wiki(text)
 
 
-# endregion
-# region private functions
-def _find_image_upload(client: Session, episode_number: str) -> str:
+def find_image_upload(client: Session, episode_number: str) -> str:
+    """Find an image uploaded to the wiki."""
     params = {"action": "query", "list": "allimages", "aiprefix": episode_number, "format": "json"}
     response = client.get(config.wiki_api_base, params=params)
     data = response.json()
@@ -206,7 +169,9 @@ def _find_image_upload(client: Session, episode_number: str) -> str:
     return files[0]["name"] if files else ""
 
 
-def _upload_image_to_wiki(client: Session, csrf_token: str, image_url: str, episode_number: int) -> str:
+def upload_image_to_wiki(client: Session, image_url: str, episode_number: int) -> str:
+    """Upload an image to the wiki."""
+    csrf_token = log_into_wiki(client)
     image_response = client.get(image_url)
     image_data = image_response.content
 
@@ -230,45 +195,8 @@ def _upload_image_to_wiki(client: Session, csrf_token: str, image_url: str, epis
     return filename
 
 
-def _construct_wiki_page(
-    episode_data: EpisodeMetadata,
-    episode_icon_name: str,
-    episode_icon_caption: str,
-    segment_text: str,
-    qotw_segment: QuoteSegment | None,
-    rogues: Container[str],
-) -> str:
-    template = get_template("base")
-
-    num = str(episode_data.podcast.episode_number)
-    episode_group_number = num[0] + "0" * (len(num) - 1) + "s"
-
-    if qotw_segment:
-        quote_of_the_week = qotw_segment.quote
-        quote_of_the_week_attribution = qotw_segment.attribution
-    else:
-        quote_of_the_week = ""
-        quote_of_the_week_attribution = ""
-
-    return template.render(
-        segment_text=segment_text,
-        episode_number=episode_data.podcast.episode_number,
-        episode_group_number=episode_group_number,
-        episode_icon_name=episode_icon_name,
-        episode_icon_caption=episode_icon_caption,
-        quote_of_the_week=quote_of_the_week,
-        quote_of_the_week_attribution=quote_of_the_week_attribution,
-        is_bob_present=("bob" in rogues and "y") or "",
-        is_cara_present=("cara" in rogues and "y") or "",
-        is_jay_present=("jay" in rogues and "y") or "",
-        is_evan_present=("evan" in rogues and "y") or "",
-        is_george_present=("george" in rogues and "y") or "",
-        is_rebecca_present=("rebecca" in rogues and "y") or "",
-        is_perry_present=("perry" in rogues and "y") or "",
-        forum_link="",
-    )
-
-
+# endregion
+# region private functions
 def _get_login_token(client: Session) -> str:
     params = {"action": "query", "meta": "tokens", "type": "login", "format": "json"}
 

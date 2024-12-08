@@ -5,17 +5,11 @@ import pytest
 from requests import RequestException, Session
 
 from transcription_bot.interfaces import wiki
-from transcription_bot.models.data_models import EpisodeMetadata, PodcastRssEntry
-from transcription_bot.models.episode_segments import QuoteSegment, Segments
 
 # Test constants
 TEST_EPISODE_NUMBER = "123"
 TEST_LOGIN_TOKEN = "test_login_token"  # noqa: S105
 TEST_CSRF_TOKEN = "test_csrf_token"  # noqa: S105
-TEST_IMAGE_URL = "http://example.com/image.jpg"
-TEST_IMAGE_FILENAME = "test_image.jpg"
-TEST_UPLOADED_IMAGE = "uploaded_image.jpg"
-TEST_IMAGE_CAPTION = "Test caption"
 TEST_QUOTE = "Test quote"
 TEST_ATTRIBUTION = "Test attribution"
 TEST_WIKI_TEXT = "Quote segment wiki text"
@@ -35,27 +29,6 @@ def mock_session() -> MagicMock:
     session.post.return_value.status_code = 200
     session.post.return_value.json.return_value = {"login": {"result": "Success"}}
     return session
-
-
-@pytest.fixture()
-def mock_episode_data() -> MagicMock:
-    episode_data = MagicMock(spec=EpisodeMetadata)
-    episode_data.podcast = MagicMock(spec=PodcastRssEntry)
-    episode_data.podcast.episode_number = TEST_EPISODE_NUMBER
-    episode_data.transcript = [{"speaker": "Bob"}, {"speaker": "Alice"}]
-    episode_data.show_notes = TEST_SHOW_NOTES
-    return episode_data
-
-
-@pytest.fixture()
-def mock_segments() -> MagicMock:
-    quote_segment = MagicMock(spec=QuoteSegment)
-    quote_segment.to_wiki.return_value = TEST_WIKI_TEXT
-    quote_segment.quote = TEST_QUOTE
-    quote_segment.attribution = TEST_ATTRIBUTION
-    segments = MagicMock(spec=Segments)
-    segments.__iter__.return_value = [quote_segment]
-    return segments
 
 
 def test_log_into_wiki(mock_session: MagicMock):
@@ -126,46 +99,3 @@ def test_save_wiki_page(mock_session: MagicMock):
         _, kwargs = mock_session.post.call_args
         assert kwargs["data"]["title"] == TEST_PAGE_TITLE
         assert kwargs["data"]["text"] == TEST_PAGE_CONTENT
-
-
-def test_create_podcast_wiki_page(mock_session: MagicMock, mock_episode_data: MagicMock, mock_segments: MagicMock):
-    # Arrange
-    with patch.multiple(
-        "transcription_bot.interfaces.wiki",
-        log_into_wiki=MagicMock(return_value=TEST_CSRF_TOKEN),
-        _find_image_upload=MagicMock(return_value=TEST_IMAGE_FILENAME),
-        _upload_image_to_wiki=MagicMock(return_value=TEST_UPLOADED_IMAGE),
-        get_episode_image_url=MagicMock(return_value=TEST_IMAGE_URL),
-        ask_llm_for_image_caption=MagicMock(return_value=TEST_IMAGE_CAPTION),
-    ):
-        # Act
-        wiki.create_podcast_wiki_page(
-            mock_session, mock_episode_data, mock_segments, rogues=[], allow_page_editing=True
-        )
-
-        # Assert
-        mock_session.post.assert_called()
-        _, kwargs = mock_session.post.call_args
-        assert f"SGU_Episode_{TEST_EPISODE_NUMBER}" in str(kwargs)
-
-
-def test_create_podcast_wiki_page_failed_image_upload(
-    mock_session: MagicMock, mock_episode_data: MagicMock, mock_segments: MagicMock
-):
-    # Arrange
-    with (
-        patch.multiple(
-            "transcription_bot.interfaces.wiki",
-            log_into_wiki=MagicMock(return_value=TEST_CSRF_TOKEN),
-            _find_image_upload=MagicMock(return_value=None),
-            _upload_image_to_wiki=MagicMock(side_effect=RequestException("Upload failed")),
-            get_episode_image_url=MagicMock(return_value=TEST_IMAGE_URL),
-            ask_llm_for_image_caption=MagicMock(return_value=TEST_IMAGE_CAPTION),
-        ),
-        # Assert
-        pytest.raises(RequestException),
-    ):
-        # Act
-        wiki.create_podcast_wiki_page(
-            mock_session, mock_episode_data, mock_segments, rogues=[], allow_page_editing=True
-        )

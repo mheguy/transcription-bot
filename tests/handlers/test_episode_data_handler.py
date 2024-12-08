@@ -3,14 +3,15 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from transcription_bot.data_processing import episode_data_to_segments
-from transcription_bot.models.data_models import DiarizedTranscript, EpisodeMetadata, PodcastRssEntry
+from transcription_bot.handlers import episode_data_handler
+from transcription_bot.models.data_models import DiarizedTranscript, EpisodeImage, PodcastRssEntry
+from transcription_bot.models.episode_data import EpisodeMetadata
 from transcription_bot.models.episode_segments import (
     ForgottenSuperheroesOfScienceSegment,
     IntroSegment,
     OutroSegment,
     QuickieSegment,
-    Segments,
+    RawSegments,
 )
 
 HOST_LINE_1 = "Welcome to the show"
@@ -26,8 +27,8 @@ HOST_LINE_3_START_TIME = 20.0
 TRANSCRIPTION_END_TIME = 25.0
 
 
-@pytest.fixture()
-def sample_diarized_transcript() -> DiarizedTranscript:
+@pytest.fixture(name="diarized_transcript")
+def mock_diarized_transcript() -> DiarizedTranscript:
     return [
         {"speaker": "Host", "text": HOST_LINE_1, "start": HOST_LINE_1_START_TIME, "end": GUEST_LINE_1_START_TIME},
         {"speaker": "Guest", "text": GUEST_LINE_1, "start": GUEST_LINE_1_START_TIME, "end": HOST_LINE_2_START_TIME},
@@ -37,8 +38,8 @@ def sample_diarized_transcript() -> DiarizedTranscript:
     ]
 
 
-@pytest.fixture()
-def sample_podcast_episode() -> PodcastRssEntry:
+@pytest.fixture(name="podcast_rss_entry")
+def mock_podcast_rss_entry() -> PodcastRssEntry:
     return PodcastRssEntry(
         episode_number=123,
         official_title="Test Episode",
@@ -49,10 +50,15 @@ def sample_podcast_episode() -> PodcastRssEntry:
     )
 
 
-@pytest.fixture()
-def sample_episode_metadata(sample_podcast_episode: PodcastRssEntry) -> EpisodeMetadata:
+@pytest.fixture(name="episode_image")
+def mock_episode_image() -> EpisodeImage:
+    return EpisodeImage("fake_url", "fake_name", "fake_caption")
+
+
+@pytest.fixture(name="episode_metadata")
+def mock_episode_metadata(podcast_rss_entry: PodcastRssEntry) -> EpisodeMetadata:
     return EpisodeMetadata(
-        podcast=sample_podcast_episode,
+        podcast=podcast_rss_entry,
         lyrics="Test lyrics",
         show_notes=b"""
         <main class="podcast-main">
@@ -62,13 +68,14 @@ def sample_episode_metadata(sample_podcast_episode: PodcastRssEntry) -> EpisodeM
             <div>Interview with a scientist</div>
         </main>
         """,
+        image=EpisodeImage("fake_url", "fake_name", "fake_caption"),
     )
 
 
-def test_get_transcript_between_times_with_slice_of_transcript(sample_diarized_transcript: DiarizedTranscript):
+def test_get_transcript_between_times_with_slice_of_transcript(diarized_transcript: DiarizedTranscript):
     # Act
-    result = episode_data_to_segments.get_transcript_between_times(
-        sample_diarized_transcript, GUEST_LINE_1_START_TIME, GUEST_LINE_2_START_TIME
+    result = episode_data_handler.get_transcript_between_times(
+        diarized_transcript, GUEST_LINE_1_START_TIME, GUEST_LINE_2_START_TIME
     )
 
     # Assert
@@ -77,20 +84,20 @@ def test_get_transcript_between_times_with_slice_of_transcript(sample_diarized_t
     assert result[1]["text"] == HOST_LINE_2
 
 
-def test_get_transcript_between_times_with_no_transcript_in_range(sample_diarized_transcript: DiarizedTranscript):
+def test_get_transcript_between_times_with_no_transcript_in_range(diarized_transcript: DiarizedTranscript):
     # Act
-    result = episode_data_to_segments.get_transcript_between_times(
-        sample_diarized_transcript, TRANSCRIPTION_END_TIME + 5, TRANSCRIPTION_END_TIME + 10
+    result = episode_data_handler.get_transcript_between_times(
+        diarized_transcript, TRANSCRIPTION_END_TIME + 5, TRANSCRIPTION_END_TIME + 10
     )
 
     # Assert
     assert len(result) == 0
 
 
-def test_get_transcript_between_times_from_start(sample_diarized_transcript: DiarizedTranscript):
+def test_get_transcript_between_times_from_start(diarized_transcript: DiarizedTranscript):
     # Act
-    result = episode_data_to_segments.get_transcript_between_times(
-        sample_diarized_transcript, HOST_LINE_1_START_TIME, HOST_LINE_2_START_TIME
+    result = episode_data_handler.get_transcript_between_times(
+        diarized_transcript, HOST_LINE_1_START_TIME, HOST_LINE_2_START_TIME
     )
 
     # Assert
@@ -98,10 +105,10 @@ def test_get_transcript_between_times_from_start(sample_diarized_transcript: Dia
     assert result[0]["text"] == HOST_LINE_1
 
 
-def test_get_partial_transcript_for_start_time_with_skip(sample_diarized_transcript: DiarizedTranscript):
+def test_get_partial_transcript_for_start_time_with_skip(diarized_transcript: DiarizedTranscript):
     # Act
-    result = episode_data_to_segments.get_partial_transcript_for_start_time(
-        sample_diarized_transcript, 1, GUEST_LINE_1_START_TIME, HOST_LINE_3_START_TIME
+    result = episode_data_handler.get_partial_transcript_for_start_time(
+        diarized_transcript, 1, GUEST_LINE_1_START_TIME, HOST_LINE_3_START_TIME
     )
 
     # Assert
@@ -109,10 +116,10 @@ def test_get_partial_transcript_for_start_time_with_skip(sample_diarized_transcr
     assert result[0]["text"] == HOST_LINE_2
 
 
-def test_get_partial_transcript_for_start_time_with_no_skip(sample_diarized_transcript: DiarizedTranscript):
+def test_get_partial_transcript_for_start_time_with_no_skip(diarized_transcript: DiarizedTranscript):
     # Act
-    result = episode_data_to_segments.get_partial_transcript_for_start_time(
-        sample_diarized_transcript, 0, HOST_LINE_1_START_TIME, HOST_LINE_2_START_TIME
+    result = episode_data_handler.get_partial_transcript_for_start_time(
+        diarized_transcript, 0, HOST_LINE_1_START_TIME, HOST_LINE_2_START_TIME
     )
 
     # Assert
@@ -120,29 +127,27 @@ def test_get_partial_transcript_for_start_time_with_no_skip(sample_diarized_tran
     assert result[0]["text"] == HOST_LINE_1
 
 
-@patch("transcription_bot.data_processing.episode_data_to_segments.ask_llm_for_segment_start")
-def test_add_transcript_to_segments(
-    mock_llm: Mock, sample_podcast_episode: PodcastRssEntry, sample_diarized_transcript: DiarizedTranscript
-):
+@patch("transcription_bot.handlers.episode_data_handler.ask_llm_for_segment_start", autospec=True)
+def test_add_transcript_to_segments(mock_llm: Mock, episode_metadata: Mock, diarized_transcript: DiarizedTranscript):
     # Arrange
     # Configure mock to return a fixed timestamp
     mock_llm.return_value = HOST_LINE_2_START_TIME
 
     # Create some test segments
-    segments: Segments = [
-        QuickieSegment(
-            title="Test News",
-            subject="Science",
-            url="http://example.com",
-        ),
-        ForgottenSuperheroesOfScienceSegment(),
-    ]
+    segments = RawSegments(
+        [
+            QuickieSegment(
+                title="Test News",
+                subject="Science",
+                url="http://example.com",
+            ),
+            ForgottenSuperheroesOfScienceSegment(),
+        ]
+    )
 
     # Add transcript to segments
     # Act
-    result = episode_data_to_segments.add_transcript_to_segments(
-        sample_podcast_episode, sample_diarized_transcript, segments
-    )
+    result = episode_data_handler.add_transcript_to_segments(episode_metadata, diarized_transcript, segments)
 
     # Verify segments have correct transcripts
     # Assert
@@ -156,7 +161,7 @@ def test_add_transcript_to_segments(
     assert len(result[0].transcript) > 0
     assert result[0].transcript[0]["text"] == HOST_LINE_1
     assert result[0].end_time == HOST_LINE_2_START_TIME  # Should match mock LLM response
-    assert result[-1].end_time == sample_diarized_transcript[-1]["end"]
+    assert result[-1].end_time == diarized_transcript[-1]["end"]
 
     # Calls for: Quickie, Forgotten, and Outro
     assert mock_llm.call_count == 3

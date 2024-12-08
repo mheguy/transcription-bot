@@ -157,6 +157,15 @@ class DiarizedTranscriptChunk(TypedDict):
     speaker: str
 
 
+@dataclass(frozen=True)
+class EpisodeImage:
+    """Information about the image for the episode."""
+
+    url: str
+    name: str
+    caption: str
+
+
 @dataclass(config=ConfigDict(arbitrary_types_allowed=True))
 class PodcastRssEntry:
     """Basic information about a podcast episode."""
@@ -172,21 +181,6 @@ class PodcastRssEntry:
     def year(self) -> int:
         """Get the year of the episode."""
         return self.date.year
-
-
-@dataclass
-class EpisodeMetadata:
-    """Metadata about a podcast episode.
-
-    Attributes:
-        podcast: Data from the rss feed
-        lyrics: The lyrics that were embedded in the MP3 file.
-        show_notes: The show notes of the episode from the website.
-    """
-
-    podcast: PodcastRssEntry
-    lyrics: str
-    show_notes: bytes
 
 
 DiarizedTranscript = list[DiarizedTranscriptChunk]

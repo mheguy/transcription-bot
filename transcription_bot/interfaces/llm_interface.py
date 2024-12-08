@@ -7,13 +7,15 @@ from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 from openai import OpenAI
 
+from transcription_bot.models.data_models import DiarizedTranscript
+from transcription_bot.models.episode_segments import RawSegments
 from transcription_bot.utils.caching import cache_for_episode, get_cache_dir, load_cache, save_cache
 from transcription_bot.utils.config import config
 from transcription_bot.utils.global_logger import logger
 
 if TYPE_CHECKING:
-    from transcription_bot.models.data_models import DiarizedTranscript, PodcastRssEntry
-    from transcription_bot.models.episode_segments import BaseSegment, ScienceOrFictionSegment, Segments
+    from transcription_bot.models.data_models import PodcastRssEntry
+    from transcription_bot.models.episode_segments import BaseSegment, ScienceOrFictionSegment
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -132,7 +134,7 @@ def ask_llm_for_image_caption(_podcast_episode: "PodcastRssEntry", image_url: st
 
 
 @cache_for_episode
-def ask_llm_for_episode_metadata(_podcast_episode: "PodcastRssEntry", segments: "Segments") -> str:
+def ask_llm_for_episode_metadata(_podcast_episode: "PodcastRssEntry", segments: "RawSegments") -> str:
     """Ask LLM for episode metadata (ex. guests, interviewees)."""
     raise NotImplementedError  # TODO: Implement
 

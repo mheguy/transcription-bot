@@ -2,7 +2,7 @@ import math
 import re
 from abc import ABC, abstractmethod
 from dataclasses import field
-from typing import Any, ClassVar, override
+from typing import Any, ClassVar, NewType, override
 from urllib.parse import urlparse
 
 from bs4 import Tag
@@ -15,8 +15,9 @@ from transcription_bot.utils.global_logger import logger
 from transcription_bot.utils.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
 from transcription_bot.utils.templating import get_template
 
-Segments = list["BaseSegment"]
-
+RawSegments = NewType("RawSegments", list["BaseSegment"])
+TranscribedSegments = NewType("TranscribedSegments", list["BaseSegment"])
+GenericSegmentList = list["BaseSegment"]
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",

@@ -12,7 +12,7 @@ from transcription_bot.utils.global_http_client import http_client
 from transcription_bot.utils.global_logger import logger
 
 if TYPE_CHECKING:
-    from transcription_bot.models.episode_segments import BaseSegment, Segments
+    from transcription_bot.models.episode_segments import BaseSegment, GenericSegmentList
 
 T = TypeVar("T", bound="BaseSegment")
 _CONNECT_TIMEOUT = 10
@@ -97,7 +97,7 @@ def filter_bad_episodes(episode_numbers: set[int]) -> list[int]:
     return sorted(good_episodes)
 
 
-def get_first_segment_of_type(segments: "Segments", segment_type: type[T]) -> "T | None":
+def get_first_segment_of_type(segments: "GenericSegmentList", segment_type: type[T]) -> "T | None":
     """Get the first segment of a given type from a list of segments."""
     for segment in segments:
         if isinstance(segment, segment_type):

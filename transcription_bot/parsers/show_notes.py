@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup, ResultSet, Tag
 from transcription_bot.models.episode_segments import (
     BaseSegment,
     FromShowNotesSegment,
-    Segments,
+    RawSegments,
     UnknownSegment,
     segment_types,
 )
@@ -31,14 +31,14 @@ def get_episode_image_url(show_notes: bytes) -> str:
     return thumbnail.attrs["src"]
 
 
-def parse_show_notes(show_notes: bytes) -> Segments:
+def parse_show_notes(show_notes: bytes) -> RawSegments:
     """Parse the show notes HTML and return a list of segments."""
     soup = BeautifulSoup(show_notes, "html.parser")
 
     post = find_single_element(soup, PODCAST_MAIN_TAG_TYPE, PODCAST_MAIN_CLASS_NAME)
     raw_segment_data = _extract_raw_segment_data(post)
 
-    return list(filter(None, [_create_segments(segment_data) for segment_data in raw_segment_data]))
+    return RawSegments(list(filter(None, [_create_segments(segment_data) for segment_data in raw_segment_data])))
 
 
 def _create_segments(segment_data: list["Tag"]) -> "BaseSegment|None":

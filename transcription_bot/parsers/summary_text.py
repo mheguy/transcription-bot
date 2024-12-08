@@ -2,14 +2,16 @@ from transcription_bot.models.episode_segments import (
     SPECIAL_SUMMARY_PATTERNS,
     BaseSegment,
     FromSummaryTextSegment,
-    Segments,
+    RawSegments,
     segment_types,
 )
 
 
-def parse_summary_text(summary: str) -> Segments:
+def parse_summary_text(summary: str) -> RawSegments:
     """Parse the summary text and return a list of segments."""
-    return list(filter(None, [_create_segment_from_summary_text(line.strip()) for line in summary.split(";")]))
+    return RawSegments(
+        list(filter(None, [_create_segment_from_summary_text(line.strip()) for line in summary.split(";")]))
+    )
 
 
 def _create_segment_from_summary_text(text: str) -> "BaseSegment|None":

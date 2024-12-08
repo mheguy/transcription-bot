@@ -1,6 +1,3 @@
-import pytest
-from bs4 import BeautifulSoup
-
 from transcription_bot.models import episode_segments
 from transcription_bot.models.data_models import DiarizedTranscript
 
@@ -8,41 +5,10 @@ from transcription_bot.models.data_models import DiarizedTranscript
 TEST_ARTICLE_URL = "http://example.com"
 TEST_ARTICLE_TITLE = "Test Article"
 TEST_ARTICLE_PUBLICATION = "Test Publication"
-TEST_LINK_TEXT = "Link"
 TEST_ITEM_TEXT = "Test item"
-TEST_ITEM_TEXT_2 = "Another test"
 TEST_TOPIC = "Test Topic"
 TEST_QUOTE = "Test quote"
 TEST_ATTRIBUTION = "John Doe"
-
-
-@pytest.fixture()
-def sample_transcript():
-    return [
-        {"speaker": "Steve", "text": "Hello everyone", "start": 0.0, "end": 2.0},
-        {"speaker": "Bob", "text": "Welcome to the show", "start": 2.0, "end": 4.0},
-    ]
-
-
-@pytest.fixture()
-def sample_show_notes():
-    html = f"""
-    <div>Science or Fiction</div>
-    <div>
-        <div class="item">
-            <span class="science-fiction__item-title">Item 1</span>
-            <p>{TEST_ITEM_TEXT} <a href="{TEST_ARTICLE_URL}">{TEST_LINK_TEXT}</a></p>
-            <span class="quiz__answer">Science</span>
-        </div>
-        <div class="item">
-            <span class="science-fiction__item-title">Item 2</span>
-            <p>{TEST_ITEM_TEXT_2}</p>
-            <span class="quiz__answer">Fiction</span>
-        </div>
-    </div>
-    """
-    soup = BeautifulSoup(html, "html.parser")
-    return [soup.find("div"), soup.find_all("div")[1]]
 
 
 def test_format_time():
@@ -52,9 +18,15 @@ def test_format_time():
     assert episode_segments.format_time(3661.0) == "1:01:01"
 
 
-def test_format_transcript_for_wiki(sample_transcript: DiarizedTranscript):
+def test_format_transcript_for_wiki():
+    # Arrange
+    diarized_transcript: DiarizedTranscript = [
+        {"speaker": "Steve", "text": "Hello everyone", "start": 0.0, "end": 2.0},
+        {"speaker": "Bob", "text": "Welcome to the show", "start": 2.0, "end": 4.0},
+    ]
+
     # Act
-    formatted = episode_segments.format_transcript_for_wiki(sample_transcript)
+    formatted = episode_segments.format_transcript_for_wiki(diarized_transcript)
 
     # Assert
     assert "'''S:''' Hello everyone" in formatted
@@ -75,15 +47,21 @@ def test_unknown_segment():
     assert segment.url == TEST_ARTICLE_URL
 
 
-def test_intro_segment(sample_transcript: DiarizedTranscript):
+def test_intro_segment():
     # Arrange
+    diarized_transcript: DiarizedTranscript = [
+        {"speaker": "Steve", "text": "Hello everyone", "start": 0.0, "end": 2.0},
+        {"speaker": "Bob", "text": "Welcome to the show", "start": 2.0, "end": 4.0},
+    ]
+
     segment = episode_segments.IntroSegment()
-    segment.transcript = sample_transcript
-    segment.start_time = segment.get_start_time(sample_transcript)
+    segment.transcript = diarized_transcript
+    segment.start_time = segment.get_start_time(diarized_transcript)
     segment.end_time = segment.transcript[-1]["end"]
 
     # Act
-    result = segment.get_start_time(sample_transcript)
+    result = segment.get_start_time(diarized_transcript)
+
     # Assert
     assert result == 0.0
     assert segment.duration > 0
