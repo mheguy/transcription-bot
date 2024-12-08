@@ -106,6 +106,7 @@ def get_segment_start_from_llm(
 @cache_for_episode
 def get_image_caption_from_llm(_podcast_episode: "PodcastRssEntry", image_url: str) -> str:
     """Ask an LLM to write an image caption."""
+    logger.debug("Getting image caption...")
     user_prompt = "Please write a 10-15 word caption for this image."
 
     client = OpenAI(

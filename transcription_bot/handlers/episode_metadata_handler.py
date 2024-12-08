@@ -62,6 +62,7 @@ def get_audio_file(rss_entry: PodcastRssEntry, client: Session) -> bytes:
 @cache_for_episode
 def get_show_notes(rss_entry: PodcastRssEntry, client: Session) -> bytes:
     """Get the show notes from the website."""
+    logger.info("Downloading show notes...")
     resp = client.get(rss_entry.episode_url)
     resp.raise_for_status()
 
@@ -71,6 +72,7 @@ def get_show_notes(rss_entry: PodcastRssEntry, client: Session) -> bytes:
 @cache_for_episode
 def get_image_data(rss_entry: PodcastRssEntry, show_notes: bytes, client: Session) -> EpisodeImage:
     """Get the image data from the show notes."""
+    logger.debug("Getting image data...")
     url = get_episode_image_url(show_notes)
     episode_number = rss_entry.episode_number
 
