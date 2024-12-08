@@ -804,7 +804,6 @@ dependencies = [
     { name = "dynaconf" },
     { name = "feedparser" },
     { name = "httpx" },
-    { name = "import-linter" },
     { name = "loguru" },
     { name = "mutagen" },
     { name = "mwparserfromhell" },
@@ -820,6 +819,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "coverage" },
+    { name = "import-linter" },
     { name = "pyright" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -839,7 +839,6 @@ requires-dist = [
     { name = "dynaconf", specifier = ">=3.2.6" },
     { name = "feedparser", specifier = ">=6.0.11" },
     { name = "httpx", specifier = ">=0.27.2" },
-    { name = "import-linter", specifier = ">=2.1" },
     { name = "loguru", specifier = ">=0.7.2" },
     { name = "mutagen", specifier = ">=1.47.0" },
     { name = "mwparserfromhell", specifier = ">=0.6.6" },
@@ -855,6 +854,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "coverage" },
+    { name = "import-linter" },
     { name = "pyright" },
     { name = "pytest" },
     { name = "pytest-cov" },
