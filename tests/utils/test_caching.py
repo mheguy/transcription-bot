@@ -7,7 +7,6 @@ from transcription_bot.models.data_models import PodcastRssEntry
 from transcription_bot.utils import caching
 
 # Test constants
-TEST_EPISODE_NUMBER = "123"
 TEST_URL = "https://example.com"
 TEST_DATA_KEY = "data"
 TEST_DATA_VALUE = "test"
@@ -15,7 +14,7 @@ TEST_LLM_RESULT = 42.0
 
 
 @pytest.mark.usefixtures("enable_local_mode")
-def test_cache_for_episode_with_local_mode(tmp_path: Path, podcast_episode: MagicMock):
+def test_cache_for_episode_with_local_mode(tmp_path: Path, podcast_rss_entry: PodcastRssEntry):
     # Arrange
     test_func_mock = MagicMock(return_value={TEST_DATA_KEY: TEST_DATA_VALUE})
 
@@ -27,15 +26,15 @@ def test_cache_for_episode_with_local_mode(tmp_path: Path, podcast_episode: Magi
 
         # Act
         # First call - should execute function and cache
-        result1 = test_func(podcast_episode)
+        result1 = test_func(podcast_rss_entry)
         # Second call - should use cache
-        result2 = test_func(podcast_episode)
+        result2 = test_func(podcast_rss_entry)
 
         # Assert
         assert result1 == {TEST_DATA_KEY: TEST_DATA_VALUE}
         assert result1 == result2
         # Verify the underlying function was only called once
-        test_func_mock.assert_called_once_with(podcast_episode)
+        test_func_mock.assert_called_once_with(podcast_rss_entry)
 
 
 @pytest.mark.usefixtures("enable_local_mode")
@@ -62,7 +61,7 @@ def test_cache_url_title_with_local_mode(tmp_path: Path):
         get_title_mock.assert_called_once_with(TEST_URL)
 
 
-def test_cache_for_episode_without_local_mode(tmp_path: Path, podcast_episode: MagicMock):
+def test_cache_for_episode_without_local_mode(tmp_path: Path, podcast_rss_entry: PodcastRssEntry):
     # Arrange
     test_func_mock = MagicMock(return_value={TEST_DATA_KEY: TEST_DATA_VALUE})
 
@@ -74,15 +73,15 @@ def test_cache_for_episode_without_local_mode(tmp_path: Path, podcast_episode: M
 
         # Act
         # First call - should execute function and cache
-        result1 = test_func(podcast_episode)
+        result1 = test_func(podcast_rss_entry)
         # Second call - should use cache
-        result2 = test_func(podcast_episode)
+        result2 = test_func(podcast_rss_entry)
 
         # Assert
         assert result1 == {TEST_DATA_KEY: TEST_DATA_VALUE}
         assert result1 == result2
         # Verify the underlying function was only called once
-        test_func_mock.assert_called_with(podcast_episode)
+        test_func_mock.assert_called_with(podcast_rss_entry)
         assert test_func_mock.call_count == 2
 
 

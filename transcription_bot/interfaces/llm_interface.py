@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 from openai import OpenAI
 
-from transcription_bot.models.data_models import DiarizedTranscript
 from transcription_bot.models.episode_segments import RawSegments
+from transcription_bot.models.simple_models import DiarizedTranscript
 from transcription_bot.utils.caching import cache_for_episode, get_cache_dir, load_cache, save_cache
 from transcription_bot.utils.config import config
 from transcription_bot.utils.global_logger import logger

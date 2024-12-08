@@ -1,9 +1,9 @@
 import itertools
 
 from transcription_bot.interfaces.llm_interface import get_segment_start_from_llm
-from transcription_bot.models.data_models import DiarizedTranscript
 from transcription_bot.models.episode_data import EpisodeData, EpisodeMetadata
 from transcription_bot.models.episode_segments import IntroSegment, OutroSegment, RawSegments, TranscribedSegments
+from transcription_bot.models.simple_models import DiarizedTranscript
 from transcription_bot.utils.global_logger import logger
 
 _THIRTY_MINUTES = 30 * 60

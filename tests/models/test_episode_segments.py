@@ -1,5 +1,5 @@
 from transcription_bot.models import episode_segments
-from transcription_bot.models.data_models import DiarizedTranscript
+from transcription_bot.models.simple_models import DiarizedTranscript
 
 # Constants for test data
 TEST_ARTICLE_URL = "http://example.com"

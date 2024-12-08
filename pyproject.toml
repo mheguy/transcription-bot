@@ -84,7 +84,8 @@ layers = [
 name = "Ensure model import structure"
 type = "layers"
 containers = ["transcription_bot.models"]
-layers = ["episode_data", "episode_segments", "data_models"]
+exhaustive = true
+layers = ["episode_data", "episode_segments", "data_models", "simple_models"]
 
 [[tool.importlinter.contracts]] # Util import structure
 name = "Ensure util import structure"

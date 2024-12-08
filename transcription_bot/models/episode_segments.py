@@ -1,3 +1,5 @@
+"""Models for episode segments."""
+
 import math
 import re
 from abc import ABC, abstractmethod
@@ -9,15 +11,11 @@ from bs4 import Tag
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
-from transcription_bot.models.data_models import DiarizedTranscript
+from transcription_bot.models.simple_models import DiarizedTranscript
 from transcription_bot.utils.exceptions import StringMatchError
 from transcription_bot.utils.global_logger import logger
 from transcription_bot.utils.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
 from transcription_bot.utils.templating import get_template
-
-RawSegments = NewType("RawSegments", list["BaseSegment"])
-TranscribedSegments = NewType("TranscribedSegments", list["BaseSegment"])
-GenericSegmentList = list["BaseSegment"]
 
 SPECIAL_SUMMARY_PATTERNS = [
     "guest rogue",
@@ -1248,3 +1246,8 @@ segment_types = [
     for value in globals().values()
     if isinstance(value, type) and issubclass(value, _PARSER_SEGMENT_TYPES) and value not in _PARSER_SEGMENT_TYPES
 ]
+
+
+RawSegments = NewType("RawSegments", list[BaseSegment])
+TranscribedSegments = NewType("TranscribedSegments", list[BaseSegment])
+GenericSegmentList = list[BaseSegment]

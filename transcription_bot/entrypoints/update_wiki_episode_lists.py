@@ -20,13 +20,14 @@ from transcription_bot.interfaces.wiki import (
     get_episode_wiki_page,
     update_episode_list,
 )
-from transcription_bot.models.data_models import EpisodeStatus, PodcastRssEntry, SguListEntry
+from transcription_bot.models.data_models import PodcastRssEntry, SguListEntry
 from transcription_bot.models.episode_segments import (
     BaseSegment,
     InterviewSegment,
     NonNewsSegmentMixin,
     ScienceOrFictionSegment,
 )
+from transcription_bot.models.simple_models import EpisodeStatus
 from transcription_bot.parsers.rss_feed import get_podcast_rss_entries, get_recently_modified_episode_numbers
 from transcription_bot.utils.config import config
 from transcription_bot.utils.exceptions import NoLyricsTagError

@@ -1,29 +1,19 @@
+"""Intermediate models that may be composed of models from simple_models."""
+
 import itertools
 from dataclasses import asdict, field
 from datetime import date
-from enum import Enum
 from functools import cached_property
-from typing import Any, ClassVar, TypedDict
+from typing import Any, ClassVar
 
 from mwparserfromhell.nodes import Comment, Template
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
+from transcription_bot.models.simple_models import EpisodeStatus
 from transcription_bot.utils.helpers import resolve_url_redirects
 
 _DEFAULT_SORTING_VALUE = "zzz"
-
-
-class EpisodeStatus(Enum):
-    """Possible statuses of an episode transcript."""
-
-    UNKNOWN = ""
-    OPEN = "open"
-    MACHINE = "machine"
-    BOT = "bot"
-    INCOMPLETE = "incomplete"
-    PROOFREAD = "proofread"
-    VERIFIED = "verified"
 
 
 @dataclass
@@ -144,22 +134,6 @@ class SguListEntry:
             template.add(k, v)
 
 
-class DiarizedTranscriptChunk(TypedDict):
-    """A chunk of a diarized transcript.
-
-    Attributes:
-        start (float): The start time of the chunk.
-        end (float): The end time of the chunk.
-        text (str): The text content of the chunk.
-        speaker (str): The speaker associated with the chunk.
-    """
-
-    start: float
-    end: float
-    text: str
-    speaker: str
-
-
 @dataclass(frozen=True)
 class EpisodeImage:
     """Information about the image for the episode."""
@@ -189,6 +163,3 @@ class PodcastRssEntry:
     def download_url(self) -> str:
         """Get the download URL of the episode."""
         return resolve_url_redirects(self.raw_download_url)
-
-
-DiarizedTranscript = list[DiarizedTranscriptChunk]

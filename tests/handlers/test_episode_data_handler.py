@@ -1,10 +1,9 @@
-from datetime import date
 from unittest.mock import Mock, create_autospec
 
 import pytest
 
 from transcription_bot.handlers import episode_data_handler
-from transcription_bot.models.data_models import DiarizedTranscript, EpisodeImage, PodcastRssEntry
+from transcription_bot.models.data_models import EpisodeImage, PodcastRssEntry
 from transcription_bot.models.episode_data import EpisodeMetadata
 from transcription_bot.models.episode_segments import (
     ForgottenSuperheroesOfScienceSegment,
@@ -13,6 +12,7 @@ from transcription_bot.models.episode_segments import (
     QuickieSegment,
     RawSegments,
 )
+from transcription_bot.models.simple_models import DiarizedTranscript
 
 HOST_LINE_1 = "Welcome to the show"
 HOST_LINE_1_START_TIME = 0.0
@@ -36,18 +36,6 @@ def mock_diarized_transcript() -> DiarizedTranscript:
         {"speaker": "Guest", "text": GUEST_LINE_2, "start": GUEST_LINE_2_START_TIME, "end": HOST_LINE_3_START_TIME},
         {"speaker": "Host", "text": HOST_LINE_3, "start": HOST_LINE_3_START_TIME, "end": TRANSCRIPTION_END_TIME},
     ]
-
-
-@pytest.fixture(name="podcast_rss_entry")
-def mock_podcast_rss_entry() -> PodcastRssEntry:
-    return PodcastRssEntry(
-        episode_number=123,
-        official_title="Test Episode",
-        summary="This is a test episode summary",
-        raw_download_url="http://example.com/download",
-        episode_url="http://example.com/episode",
-        date=date(2000, 1, 1),
-    )
 
 
 @pytest.fixture(name="episode_image")

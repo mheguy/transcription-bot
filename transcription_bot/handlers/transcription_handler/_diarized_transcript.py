@@ -5,7 +5,8 @@ import pandas as pd
 
 from transcription_bot.handlers.transcription_handler._diarization import create_diarization
 from transcription_bot.handlers.transcription_handler._transcription import RawTranscript, create_transcription
-from transcription_bot.models.data_models import DiarizedTranscript, DiarizedTranscriptChunk, PodcastRssEntry
+from transcription_bot.models.data_models import PodcastRssEntry
+from transcription_bot.models.simple_models import DiarizedTranscript, DiarizedTranscriptChunk
 from transcription_bot.utils.global_logger import logger
 
 
