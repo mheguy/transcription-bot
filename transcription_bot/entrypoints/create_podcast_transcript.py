@@ -86,6 +86,18 @@ def main(*, selected_episode: int) -> None:
     logger.success("Shutting down.")
 
 
+def enhance_transcribed_segments(_podcast_episode: PodcastRssEntry, segments: RawSegments) -> RawSegments:
+    """Enhance segments with metadata that an LLM can deduce from the transcript."""
+    # TODO: Add SoF data about who guessed what
+    get_episode_metadata_from_llm(_podcast_episode, segments)
+
+    first_sof_segment = next((seg for seg in segments if isinstance(seg, ScienceOrFictionSegment)), None)
+    if first_sof_segment:
+        get_sof_data_from_llm(_podcast_episode, first_sof_segment)
+
+    return segments
+
+
 if __name__ == "__main__":
     _, *_episodes_to_process = sys.argv
 
@@ -97,21 +109,10 @@ if __name__ == "__main__":
         else:
             _episode_to_process = int(_episodes_to_process[0])
 
-    main(selected_episode=_episode_to_process)
+    try:
+        main(selected_episode=_episode_to_process)
+    finally:
+        # Sleep to allow monitors to flush
+        time.sleep(5)
 
-    # Sleep to allow monitors to flush
-    time.sleep(5)
-
-    logger.info("Exiting clean.")
-
-
-def enhance_transcribed_segments(_podcast_episode: PodcastRssEntry, segments: RawSegments) -> RawSegments:
-    """Enhance segments with metadata that an LLM can deduce from the transcript."""
-    # TODO: Add SoF data about who guessed what
-    get_episode_metadata_from_llm(_podcast_episode, segments)
-
-    first_sof_segment = next((seg for seg in segments if isinstance(seg, ScienceOrFictionSegment)), None)
-    if first_sof_segment:
-        get_sof_data_from_llm(_podcast_episode, first_sof_segment)
-
-    return segments
+        logger.info("Exiting clean.")

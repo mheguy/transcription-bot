@@ -190,9 +190,10 @@ def get_interviewee(episode_number: int, segments: list[BaseSegment]) -> str:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        # Sleep to allow monitors to flush
+        time.sleep(5)
 
-    # Sleep to allow monitors to flush
-    time.sleep(5)
-
-    logger.info("Exiting clean.")
+        logger.info("Exiting clean.")
