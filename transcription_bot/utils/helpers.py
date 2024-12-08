@@ -125,7 +125,8 @@ def resolve_url_redirects(url: str) -> str:
 def run_main_safely(func: Callable[..., None], *args: Any, **kwargs: Any) -> None:
     """Run a function safely, logging any exceptions and providing a graceful exit."""
     try:
-        func(*args, **kwargs)
+        with sentry_sdk.start_transaction(op="task", name=func.__module__):
+            func(*args, **kwargs)
     except Exception:
         logger.exception("Exiting due to exception.")
         raise
