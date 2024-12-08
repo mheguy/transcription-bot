@@ -25,6 +25,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "coverage",
+    "import-linter",
     "pyright",
     "pytest",
     "pytest-icdiff",
@@ -59,6 +60,58 @@ exclude_also = [
     "def __repr__",
     "if __name__ == .__main__.:",
 ]
+
+[tool.importlinter]
+root_package = "transcription_bot"
+exclude_type_checking_imports = true
+
+[[tool.importlinter.contracts]] # Package import structure
+name = "Ensure package import structure"
+type = "layers"
+containers = ["transcription_bot"]
+exhaustive = true
+layers = [
+    "entrypoints",
+    "handlers",
+    "parsers",
+    "interfaces",
+    "serializers",
+    "models",
+    "utils",
+]
+
+[[tool.importlinter.contracts]] # Model import structure
+name = "Ensure model import structure"
+type = "layers"
+containers = ["transcription_bot.models"]
+layers = ["episode_data", "episode_segments", "data_models"]
+
+[[tool.importlinter.contracts]] # Util import structure
+name = "Ensure util import structure"
+type = "layers"
+containers = ["transcription_bot.utils"]
+exhaustive = true
+layers = [
+    "helpers | templating",                        # Helpers
+    "caching | webhook_server",                    # Low level services
+    "config : global_http_client : global_logger", # Low level objects & config
+    "exceptions",                                  # Custom exceptions
+]
+
+[[tool.importlinter.contracts]] # Entrypoint independence
+name = "Entrypoint independence"
+type = "independence"
+modules = ["transcription_bot.entrypoints.*"]
+
+[[tool.importlinter.contracts]] # Handler independence
+name = "Handler independence"
+type = "independence"
+modules = ["transcription_bot.handlers.*"]
+
+[[tool.importlinter.contracts]] # Interface independence
+name = "Interface independence"
+type = "independence"
+modules = ["transcription_bot.interfaces.*"]
 
 [tool.pyright]
 exclude = ["**/.*", "**/node_modules", "**/__pycache__"]

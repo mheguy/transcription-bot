@@ -4,9 +4,9 @@ from datetime import datetime
 import feedparser
 from requests import Session
 
-from transcription_bot.config import config
-from transcription_bot.data_models import PodcastRssEntry
-from transcription_bot.global_logger import logger
+from transcription_bot.models.data_models import PodcastRssEntry
+from transcription_bot.utils.config import config
+from transcription_bot.utils.global_logger import logger
 
 EPISODE_PATTERN = r"^SGU Episode (\d{1,4})$"
 
@@ -27,7 +27,9 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
             logger.debug(f"Skipping episode due to number: {entry["title"]}")
             continue
 
-        filename: str = entry["links"][0]["href"].split("/")[-1].lower()
+        raw_download_url = entry["links"][0]["href"]
+
+        filename: str = raw_download_url.split("/")[-1].lower()
         date_string = filename.replace("skepticast", "").replace(".mp3", "")
 
         try:
@@ -40,7 +42,7 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
                 episode_number=int(entry["link"].split("/")[-1]),
                 official_title=entry["title"],
                 summary=entry["summary"],
-                download_url=entry["links"][0]["href"],
+                raw_download_url=raw_download_url,
                 episode_url=entry["link"],
                 date=time.date(),
             )

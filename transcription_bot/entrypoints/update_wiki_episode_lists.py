@@ -11,29 +11,28 @@ from mutagen.id3._util import ID3NoHeaderError
 from mwparserfromhell.nodes.template import Template
 from mwparserfromhell.wikicode import Wikicode
 
-from transcription_bot.config import config
-from transcription_bot.converters.episode_data_to_segments import convert_episode_data_to_episode_segments
-from transcription_bot.data_gathering import gather_metadata
-from transcription_bot.data_models import EpisodeStatus, PodcastRssEntry, SguListEntry
-from transcription_bot.episode_segments import (
-    BaseSegment,
-    InterviewSegment,
-    NonNewsSegmentMixin,
-    ScienceOrFictionSegment,
-    get_first_segment_of_type,
-)
-from transcription_bot.exceptions import NoLyricsTagError
-from transcription_bot.global_http_client import http_client
-from transcription_bot.global_logger import init_logging, logger
-from transcription_bot.helpers import filter_bad_episodes
-from transcription_bot.parsers.rss_feed import get_podcast_rss_entries, get_recently_modified_episode_numbers
-from transcription_bot.wiki import (
+from transcription_bot.handlers.episode_metadata_handler import gather_metadata
+from transcription_bot.handlers.episode_segment_handler import extract_episode_segments_from_episode_metadata
+from transcription_bot.interfaces.wiki import (
     get_episode_entry_from_list,
     get_episode_list_wiki_page,
     get_episode_template_from_list,
     get_episode_wiki_page,
     update_episode_list,
 )
+from transcription_bot.models.data_models import EpisodeStatus, PodcastRssEntry, SguListEntry
+from transcription_bot.models.episode_segments import (
+    BaseSegment,
+    InterviewSegment,
+    NonNewsSegmentMixin,
+    ScienceOrFictionSegment,
+)
+from transcription_bot.parsers.rss_feed import get_podcast_rss_entries, get_recently_modified_episode_numbers
+from transcription_bot.utils.config import config
+from transcription_bot.utils.exceptions import NoLyricsTagError
+from transcription_bot.utils.global_http_client import http_client
+from transcription_bot.utils.global_logger import init_logging, logger
+from transcription_bot.utils.helpers import filter_bad_episodes, get_first_segment_of_type
 
 if not config.local_mode:
     sentry_sdk.init(dsn=config.sentry_dsn, environment="production")
@@ -103,7 +102,7 @@ def create_expected_episode_entry(episode_rss_entry: PodcastRssEntry) -> SguList
     episode_metadata = gather_metadata(episode_rss_entry, http_client)
 
     logger.debug("Converting data to segments...")
-    episode_segments = convert_episode_data_to_episode_segments(episode_metadata)
+    episode_segments = extract_episode_segments_from_episode_metadata(episode_metadata)
 
     return SguListEntry(
         str(episode_number),

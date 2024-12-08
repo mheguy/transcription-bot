@@ -1,15 +1,21 @@
 import re
 
-from transcription_bot.episode_segments import BaseSegment, FromLyricsSegment, Segments, UnknownSegment, segment_types
+from transcription_bot.models.episode_segments import (
+    BaseSegment,
+    FromLyricsSegment,
+    RawSegments,
+    UnknownSegment,
+    segment_types,
+)
 
 
-def parse_lyrics(lyrics: str) -> Segments:
+def parse_lyrics(lyrics: str) -> RawSegments:
     """Parse the lyrics and return a list of segments."""
     lyrics = lyrics.replace("\r", "\n")
     pattern = r"(Segment #?\d.+?)(?=(?:Segment #?\d+|$))"
     lyric_chunks = re.findall(pattern, lyrics, re.DOTALL)
 
-    return list(filter(None, [_create_segment_from_lyric_chunk(line.strip()) for line in lyric_chunks]))
+    return RawSegments(list(filter(None, [_create_segment_from_lyric_chunk(line.strip()) for line in lyric_chunks])))
 
 
 def _create_segment_from_lyric_chunk(text: str) -> "BaseSegment|None":
