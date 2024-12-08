@@ -12,7 +12,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 T = TypeVar("T", bound="HasEpisodeNumber")
 Url = str
-UrlCache = dict[Url, str | None]
+UrlCache = dict[Url, R]
 _sentinel = object()
 
 _TEMP_DATA_FOLDER = Path("data/").resolve()
@@ -50,15 +50,15 @@ def cache_for_episode(
     return wrapper
 
 
-def cache_url_title(func: Callable[Concatenate[Url, P], str | None]) -> Callable[Concatenate[Url, P], str | None]:
+def cache_for_url(func: Callable[Concatenate[Url, P], R]) -> Callable[Concatenate[Url, P], R]:
     """Provide caching for title page lookups."""
 
     @functools.wraps(func)
-    def wrapper(url: Url, *args: P.args, **kwargs: P.kwargs) -> str | None:
+    def wrapper(url: Url, *args: P.args, **kwargs: P.kwargs) -> R:
         function_dir = get_cache_dir(func)
         cache_filepath = function_dir / "urls.json_or_pkl"
 
-        url_cache: UrlCache = {}
+        url_cache: UrlCache[R] = {}
         if cache_filepath.exists():
             url_cache = load_cache(cache_filepath)
 
@@ -66,7 +66,7 @@ def cache_url_title(func: Callable[Concatenate[Url, P], str | None]) -> Callable
 
         if title is not _sentinel:
             logger.debug(f"Using url cache for: {url}")
-            return cast(str | None, title)
+            return cast(R, title)
 
         result = func(url, *args, **kwargs)
 

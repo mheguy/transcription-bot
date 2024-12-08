@@ -34,6 +34,12 @@ class WebhookServer:
         self._listener = listener
         return listener.url()
 
+    def stop_server_thread(self) -> None:
+        """Stop the server thread."""
+        if self._listener is not None:
+            self._listener.close()
+            self._listener = None
+
     def get_webhook_payload(self) -> bytes:
         """Get the webhook payload."""
         if self._listener is None:

@@ -16,7 +16,12 @@ def create_diarization(podcast: PodcastRssEntry) -> pd.DataFrame:
     webhook_server = WebhookServer()
     server_url = webhook_server.start_server_thread()
 
-    send_diarization_request(server_url, podcast.download_url)
+    try:
+        send_diarization_request(server_url, podcast.download_url)
+    except Exception:
+        logger.exception("Failed to send diarization request")
+        webhook_server.stop_server_thread()
+        raise
 
     response_content = webhook_server.get_webhook_payload()
 

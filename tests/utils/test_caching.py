@@ -45,7 +45,7 @@ def test_cache_url_title_with_local_mode(tmp_path: Path):
 
     with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
-        @caching.cache_url_title
+        @caching.cache_for_url
         def get_title(url: str) -> str:
             return get_title_mock(url)
 
@@ -92,7 +92,7 @@ def test_cache_url_title_without_local_mode(tmp_path: Path):
 
     with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
-        @caching.cache_url_title
+        @caching.cache_for_url
         def get_title(url: str) -> str:
             return get_title_mock(url)
 

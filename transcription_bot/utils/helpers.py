@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup, Tag
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import ConnectTimeout, ReadTimeout, RequestException
 
-from transcription_bot.utils.caching import cache_url_title
+from transcription_bot.utils.caching import cache_for_url
 from transcription_bot.utils.config import UNPROCESSABLE_EPISODES
 from transcription_bot.utils.global_http_client import http_client
 from transcription_bot.utils.global_logger import logger
@@ -46,7 +46,7 @@ def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str 
     return results[0]
 
 
-@cache_url_title
+@cache_for_url
 def get_article_title(url: str) -> str | None:
     """Get the title of an article from its URL."""
     url = url.replace("http://", "https://")
@@ -104,3 +104,16 @@ def get_first_segment_of_type(segments: "GenericSegmentList", segment_type: type
             return segment
 
     return None
+
+
+@cache_for_url
+def resolve_url_redirects(url: str) -> str:
+    """Resolve URL redirects."""
+    try:
+        response = http_client.head(url, allow_redirects=True, timeout=(_CONNECT_TIMEOUT, _READ_TIMEOUT))
+        response.raise_for_status()
+    except RequestException as e:
+        logger.exception(f"Error resolving redirects for {url}: {e}")
+        return url
+
+    return response.url

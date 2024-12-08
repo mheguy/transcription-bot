@@ -44,7 +44,7 @@ def mock_podcast_rss_entry() -> PodcastRssEntry:
         episode_number=123,
         official_title="Test Episode",
         summary="This is a test episode summary",
-        download_url="http://example.com/download",
+        raw_download_url="http://example.com/download",
         episode_url="http://example.com/episode",
         date=date(2000, 1, 1),
     )

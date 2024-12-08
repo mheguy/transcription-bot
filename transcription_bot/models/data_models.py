@@ -2,11 +2,14 @@ import itertools
 from dataclasses import asdict, field
 from datetime import date
 from enum import Enum
+from functools import cached_property
 from typing import Any, ClassVar, TypedDict
 
 from mwparserfromhell.nodes import Comment, Template
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
+
+from transcription_bot.utils.helpers import resolve_url_redirects
 
 _DEFAULT_SORTING_VALUE = "zzz"
 
@@ -173,7 +176,7 @@ class PodcastRssEntry:
     episode_number: int
     official_title: str
     summary: str
-    download_url: str
+    raw_download_url: str
     episode_url: str
     date: date
 
@@ -181,6 +184,11 @@ class PodcastRssEntry:
     def year(self) -> int:
         """Get the year of the episode."""
         return self.date.year
+
+    @cached_property
+    def download_url(self) -> str:
+        """Get the download URL of the episode."""
+        return resolve_url_redirects(self.raw_download_url)
 
 
 DiarizedTranscript = list[DiarizedTranscriptChunk]

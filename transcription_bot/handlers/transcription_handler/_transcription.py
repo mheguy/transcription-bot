@@ -10,22 +10,18 @@ from transcription_bot.utils.config import config
 from transcription_bot.utils.global_logger import logger
 from transcription_bot.utils.helpers import download_file
 
-# At the time of writing, API version 2024-11-15 is not yet available
-# When it becomes available, switch api version param and remove the version from the endpoint
-_API_VERSION_PARAM = {}
-# _API_VERSION_PARAM = {"api-version": "2024-11-15"}
+_API_VERSION_PARAM = {"api-version": "2024-11-15"}
 _TRANSCRIPTIONS_ENDPOINT = (
-    f"https://{config.azure_service_region}.api.cognitive.microsoft.com/speechtotext/v3.2-preview.2/transcriptions"
+    f"https://{config.azure_service_region}.api.cognitive.microsoft.com/speechtotext/transcriptions:submit"
 )
-
 _AUTH_HEADER = {"Ocp-Apim-Subscription-Key": config.azure_subscription_key}
 _LOCALE = "en-US"
 _TRANSCRIPTION_CONFIG = {
     "profanityFilterMode": "None",
     "punctuationMode": "Automatic",
-    "diarizationEnabled": True,
-    "timeToLive": "P1M",
-    "diarization": {"speakers": {"minCount": 4, "maxCount": 8}},
+    "timeToLiveHours": 720,
+    "diarization": {"enabled": True, "maxSpeakers": 8},
+    "wordLevelTimestampsEnabled": True,
 }
 _HTTP_TIMEOUT = 30
 
@@ -56,8 +52,7 @@ class RecognizedPhrase(TypedDict):
 
 def create_transcription(podcast: PodcastRssEntry) -> RawTranscript:
     """Send a transcription request."""
-    transcription_id = send_transcription_request(podcast, _TRANSCRIPTIONS_ENDPOINT)
-    transcription_url = f"{_TRANSCRIPTIONS_ENDPOINT}/{transcription_id}"
+    transcription_url = send_transcription_request(podcast, _TRANSCRIPTIONS_ENDPOINT)
     files_url = wait_for_transcription_completion(transcription_url)
     return get_transcription_results(files_url)
 
@@ -74,17 +69,17 @@ def send_transcription_request(podcast: PodcastRssEntry, transcriptions_endpoint
     resp = session.post(transcriptions_endpoint, params=_API_VERSION_PARAM, json=payload, timeout=_HTTP_TIMEOUT)
     resp.raise_for_status()
 
-    transcription_id = resp.headers["location"].split("/")[-1]
+    transcription_url: str = resp.json()["self"]
 
-    logger.info(f"Created new transcription with id: {transcription_id}")
-    return transcription_id
+    logger.info(f"Created new transcription with url: {transcription_url}")
+    return transcription_url
 
 
 def wait_for_transcription_completion(transcription_url: str) -> str:
     logger.info("Waiting for transcription to complete...")
 
     while True:
-        resp = session.get(transcription_url, params=_API_VERSION_PARAM, timeout=_HTTP_TIMEOUT)
+        resp = session.get(transcription_url, timeout=_HTTP_TIMEOUT)
         resp.raise_for_status()
 
         resp_object = resp.json()
