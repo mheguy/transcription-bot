@@ -15,8 +15,7 @@ if TYPE_CHECKING:
     from transcription_bot.models.episode_segments import BaseSegment, GenericSegmentList
 
 T = TypeVar("T", bound="BaseSegment")
-_CONNECT_TIMEOUT = 10
-_READ_TIMEOUT = 5
+_HTTP_TIMEOUT = 15
 
 
 def are_strings_in_string(strings: list[str], string: str) -> bool:
@@ -52,7 +51,7 @@ def get_article_title(url: str) -> str | None:
     url = url.replace("http://", "https://")
 
     try:
-        resp = http_client.get(url, timeout=(_CONNECT_TIMEOUT, _READ_TIMEOUT))
+        resp = http_client.get(url, timeout=_HTTP_TIMEOUT)
     except (ValueError, ConnectTimeout, ReadTimeout, RequestsConnectionError) as e:
         logger.warning(f"{type(e).__name__} error for {url}")
         return None
@@ -110,7 +109,7 @@ def get_first_segment_of_type(segments: "GenericSegmentList", segment_type: type
 def resolve_url_redirects(url: str) -> str:
     """Resolve URL redirects."""
     try:
-        response = http_client.head(url, allow_redirects=True, timeout=(_CONNECT_TIMEOUT, _READ_TIMEOUT))
+        response = http_client.head(url, allow_redirects=True, timeout=_HTTP_TIMEOUT)
         response.raise_for_status()
     except RequestException as e:
         logger.exception(f"Error resolving redirects for {url}: {e}")
