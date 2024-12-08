@@ -6,7 +6,6 @@ If no arguments are provided, it will check for the most recent episode and proc
 import sys
 
 import cronitor
-import sentry_sdk
 from loguru import logger
 
 from transcription_bot.handlers.episode_data_handler import create_episode_data
@@ -21,11 +20,9 @@ from transcription_bot.parsers.rss_feed import get_podcast_rss_entries
 from transcription_bot.serializers.wiki import create_podcast_wiki_page
 from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, config
 from transcription_bot.utils.global_http_client import http_client
-from transcription_bot.utils.helpers import run_main_safely
+from transcription_bot.utils.helpers import run_main_safely, setup_tracing
 
-if not config.local_mode:
-    sentry_sdk.init(dsn=config.sentry_dsn, environment="production")
-    cronitor.api_key = config.cronitor_api_key
+setup_tracing(config)
 
 
 @cronitor.job(config.cronitor_job_id)

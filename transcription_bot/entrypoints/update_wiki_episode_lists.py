@@ -4,7 +4,6 @@ Check the most recently updated episode pages and update the episode list to mat
 """
 
 import cronitor
-import sentry_sdk
 from loguru import logger
 from mutagen.id3._util import ID3NoHeaderError
 from mwparserfromhell.nodes.template import Template
@@ -31,11 +30,14 @@ from transcription_bot.parsers.rss_feed import get_podcast_rss_entries, get_rece
 from transcription_bot.utils.config import config
 from transcription_bot.utils.exceptions import NoLyricsTagError
 from transcription_bot.utils.global_http_client import http_client
-from transcription_bot.utils.helpers import filter_bad_episodes, get_first_segment_of_type, run_main_safely
+from transcription_bot.utils.helpers import (
+    filter_bad_episodes,
+    get_first_segment_of_type,
+    run_main_safely,
+    setup_tracing,
+)
 
-if not config.local_mode:
-    sentry_sdk.init(dsn=config.sentry_dsn, environment="production")
-    cronitor.api_key = config.cronitor_api_key
+setup_tracing(config)
 
 
 @cronitor.job(config.cronitor_job_id)

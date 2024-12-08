@@ -3,14 +3,16 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urlparse
 
+import cronitor
 import requests
+import sentry_sdk
 from bs4 import BeautifulSoup, Tag
 from loguru import logger
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import ConnectTimeout, ReadTimeout, RequestException
 
 from transcription_bot.utils.caching import cache_for_url
-from transcription_bot.utils.config import UNPROCESSABLE_EPISODES
+from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, ConfigProto
 from transcription_bot.utils.global_http_client import http_client
 
 if TYPE_CHECKING:
@@ -131,3 +133,10 @@ def run_main_safely(func: Callable[..., None], *args: Any, **kwargs: Any) -> Non
         logger.info("Exiting without exception.")
     finally:
         time.sleep(5)  # allow monitors to flush
+
+
+def setup_tracing(config: ConfigProto) -> None:
+    """Set up tracing."""
+    if not config.local_mode:
+        sentry_sdk.init(dsn=config.sentry_dsn, environment="production", enable_tracing=True)
+        cronitor.api_key = config.cronitor_api_key
