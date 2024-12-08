@@ -57,7 +57,7 @@ def cache_llm(
 
 
 @cache_llm
-def ask_llm_for_segment_start(
+def get_segment_start_from_llm(
     _episode_number: int, segment: "BaseSegment", transcript: "DiarizedTranscript"
 ) -> float | None:
     """Ask an LLM for the start time of a segment."""
@@ -104,7 +104,7 @@ def ask_llm_for_segment_start(
 
 
 @cache_for_episode
-def ask_llm_for_image_caption(_podcast_episode: "PodcastRssEntry", image_url: str) -> str:
+def get_image_caption_from_llm(_podcast_episode: "PodcastRssEntry", image_url: str) -> str:
     """Ask an LLM to write an image caption."""
     user_prompt = "Please write a 10-15 word caption for this image."
 
@@ -134,12 +134,12 @@ def ask_llm_for_image_caption(_podcast_episode: "PodcastRssEntry", image_url: st
 
 
 @cache_for_episode
-def ask_llm_for_episode_metadata(_podcast_episode: "PodcastRssEntry", segments: "RawSegments") -> str:
+def get_episode_metadata_from_llm(_podcast_episode: "PodcastRssEntry", segments: "RawSegments") -> str:
     """Ask LLM for episode metadata (ex. guests, interviewees)."""
     raise NotImplementedError  # TODO: Implement
 
 
 @cache_for_episode
-def ask_llm_for_sof_data(_podcast_episode: "PodcastRssEntry", segment: "ScienceOrFictionSegment") -> str:
-    """Ask LLM for SoF data (ex. theme, guesses)."""
+def get_sof_data_from_llm(_podcast_episode: "PodcastRssEntry", segment: "ScienceOrFictionSegment") -> str:
+    """Ask LLM for Science or Fiction data (ex. theme, guesses)."""
     raise NotImplementedError  # TODO: Implement

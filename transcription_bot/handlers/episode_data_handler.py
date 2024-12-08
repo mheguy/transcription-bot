@@ -1,6 +1,6 @@
 import itertools
 
-from transcription_bot.interfaces.llm_interface import ask_llm_for_segment_start
+from transcription_bot.interfaces.llm_interface import get_segment_start_from_llm
 from transcription_bot.models.data_models import DiarizedTranscript
 from transcription_bot.models.episode_data import EpisodeData, EpisodeMetadata
 from transcription_bot.models.episode_segments import IntroSegment, OutroSegment, RawSegments, TranscribedSegments
@@ -47,7 +47,7 @@ def add_transcript_to_segments(
         right_segment.start_time = right_segment.get_start_time(partial_transcript)
 
         if not right_segment.start_time:
-            right_segment.start_time = ask_llm_for_segment_start(
+            right_segment.start_time = get_segment_start_from_llm(
                 episode_metadata.podcast.episode_number, right_segment, partial_transcript
             )
 
