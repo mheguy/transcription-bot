@@ -10,7 +10,7 @@ def test_create_sgu_list_entry():
 
 
 def test_create_episode_image():
-    data_models.EpisodeImage("fake_url", "fake_name", "fake_caption")
+    data_models.EpisodeImage("fake_url", "fake_name")
 
 
 def test_create_podcast_rss_entry():

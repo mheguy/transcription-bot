@@ -31,7 +31,7 @@ def mock_episode_metadata(podcast_rss_entry: PodcastRssEntry, image: EpisodeImag
 
 @pytest.fixture(name="image")
 def mock_image() -> EpisodeImage:
-    return EpisodeImage("fake_url", "fake_name", "fake_caption")
+    return EpisodeImage("fake_url", "fake_name")
 
 
 @pytest.fixture(name="podcast_rss_entry")

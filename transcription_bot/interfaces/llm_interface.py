@@ -10,7 +10,7 @@ from openai import OpenAI
 
 from transcription_bot.models.episode_segments import RawSegments
 from transcription_bot.models.simple_models import DiarizedTranscript
-from transcription_bot.utils.caching import cache_for_episode, get_cache_dir, load_cache, save_cache
+from transcription_bot.utils.caching import cache_for_episode, cache_for_url, get_cache_dir, load_cache, save_cache
 from transcription_bot.utils.config import config
 
 if TYPE_CHECKING:
@@ -103,8 +103,8 @@ def get_segment_start_from_llm(
     return response_json.get("start_time")
 
 
-@cache_for_episode
-def get_image_caption_from_llm(_podcast_episode: "PodcastRssEntry", image_url: str) -> str:
+@cache_for_url
+def get_image_caption_from_llm(image_url: str) -> str:
     """Ask an LLM to write an image caption."""
     logger.debug("Getting image caption...")
     user_prompt = "Please write a 10-15 word caption for this image."

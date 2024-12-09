@@ -1,3 +1,4 @@
+from transcription_bot.interfaces.llm_interface import get_image_caption_from_llm
 from transcription_bot.models.episode_data import EpisodeData
 from transcription_bot.models.episode_segments import QuoteSegment
 from transcription_bot.utils.helpers import get_first_segment_of_type
@@ -34,7 +35,7 @@ def create_podcast_wiki_page(episode_data: EpisodeData) -> str:
         episode_number=episode_metadata.podcast.episode_number,
         episode_group_number=episode_group_number,
         episode_icon_name=episode_metadata.image.name,
-        episode_icon_caption=episode_metadata.image.caption,
+        episode_icon_caption=get_image_caption_from_llm(episode_metadata.image.url),
         quote_of_the_week=quote_of_the_week,
         quote_of_the_week_attribution=quote_of_the_week_attribution,
         is_bob_present=("bob" in rogues and "y") or "",

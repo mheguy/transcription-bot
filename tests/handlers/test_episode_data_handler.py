@@ -40,7 +40,7 @@ def mock_diarized_transcript() -> DiarizedTranscript:
 
 @pytest.fixture(name="episode_image")
 def mock_episode_image() -> EpisodeImage:
-    return EpisodeImage("fake_url", "fake_name", "fake_caption")
+    return EpisodeImage("fake_url", "fake_name")
 
 
 @pytest.fixture(name="episode_metadata")
@@ -56,7 +56,7 @@ def mock_episode_metadata(podcast_rss_entry: PodcastRssEntry) -> EpisodeMetadata
             <div>Interview with a scientist</div>
         </main>
         """,
-        image=EpisodeImage("fake_url", "fake_name", "fake_caption"),
+        image=EpisodeImage("fake_url", "fake_name"),
     )
 
 

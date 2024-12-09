@@ -5,7 +5,6 @@ from mutagen.id3 import ID3
 from mutagen.id3._frames import TXXX, USLT
 from requests import Session
 
-from transcription_bot.interfaces.llm_interface import get_image_caption_from_llm
 from transcription_bot.interfaces.wiki import find_image_upload, upload_image_to_wiki
 from transcription_bot.models.data_models import EpisodeImage, PodcastRssEntry
 from transcription_bot.models.episode_data import EpisodeMetadata
@@ -81,4 +80,4 @@ def get_image_data(rss_entry: PodcastRssEntry, show_notes: bytes, client: Sessio
         logger.debug("Uploading image for episode...")
         episode_icon_name = upload_image_to_wiki(client, url, episode_number)
 
-    return EpisodeImage(url, episode_icon_name, get_image_caption_from_llm(rss_entry, url))
+    return EpisodeImage(url, episode_icon_name)

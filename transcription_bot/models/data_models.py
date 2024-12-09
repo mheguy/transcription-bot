@@ -140,7 +140,6 @@ class EpisodeImage:
 
     url: str
     name: str
-    caption: str
 
 
 @dataclass(config=ConfigDict(arbitrary_types_allowed=True))
