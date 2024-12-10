@@ -4,7 +4,7 @@ import pytest
 
 from transcription_bot.handlers import episode_data_handler
 from transcription_bot.models.data_models import EpisodeImage, PodcastRssEntry
-from transcription_bot.models.episode_data import EpisodeMetadata
+from transcription_bot.models.episode_data import EpisodeRawData
 from transcription_bot.models.episode_segments import (
     ForgottenSuperheroesOfScienceSegment,
     IntroSegment,
@@ -43,10 +43,10 @@ def mock_episode_image() -> EpisodeImage:
     return EpisodeImage("fake_url", "fake_name")
 
 
-@pytest.fixture(name="episode_metadata")
-def mock_episode_metadata(podcast_rss_entry: PodcastRssEntry) -> EpisodeMetadata:
-    return EpisodeMetadata(
-        podcast=podcast_rss_entry,
+@pytest.fixture(name="episode_raw_data")
+def mock_episode_raw_data(podcast_rss_entry: PodcastRssEntry) -> EpisodeRawData:
+    return EpisodeRawData(
+        rss_entry=podcast_rss_entry,
         lyrics="Test lyrics",
         show_notes=b"""
         <main class="podcast-main">
@@ -116,7 +116,7 @@ def test_get_partial_transcript_for_start_time_with_no_skip(diarized_transcript:
 
 
 def test_add_transcript_to_segments(
-    episode_metadata: Mock, diarized_transcript: DiarizedTranscript, monkeypatch: pytest.MonkeyPatch
+    episode_raw_data: Mock, diarized_transcript: DiarizedTranscript, monkeypatch: pytest.MonkeyPatch
 ):
     # Arrange
     mock_llm = create_autospec(episode_data_handler.get_segment_start_from_llm)
@@ -138,7 +138,7 @@ def test_add_transcript_to_segments(
 
     # Add transcript to segments
     # Act
-    result = episode_data_handler.add_transcript_to_segments(episode_metadata, diarized_transcript, segments)
+    result = episode_data_handler.add_transcript_to_segments(episode_raw_data, diarized_transcript, segments)
 
     # Verify segments have correct transcripts
     # Assert

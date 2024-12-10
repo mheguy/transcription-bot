@@ -18,7 +18,7 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
 
     raw_feed_entries = feedparser.parse(response.text)["entries"]
 
-    feed_entries: list[PodcastRssEntry] = []
+    rss_entries: list[PodcastRssEntry] = []
     for entry in raw_feed_entries:
         episode_number = int(entry["link"].split("/")[-1])
 
@@ -37,7 +37,7 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
         except ValueError:
             time = datetime.strptime(date_string, "%m-%d-%y")
 
-        feed_entries.append(
+        rss_entries.append(
             PodcastRssEntry(
                 episode_number=int(entry["link"].split("/")[-1]),
                 official_title=entry["title"],
@@ -48,7 +48,7 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
             )
         )
 
-    return sorted(feed_entries, key=lambda e: e.episode_number, reverse=True)
+    return sorted(rss_entries, key=lambda e: e.episode_number, reverse=True)
 
 
 def get_recently_modified_episode_numbers(client: Session) -> set[int]:

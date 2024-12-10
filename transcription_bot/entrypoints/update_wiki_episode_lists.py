@@ -9,8 +9,8 @@ from mutagen.id3._util import ID3NoHeaderError
 from mwparserfromhell.nodes.template import Template
 from mwparserfromhell.wikicode import Wikicode
 
-from transcription_bot.handlers.episode_metadata_handler import gather_metadata
-from transcription_bot.handlers.episode_segment_handler import extract_episode_segments_from_episode_metadata
+from transcription_bot.handlers.episode_raw_data_handler import gather_raw_data
+from transcription_bot.handlers.episode_segment_handler import extract_episode_segments_from_episode_raw_data
 from transcription_bot.interfaces.wiki import (
     get_episode_entry_from_list,
     get_episode_list_wiki_page,
@@ -98,11 +98,11 @@ def create_expected_episode_entry(episode_rss_entry: PodcastRssEntry) -> SguList
     date = episode_rss_entry.date.strftime("%m-%d")
     status = get_episode_status(episode_page)
 
-    logger.debug("Gathering episode metadata...")
-    episode_metadata = gather_metadata(episode_rss_entry, http_client)
+    logger.debug("Gathering episode raw_data...")
+    episode_raw_data = gather_raw_data(episode_rss_entry, http_client)
 
     logger.debug("Converting data to segments...")
-    episode_segments = extract_episode_segments_from_episode_metadata(episode_metadata)
+    episode_segments = extract_episode_segments_from_episode_raw_data(episode_raw_data)
 
     return SguListEntry(
         str(episode_number),

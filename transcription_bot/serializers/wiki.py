@@ -11,7 +11,7 @@ def create_podcast_wiki_page(episode_data: EpisodeData) -> str:
     This function gathers all the necessary data for the episode, merges the data into segments,
     and converts the segments into wiki page content.
     """
-    episode_metadata = episode_data.metadata
+    episode_raw_data = episode_data.raw_data
     segment_text = "\n".join(s.to_wiki() for s in episode_data.segments)
 
     rogues = {s["speaker"].lower() for s in episode_data.transcript}
@@ -20,7 +20,7 @@ def create_podcast_wiki_page(episode_data: EpisodeData) -> str:
 
     template = get_template("base")
 
-    num = str(episode_metadata.podcast.episode_number)
+    num = str(episode_raw_data.rss_entry.episode_number)
     episode_group_number = num[0] + "0" * (len(num) - 1) + "s"
 
     if qotw_segment:
@@ -32,10 +32,10 @@ def create_podcast_wiki_page(episode_data: EpisodeData) -> str:
 
     return template.render(
         segment_text=segment_text,
-        episode_number=episode_metadata.podcast.episode_number,
+        episode_number=episode_raw_data.rss_entry.episode_number,
         episode_group_number=episode_group_number,
-        episode_icon_name=episode_metadata.image.name,
-        episode_icon_caption=get_image_caption_from_llm(episode_metadata.image.url),
+        episode_icon_name=episode_raw_data.image.name,
+        episode_icon_caption=get_image_caption_from_llm(episode_raw_data.image.url),
         quote_of_the_week=quote_of_the_week,
         quote_of_the_week_attribution=quote_of_the_week_attribution,
         is_bob_present=("bob" in rogues and "y") or "",

@@ -10,13 +10,13 @@ from transcription_bot.models.data_models import PodcastRssEntry
 from transcription_bot.models.simple_models import DiarizedTranscript, DiarizedTranscriptChunk
 
 
-def get_diarized_transcript(podcast: PodcastRssEntry) -> DiarizedTranscript:
+def get_diarized_transcript(rss_entry: PodcastRssEntry) -> DiarizedTranscript:
     """Create a transcript with the audio and podcast information."""
     logger.info("Getting diarized transcript...")
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        transcription_future = executor.submit(create_transcription, podcast)
-        diarization_future = executor.submit(create_diarization, podcast)
+        transcription_future = executor.submit(create_transcription, rss_entry)
+        diarization_future = executor.submit(create_diarization, rss_entry)
 
         transcription = transcription_future.result()
         diarization = diarization_future.result()

@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, ParamSpec, TypeVar
 from loguru import logger
 from openai import OpenAI
 
-from transcription_bot.models.episode_segments import RawSegments
 from transcription_bot.models.simple_models import DiarizedTranscript
 from transcription_bot.utils.caching import cache_for_episode, cache_for_url, get_cache_dir, load_cache, save_cache
 from transcription_bot.utils.config import config
@@ -21,7 +20,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def cache_llm(
+def cache_llm_for_segment(
     func: Callable[[int, "BaseSegment", "DiarizedTranscript"], float | None],
 ) -> Callable[[int, "BaseSegment", "DiarizedTranscript"], float | None]:
     """Provide caching for title page lookups."""
@@ -56,7 +55,7 @@ def cache_llm(
     return wrapper
 
 
-@cache_llm
+@cache_llm_for_segment
 def get_segment_start_from_llm(
     _episode_number: int, segment: "BaseSegment", transcript: "DiarizedTranscript"
 ) -> float | None:
@@ -135,12 +134,11 @@ def get_image_caption_from_llm(image_url: str) -> str:
 
 
 @cache_for_episode
-def get_episode_metadata_from_llm(_podcast_episode: "PodcastRssEntry", segments: "RawSegments") -> str:
-    """Ask LLM for episode metadata (ex. guests, interviewees)."""
-    raise NotImplementedError  # TODO: Implement
+def get_sof_metadata_from_llm(_rss_entry: "PodcastRssEntry", segment: "ScienceOrFictionSegment") -> str:
+    """Ask LLM for Science or Fiction metadata.
 
-
-@cache_for_episode
-def get_sof_data_from_llm(_podcast_episode: "PodcastRssEntry", segment: "ScienceOrFictionSegment") -> str:
-    """Ask LLM for Science or Fiction data (ex. theme, guesses)."""
+    Which rogues guessed what.
+    The order that Steve reveals / explains the items.
+    Timestamps for all of the above.
+    """
     raise NotImplementedError  # TODO: Implement
