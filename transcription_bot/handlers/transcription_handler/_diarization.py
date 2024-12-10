@@ -1,12 +1,12 @@
 import json
 
 import pandas as pd
-import requests
 from loguru import logger
 
 from transcription_bot.models.data_models import PodcastRssEntry
 from transcription_bot.utils.caching import cache_for_episode
 from transcription_bot.utils.config import VOICEPRINT_FILE, config
+from transcription_bot.utils.global_http_client import http_client
 from transcription_bot.utils.webhook_server import WebhookServer
 
 
@@ -48,6 +48,6 @@ def send_diarization_request(listener_url: str, audio_file_url: str) -> None:
     data = {"webhook": webhook_url, "url": audio_file_url, "voiceprints": get_voiceprints()}
 
     logger.debug(f"Request data: {data}")
-    response = requests.post(config.pyannote_identify_endpoint, headers=headers, json=data, timeout=10)
+    response = http_client.post(config.pyannote_identify_endpoint, headers=headers, json=data)
     logger.debug(f"Request sent. Response: {response}")
     response.raise_for_status()

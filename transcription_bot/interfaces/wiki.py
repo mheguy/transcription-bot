@@ -150,7 +150,7 @@ def get_wiki_page(page_title: str) -> Wikicode:
     }
     headers = {"User-Agent": "transcription-bot/1.0"}
 
-    req = http_client.get(config.wiki_api_base, headers=headers, params=params, timeout=5)
+    req = http_client.get(config.wiki_api_base, headers=headers, params=params)
     json = req.json()
 
     revision = json["query"]["pages"][0]["revisions"][0]

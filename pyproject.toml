@@ -20,6 +20,7 @@ dependencies = [
     "pyarrow>=18.0.0",
     "requests>=2.32.3",
     "sentry-sdk[loguru]>=2.18.0",
+    "tenacity>=9.0.0",
 ]
 
 [dependency-groups]
@@ -31,6 +32,7 @@ dev = [
     "pytest-icdiff",
     "pytest-cov",
     "pytest-randomly",
+    "pytest-socket",
     "ruff",
 ]
 scripts = ["flask", "pydub"]
@@ -135,7 +137,7 @@ reportUnnecessaryTypeIgnoreComment = "information"
 ignore-glob = [".venv"]
 
 [tool.pytest.ini_options]
-addopts = ["--strict-markers"]
+addopts = ["--strict-markers", "--disable-socket"]
 markers = []
 filterwarnings = []
 log_cli = true
