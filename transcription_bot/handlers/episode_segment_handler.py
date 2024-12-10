@@ -1,6 +1,6 @@
 from loguru import logger
 
-from transcription_bot.models.episode_data import EpisodeMetadata
+from transcription_bot.models.episode_data import EpisodeRawData
 from transcription_bot.models.episode_segments import (
     NewsMetaSegment,
     NoisySegment,
@@ -32,15 +32,15 @@ def merge_segments(
     return segments
 
 
-def extract_episode_segments_from_episode_metadata(episode_metadata: EpisodeMetadata) -> RawSegments:
-    """Extracts segments from episode metadata.
+def extract_episode_segments_from_episode_raw_data(episode_raw_data: EpisodeRawData) -> RawSegments:
+    """Extracts segments from episode raw data.
 
-    This function takes the episode metadata and parses the lyrics, show notes, and summary text
+    This function takes the episode raw data and parses the lyrics, show notes, and summary text
     into separate segments. It then merges the segments together to capture all the data.
     """
-    lyric_segments = parse_lyrics(episode_metadata.lyrics)
-    show_note_segments = parse_show_notes(episode_metadata.show_notes)
-    summary_text_segments = parse_summary_text(episode_metadata.podcast.summary)
+    lyric_segments = parse_lyrics(episode_raw_data.lyrics)
+    show_note_segments = parse_show_notes(episode_raw_data.show_notes)
+    summary_text_segments = parse_summary_text(episode_raw_data.rss_entry.summary)
 
     return merge_segments(lyric_segments, show_note_segments, summary_text_segments)
 

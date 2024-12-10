@@ -40,7 +40,8 @@ class HttpClient(requests.Session):
         before_sleep=before_sleep_log(cast(logging.Logger, logger), logging.DEBUG),
     )
     def _request(self, *args: Any, **kwargs: Any) -> requests.Response:
-        return self.request(*args, **kwargs, timeout=kwargs.get("timeout", _HTTP_TIMEOUT))
+        timeout = kwargs.pop("timeout", _HTTP_TIMEOUT)
+        return self.request(*args, **kwargs, timeout=timeout)
 
 
 http_client = HttpClient()

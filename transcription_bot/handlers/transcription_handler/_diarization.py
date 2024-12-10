@@ -11,13 +11,13 @@ from transcription_bot.utils.webhook_server import WebhookServer
 
 
 @cache_for_episode
-def create_diarization(podcast: PodcastRssEntry) -> pd.DataFrame:
+def create_diarization(rss_entry: PodcastRssEntry) -> pd.DataFrame:
     logger.info("Creating diarization...")
     webhook_server = WebhookServer()
     server_url = webhook_server.start_server_thread()
 
     try:
-        send_diarization_request(server_url, podcast.download_url)
+        send_diarization_request(server_url, rss_entry.download_url)
     except Exception:
         logger.exception("Failed to send diarization request")
         webhook_server.stop_server_thread()

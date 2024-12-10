@@ -7,15 +7,15 @@ from requests import Session
 
 from transcription_bot.interfaces.wiki import find_image_upload, upload_image_to_wiki
 from transcription_bot.models.data_models import EpisodeImage, PodcastRssEntry
-from transcription_bot.models.episode_data import EpisodeMetadata
+from transcription_bot.models.episode_data import EpisodeRawData
 from transcription_bot.parsers.show_notes import get_episode_image_url
 from transcription_bot.utils.caching import cache_for_episode
 from transcription_bot.utils.exceptions import NoLyricsTagError
 from transcription_bot.utils.helpers import download_file
 
 
-def gather_metadata(rss_entry: PodcastRssEntry, client: Session) -> EpisodeMetadata:
-    """Gather metadata about a podcast episode."""
+def gather_raw_data(rss_entry: PodcastRssEntry, client: Session) -> EpisodeRawData:
+    """Gather raw data for a podcast episode."""
     logger.info("Getting show data...")
     mp3 = get_audio_file(rss_entry, client)
 
@@ -24,7 +24,7 @@ def gather_metadata(rss_entry: PodcastRssEntry, client: Session) -> EpisodeMetad
 
     image = get_image_data(rss_entry, show_notes, client)
 
-    return EpisodeMetadata(rss_entry, lyrics, show_notes, image)
+    return EpisodeRawData(rss_entry, lyrics, show_notes, image)
 
 
 def get_lyrics_from_mp3(_rss_entry: PodcastRssEntry, raw_bytes: bytes) -> str:

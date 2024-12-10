@@ -20,10 +20,10 @@ class DiarizedTranscriptChunk(TypedDict):
     """A chunk of a diarized transcript.
 
     Attributes:
-        start (float): The start time of the chunk.
-        end (float): The end time of the chunk.
-        text (str): The text content of the chunk.
-        speaker (str): The speaker associated with the chunk.
+        start: The start time of the chunk.
+        end: The end time of the chunk.
+        text: The text content of the chunk.
+        speaker: The speaker associated with the chunk.
     """
 
     start: float

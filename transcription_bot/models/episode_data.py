@@ -8,16 +8,17 @@ from transcription_bot.models.simple_models import DiarizedTranscript
 
 
 @dataclass
-class EpisodeMetadata:
-    """Metadata about a podcast episode.
+class EpisodeRawData:
+    """Raw data about a podcast episode.
 
     Attributes:
-        podcast: Data from the rss feed
+        podcast: Data from the rss feed.
         lyrics: The lyrics that were embedded in the MP3 file.
         show_notes: The show notes of the episode from the website.
+        image: The image for the episode.
     """
 
-    podcast: PodcastRssEntry
+    rss_entry: PodcastRssEntry
     lyrics: str
     show_notes: bytes
     image: EpisodeImage
@@ -25,13 +26,8 @@ class EpisodeMetadata:
 
 @dataclass
 class EpisodeData:
-    """Full data about a podcast episode.
+    """Full data about a podcast episode."""
 
-    Attributes:
-        metadata: The metadata for an episode
-        segments: The segments of the episode
-    """
-
-    metadata: EpisodeMetadata
+    raw_data: EpisodeRawData
     segments: TranscribedSegments
     transcript: DiarizedTranscript

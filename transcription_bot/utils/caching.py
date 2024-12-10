@@ -35,15 +35,15 @@ def cache_for_episode(
     """
 
     @functools.wraps(func)
-    def wrapper(podcast_episode: T, *args: P.args, **kwargs: P.kwargs) -> R:
+    def wrapper(rss_entry: T, *args: P.args, **kwargs: P.kwargs) -> R:
         function_dir = get_cache_dir(func)
-        cache_filepath = function_dir / f"{podcast_episode.episode_number}.json_or_pkl"
+        cache_filepath = function_dir / f"{rss_entry.episode_number}.json_or_pkl"
 
         if cache_filepath.exists():
-            logger.info(f"Using cache for func: {func.__name__}, ep: {podcast_episode.episode_number}")
+            logger.info(f"Using cache for func: {func.__name__}, ep: {rss_entry.episode_number}")
             return load_cache(cache_filepath)
 
-        result = func(podcast_episode, *args, **kwargs)
+        result = func(rss_entry, *args, **kwargs)
 
         save_cache(cache_filepath, result)
         return result

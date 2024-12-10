@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from transcription_bot.models.data_models import EpisodeImage, PodcastRssEntry
-from transcription_bot.models.episode_data import EpisodeMetadata
+from transcription_bot.models.episode_data import EpisodeRawData
 from transcription_bot.models.episode_segments import BaseSegment, TranscribedSegments
 from transcription_bot.models.simple_models import DiarizedTranscript
 from transcription_bot.utils.config import CONFIG_FILE, config
@@ -24,9 +24,9 @@ def enable_local_mode(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 # region Mocked models
-@pytest.fixture(name="episode_metadata")
-def mock_episode_metadata(podcast_rss_entry: PodcastRssEntry, image: EpisodeImage) -> EpisodeMetadata:
-    return EpisodeMetadata(podcast_rss_entry, "fake_lyrics", b"fake_show_notes", image)
+@pytest.fixture(name="episode_raw_data")
+def mock_episode_raw_data(podcast_rss_entry: PodcastRssEntry, image: EpisodeImage) -> EpisodeRawData:
+    return EpisodeRawData(podcast_rss_entry, "fake_lyrics", b"fake_show_notes", image)
 
 
 @pytest.fixture(name="image")

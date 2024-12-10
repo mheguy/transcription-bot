@@ -49,20 +49,20 @@ class RecognizedPhrase(TypedDict):
     nBest: list[PhraseInfo]
 
 
-def create_transcription(podcast: PodcastRssEntry) -> RawTranscript:
+def create_transcription(rss_entry: PodcastRssEntry) -> RawTranscript:
     """Send a transcription request."""
-    transcription_url = send_transcription_request(podcast, _TRANSCRIPTIONS_ENDPOINT)
+    transcription_url = send_transcription_request(rss_entry, _TRANSCRIPTIONS_ENDPOINT)
     files_url = wait_for_transcription_completion(transcription_url)
     return get_transcription_results(files_url)
 
 
 @cache_for_episode
-def send_transcription_request(podcast: PodcastRssEntry, transcriptions_endpoint: str) -> str:
+def send_transcription_request(rss_entry: PodcastRssEntry, transcriptions_endpoint: str) -> str:
     payload = {
-        "contentUrls": [podcast.download_url],
+        "contentUrls": [rss_entry.download_url],
         "properties": _TRANSCRIPTION_CONFIG,
         "locale": _LOCALE,
-        "displayName": f"SGU Episode {podcast.episode_number}",
+        "displayName": f"SGU Episode {rss_entry.episode_number}",
     }
 
     resp = session.post(transcriptions_endpoint, params=_API_VERSION_PARAM, json=payload, timeout=_HTTP_TIMEOUT)

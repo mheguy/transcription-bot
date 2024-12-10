@@ -17,7 +17,7 @@ def test_cache_llm_without_local_mode(tmp_path: Path, segment: MagicMock, transc
 
     with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
-        @llm_interface.cache_llm
+        @llm_interface.cache_llm_for_segment
         def test_llm(_episode: int, _segment: BaseSegment, _transcript: DiarizedTranscript) -> float:  # noqa: PT019
             return llm_mock(_episode, _segment, _transcript)
 
@@ -43,7 +43,7 @@ def test_cache_llm_with_local_mode(tmp_path: Path, segment: MagicMock, transcrip
 
     with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
-        @llm_interface.cache_llm
+        @llm_interface.cache_llm_for_segment
         def test_llm(_episode: int, _segment: BaseSegment, _transcript: DiarizedTranscript) -> float:  # noqa: PT019
             return llm_mock(_episode, _segment, _transcript)
 

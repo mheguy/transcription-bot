@@ -132,7 +132,8 @@ def run_main_safely(func: Callable[..., None], *args: Any, **kwargs: Any) -> Non
     else:
         logger.info("Exiting without exception.")
     finally:
-        time.sleep(5)  # allow monitors to flush
+        print("Waiting 3s for any messages to flush..")
+        time.sleep(3)  # allow monitors to flush
 
 
 def setup_tracing(config: ConfigProto) -> None:
