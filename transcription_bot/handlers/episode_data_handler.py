@@ -1,13 +1,16 @@
 import itertools
 
 from loguru import logger
+from openai.types.chat.chat_completion_content_part_param import ChatCompletionContentPartParam
 
 from transcription_bot.interfaces.llm_interface import get_segment_start_from_llm, get_sof_metadata_from_llm
+from transcription_bot.models.data_models import PodcastRssEntry
 from transcription_bot.models.episode_data import EpisodeData, EpisodeRawData
 from transcription_bot.models.episode_segments import (
     IntroSegment,
     OutroSegment,
     RawSegments,
+    ScienceOrFictionLlmData,
     ScienceOrFictionSegment,
     TranscribedSegments,
 )
@@ -23,7 +26,8 @@ def create_episode_data(
 ) -> EpisodeData:
     """Create the episode data object."""
     transcribed_segments = add_transcript_to_segments(episode_raw_data, transcript, episode_segments)
-    # transcribed_segments = enhance_transcribed_segments(episode_raw_data, transcribed_segments)
+
+    enhance_transcribed_segments(episode_raw_data, transcribed_segments)
 
     return EpisodeData(episode_raw_data, transcribed_segments, transcript)
 
@@ -97,14 +101,16 @@ def get_partial_transcript_for_start_time(
     return get_transcript_between_times(transcript, start, end)[transcript_chunks_to_skip:]
 
 
-def enhance_transcribed_segments(
-    episode_raw_data: EpisodeRawData, segments: TranscribedSegments
-) -> TranscribedSegments:
+def enhance_transcribed_segments(episode_raw_data: EpisodeRawData, segments: TranscribedSegments) -> None:
     """Enhance segments with metadata that an LLM can infer."""
-    # TODO: Add SoF data about who guessed what
+    if sof_segment := next((seg for seg in segments if isinstance(seg, ScienceOrFictionSegment)), None):
+        sof_segment.metadata = get_sof_segment_metadata(episode_raw_data.rss_entry, sof_segment)
 
-    sof_segment = next((seg for seg in segments if isinstance(seg, ScienceOrFictionSegment)), None)
-    if sof_segment:
-        sof_metadata = get_sof_metadata_from_llm(episode_raw_data.rss_entry, sof_segment)
 
-    return segments
+def get_sof_segment_metadata(rss_entry: PodcastRssEntry, segment: ScienceOrFictionSegment) -> ScienceOrFictionLlmData:
+    """Get the metadata for a Science or Fiction segment."""
+    transcript: list[ChatCompletionContentPartParam] = [
+        {"text": segment_chunk["text"], "type": "text"} for segment_chunk in segment.transcript
+    ]
+
+    return get_sof_metadata_from_llm(rss_entry, transcript)

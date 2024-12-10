@@ -71,7 +71,7 @@ def test_science_or_fiction_item():
     # Arrange
     item = episode_segments.ScienceOrFictionItem(
         number=1,
-        show_notes_text=TEST_ITEM_TEXT,
+        name=TEST_ITEM_TEXT,
         article_url=TEST_ARTICLE_URL,
         sof_result="correct",
         article_title=TEST_ARTICLE_TITLE,
@@ -80,7 +80,7 @@ def test_science_or_fiction_item():
 
     # Assert
     assert item.number == 1
-    assert item.show_notes_text == TEST_ITEM_TEXT
+    assert item.name == TEST_ITEM_TEXT
     assert item.article_url == TEST_ARTICLE_URL
 
 

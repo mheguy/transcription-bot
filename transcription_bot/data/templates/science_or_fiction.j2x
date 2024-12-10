@@ -5,7 +5,7 @@
 |theme = ((( theme )))
 |hiddentheme =
 ((* for item in items *))
-|item((( item.number ))) = ((( item.show_notes_text )))
+|item((( item.number ))) = ((( item.name )))
 |link((( item.number )))web = ((( item.article_url )))
 |link((( item.number )))title = ((( item.article_title )))
 |link((( item.number )))pub = ((( item.article_publication )))
@@ -13,23 +13,17 @@
 |}}
 {{SOFResults
 ((* for item in items *))
-|((( item.sof_result ))) = Item #((( item.number )))
+|((( item.sof_result ))) = ((( item.name )))
 ((* endfor *))
-|rogue1 =
-|answer1 =
-|rogue2 =
-|answer2 =
-|rogue3 =
-|answer3 =
-|rogue4 =
-|answer4 =
-|rogue5 =
-|answer5 =
-|host = steve
-|sweep = <!-- all the Rogues guessed wrong -->
-|clever = <!-- each item was guessed (Steve's preferred result) -->
-|win = <!-- at least one Rogue guessed wrong, but not them all -->
-|swept = <!-- all the Rogues guessed right -->
+((* for rogue in metadata.rogues *))
+|rogue((( rogue.num ))) = ((( rogue.name )))
+|answer((( rogue.num ))) = ((( rogue.answer.name )))
+((* endfor *))
+|host = ((( metadata.host )))
+|sweep = ((( metadata.sweep )))
+|clever = ((( metadata.clever )))
+|win = ((( metadata.win )))
+|swept = ((( metadata.swept )))
 }}
 
 ((( transcript )))

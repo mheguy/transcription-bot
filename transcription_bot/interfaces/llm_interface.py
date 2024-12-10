@@ -2,19 +2,18 @@
 
 import functools
 import json
-from collections.abc import Callable
-from typing import TYPE_CHECKING, ParamSpec, TypeVar
+from collections.abc import Callable, Iterable
+from typing import ParamSpec, TypeVar
 
 from loguru import logger
 from openai import OpenAI
+from openai.types.chat.chat_completion_content_part_param import ChatCompletionContentPartParam
 
+from transcription_bot.models.data_models import PodcastRssEntry
+from transcription_bot.models.episode_segments import BaseSegment, ScienceOrFictionLlmData
 from transcription_bot.models.simple_models import DiarizedTranscript
 from transcription_bot.utils.caching import cache_for_episode, cache_for_url, get_cache_dir, load_cache, save_cache
 from transcription_bot.utils.config import config
-
-if TYPE_CHECKING:
-    from transcription_bot.models.data_models import PodcastRssEntry
-    from transcription_bot.models.episode_segments import BaseSegment, ScienceOrFictionSegment
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -57,7 +56,7 @@ def cache_llm_for_segment(
 
 @cache_llm_for_segment
 def get_segment_start_from_llm(
-    _episode_number: int, segment: "BaseSegment", transcript: "DiarizedTranscript"
+    _episode_number: int, segment: BaseSegment, transcript: DiarizedTranscript
 ) -> float | None:
     """Ask an LLM for the start time of a segment."""
     client = OpenAI(
@@ -134,11 +133,30 @@ def get_image_caption_from_llm(image_url: str) -> str:
 
 
 @cache_for_episode
-def get_sof_metadata_from_llm(_rss_entry: "PodcastRssEntry", segment: "ScienceOrFictionSegment") -> str:
+def get_sof_metadata_from_llm(
+    _rss_entry: PodcastRssEntry, transcript: Iterable[ChatCompletionContentPartParam]
+) -> ScienceOrFictionLlmData:
     """Ask LLM for Science or Fiction metadata.
 
     Which rogues guessed what.
     The order that Steve reveals / explains the items.
     Timestamps for all of the above.
     """
-    raise NotImplementedError  # TODO: Implement
+    logger.debug("Getting science or fiction metadata from llm...")
+
+    client = OpenAI(
+        organization=config.openai_organization, project=config.openai_project, api_key=config.openai_api_key
+    )
+    response = client.beta.chat.completions.parse(
+        model=config.llm_model,
+        messages=[
+            {"role": "system", "content": "Extract the event information."},
+            {"role": "user", "content": transcript},
+        ],
+        response_format=ScienceOrFictionLlmData,
+    )
+
+    if not response.choices[0].message.parsed:
+        raise ValueError("LLM did not return a response.", response)
+
+    return response.choices[0].message.parsed
