@@ -2,12 +2,12 @@ import json
 import time
 from typing import Any, TypedDict
 
-import requests
 from loguru import logger
 
 from transcription_bot.models.data_models import PodcastRssEntry
 from transcription_bot.utils.caching import cache_for_episode
 from transcription_bot.utils.config import config
+from transcription_bot.utils.global_http_client import http_client
 from transcription_bot.utils.helpers import download_file
 
 _API_VERSION_PARAM = {"api-version": "2024-11-15"}
@@ -30,8 +30,7 @@ _TICKS_PER_SECONDS = 10_000_000
 
 RawTranscript = list["TranscriptSegment"]
 
-session = requests.Session()
-session.headers.update(_AUTH_HEADER)
+session = http_client.with_auth_header(_AUTH_HEADER)
 
 
 class TranscriptSegment(TypedDict):

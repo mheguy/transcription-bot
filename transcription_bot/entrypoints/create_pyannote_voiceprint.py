@@ -5,10 +5,10 @@ import threading
 from pathlib import Path
 
 import ngrok
-import requests
 from flask import Flask, Response, request, send_file
 
 from transcription_bot.utils.config import config
+from transcription_bot.utils.global_http_client import http_client
 
 # This determines who is being processed!
 ROGUE_TO_PROCESS = "Steve"
@@ -53,7 +53,7 @@ def _send_voiceprint(base_url: str) -> None:
 
     logger.info("data=%s", data)
 
-    response = requests.post(config.pyannote_voiceprint_endpoint, headers=HEADERS, json=data, timeout=10)
+    response = http_client.post(config.pyannote_voiceprint_endpoint, headers=HEADERS, json=data)
     response.raise_for_status()
 
     logger.info("Voiceprint sent. Response: %s", response.content)

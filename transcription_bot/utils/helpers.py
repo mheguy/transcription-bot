@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urlparse
 
 import cronitor
-import requests
 import sentry_sdk
 from bs4 import BeautifulSoup, Tag
 from loguru import logger
+from requests import Session
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import ConnectTimeout, ReadTimeout, RequestException
 
@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from transcription_bot.models.episode_segments import BaseSegment, GenericSegmentList
 
 T = TypeVar("T", bound="BaseSegment")
-_HTTP_TIMEOUT = 15
 
 
 def are_strings_in_string(strings: list[str], string: str) -> bool:
@@ -55,7 +54,7 @@ def get_article_title(url: str) -> str | None:
     url = url.replace("http://", "https://")
 
     try:
-        resp = http_client.get(url, timeout=_HTTP_TIMEOUT)
+        resp = http_client.get(url)
     except (ValueError, ConnectTimeout, ReadTimeout, RequestsConnectionError) as e:
         logger.warning(f"{type(e).__name__} error for {url}")
         return None
@@ -81,7 +80,7 @@ def string_is_url(text: str) -> bool:
     return all([parsed.scheme, parsed.netloc])
 
 
-def download_file(url: str, client: requests.Session) -> bytes:
+def download_file(url: str, client: Session) -> bytes:
     """Download a file from the given URL."""
     response = client.get(url)
     response.raise_for_status()
@@ -113,7 +112,7 @@ def get_first_segment_of_type(segments: "GenericSegmentList", segment_type: type
 def resolve_url_redirects(url: str) -> str:
     """Resolve URL redirects."""
     try:
-        response = http_client.head(url, allow_redirects=True, timeout=_HTTP_TIMEOUT)
+        response = http_client.head(url, allow_redirects=True)
         response.raise_for_status()
     except RequestException as e:
         logger.exception(f"Error resolving redirects for {url}: {e}")
