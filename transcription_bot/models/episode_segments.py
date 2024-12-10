@@ -1101,12 +1101,12 @@ class ScienceOrFictionLlmData:
     reveal_timestamps: The timestamps where the host explained each answer.
     """
 
-    guess_timestamps: list[float]
+    guess_timestamps: list[float]  # TODO: Use this to split up the segment
     rogues: list[str]
     rogue_answers: list[int]
     host: str
-    order_of_reveal: list[int]
-    reveal_timestamps: list[float]
+    order_of_reveal: list[int]  # TODO: Use this to split up the segment
+    reveal_timestamps: list[float]  # TODO: Use this to split up the segment
 
 
 @dataclass(kw_only=True, config=ConfigDict(arbitrary_types_allowed=True))

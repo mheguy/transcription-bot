@@ -109,8 +109,9 @@ def enhance_transcribed_segments(episode_raw_data: EpisodeRawData, segments: Tra
 
 def get_sof_segment_metadata(rss_entry: PodcastRssEntry, segment: ScienceOrFictionSegment) -> ScienceOrFictionLlmData:
     """Get the metadata for a Science or Fiction segment."""
-    transcript: list[ChatCompletionContentPartParam] = [
-        {"text": segment_chunk["text"], "type": "text"} for segment_chunk in segment.transcript
-    ]
+    transcript: list[ChatCompletionContentPartParam] = []
+    for segment_chunk in segment.transcript:
+        text = f"({segment_chunk['start']:0.2f}-{segment_chunk['end']:0.2f}) [{segment_chunk['speaker']}] {segment_chunk['text']}"
+        transcript.append({"type": "text", "text": text})
 
     return get_sof_metadata_from_llm(rss_entry, transcript)

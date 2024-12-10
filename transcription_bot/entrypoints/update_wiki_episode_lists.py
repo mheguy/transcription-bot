@@ -41,13 +41,14 @@ setup_tracing(config)
 
 
 @cronitor.job(config.cronitor_job_id)
-def main() -> None:
+def main(episode_numbers: set[int]) -> None:
     """Update wiki episode lists."""
     config.validators.validate_all()
 
-    logger.info("Getting recently modified episode wiki pages...")
-    episode_numbers = get_recently_modified_episode_numbers(http_client)
-    logger.info(f"Found {len(episode_numbers)} modified episode pages")
+    if not episode_numbers:
+        logger.info("Getting recently modified episode wiki pages...")
+        episode_numbers = get_recently_modified_episode_numbers(http_client)
+        logger.info(f"Found {len(episode_numbers)} modified episode pages")
 
     if not episode_numbers:
         logger.info("No modified episode pages found. Exiting.")
@@ -189,4 +190,5 @@ def get_interviewee(episode_number: int, segments: list[BaseSegment]) -> str:
 
 
 if __name__ == "__main__":
-    run_main_safely(main)
+    _episodes_to_process = set()
+    run_main_safely(main, _episodes_to_process)

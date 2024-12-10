@@ -150,7 +150,10 @@ def get_sof_metadata_from_llm(
     response = client.beta.chat.completions.parse(
         model=config.llm_model,
         messages=[
-            {"role": "system", "content": "Extract the event information."},
+            {
+                "role": "system",
+                "content": "Extract the event information. For timestamps: use the start time of the text.",
+            },
             {"role": "user", "content": transcript},
         ],
         response_format=ScienceOrFictionLlmData,
