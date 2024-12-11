@@ -54,7 +54,6 @@ def _send_voiceprint(base_url: str) -> None:
     logger.info("data=%s", data)
 
     response = http_client.post(config.pyannote_voiceprint_endpoint, headers=HEADERS, json=data)
-    response.raise_for_status()
 
     logger.info("Voiceprint sent. Response: %s", response.content)
 

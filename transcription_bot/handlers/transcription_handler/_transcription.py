@@ -66,7 +66,6 @@ def send_transcription_request(rss_entry: PodcastRssEntry, transcriptions_endpoi
     }
 
     resp = session.post(transcriptions_endpoint, params=_API_VERSION_PARAM, json=payload, timeout=_HTTP_TIMEOUT)
-    resp.raise_for_status()
 
     transcription_url: str = resp.json()["self"]
 
@@ -79,7 +78,6 @@ def wait_for_transcription_completion(transcription_url: str) -> str:
 
     while True:
         resp = session.get(transcription_url, timeout=_HTTP_TIMEOUT)
-        resp.raise_for_status()
 
         resp_object = resp.json()
         status = resp_object["status"]
@@ -99,7 +97,6 @@ def wait_for_transcription_completion(transcription_url: str) -> str:
 
 def get_transcription_results(files_url: str) -> RawTranscript:
     resp = session.get(files_url, timeout=_HTTP_TIMEOUT)
-    resp.raise_for_status()
 
     content = resp.json()
 

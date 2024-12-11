@@ -83,7 +83,6 @@ def string_is_url(text: str) -> bool:
 def download_file(url: str, client: Session) -> bytes:
     """Download a file from the given URL."""
     response = client.get(url)
-    response.raise_for_status()
 
     return response.content
 
@@ -113,7 +112,6 @@ def resolve_url_redirects(url: str) -> str:
     """Resolve URL redirects."""
     try:
         response = http_client.head(url, allow_redirects=True)
-        response.raise_for_status()
     except RequestException as e:
         logger.exception(f"Error resolving redirects for {url}: {e}")
         return url

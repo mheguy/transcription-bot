@@ -50,4 +50,3 @@ def send_diarization_request(listener_url: str, audio_file_url: str) -> None:
     logger.debug(f"Request data: {data}")
     response = http_client.post(config.pyannote_identify_endpoint, headers=headers, json=data)
     logger.debug(f"Request sent. Response: {response}")
-    response.raise_for_status()

@@ -14,7 +14,6 @@ EPISODE_PATTERN = r"^SGU Episode (\d{1,4})$"
 def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
     """Retrieve the list of SGU podcast episodes from  the RSS feed."""
     response = client.get(config.podcast_rss_url)
-    response.raise_for_status()
 
     raw_feed_entries = feedparser.parse(response.text)["entries"]
 
@@ -54,7 +53,6 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
 def get_recently_modified_episode_numbers(client: Session) -> set[int]:
     """Retrieve the list of recently modified episode transcripts."""
     response = client.get(config.wiki_rss_url)
-    response.raise_for_status()
 
     episode_numbers: list[int] = []
 

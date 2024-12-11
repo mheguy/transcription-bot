@@ -63,7 +63,6 @@ def get_show_notes(rss_entry: PodcastRssEntry, client: Session) -> bytes:
     """Get the show notes from the website."""
     logger.info("Downloading show notes...")
     resp = client.get(rss_entry.episode_url)
-    resp.raise_for_status()
 
     return resp.content
 

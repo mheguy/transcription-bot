@@ -10,14 +10,14 @@ from requests import RequestException, Session
 
 from transcription_bot.models.data_models import SguListEntry
 from transcription_bot.utils.config import config
-from transcription_bot.utils.global_http_client import http_client
+from transcription_bot.utils.global_http_client import HttpClient, http_client
 
 _EPISODE_PAGE_PREFIX = "SGU_Episode_"
 _EPISODE_LIST_PAGE_PREFIX = "Template:EpisodeList"
 
 
 # region public functions
-def episode_has_wiki_page(client: Session, episode_number: int) -> bool:
+def episode_has_wiki_page(client: HttpClient, episode_number: int) -> bool:
     """Check if an episode has a wiki page.
 
     Args:
@@ -27,7 +27,7 @@ def episode_has_wiki_page(client: Session, episode_number: int) -> bool:
     Returns:
         bool: True if the episode has a wiki page, False otherwise.
     """
-    resp = client.get(config.wiki_episode_url_base + str(episode_number))
+    resp = client.get(config.wiki_episode_url_base + str(episode_number), raise_for_status=False)
 
     if resp.status_code == NOT_FOUND:
         return False
@@ -38,7 +38,7 @@ def episode_has_wiki_page(client: Session, episode_number: int) -> bool:
 
 
 @cache
-def log_into_wiki(client: Session) -> str:
+def log_into_wiki(client: HttpClient) -> str:
     """Perform a login to the wiki and return the csrf token."""
     login_token = _get_login_token(client)
     _send_credentials(client, login_token)
@@ -72,7 +72,6 @@ def save_wiki_page(
         payload.pop("createonly")
 
     resp = client.post(config.wiki_api_base, data=payload)
-    resp.raise_for_status()
     data = resp.json()
 
     if "error" in data:
@@ -186,7 +185,6 @@ def upload_image_to_wiki(client: Session, image_url: str, episode_number: int) -
     files = {"file": (filename, image_data)}
 
     upload_response = client.post(config.wiki_api_base, data=upload_params, files=files)
-    upload_response.raise_for_status()
 
     upload_data = upload_response.json()
     if "error" in upload_data:
@@ -201,7 +199,6 @@ def _get_login_token(client: Session) -> str:
     params = {"action": "query", "meta": "tokens", "type": "login", "format": "json"}
 
     resp = client.get(url=config.wiki_api_base, params=params)
-    resp.raise_for_status()
     data = resp.json()
 
     return data["query"]["tokens"]["logintoken"]
@@ -217,7 +214,6 @@ def _send_credentials(client: Session, login_token: str) -> None:
     }
 
     resp = client.post(config.wiki_api_base, data=payload)
-    resp.raise_for_status()
 
     if resp.json()["login"]["result"] != "Success":
         raise ValueError(f"Login failed: {resp.json()}")
@@ -227,7 +223,6 @@ def _get_csrf_token(client: Session) -> str:
     params = {"action": "query", "meta": "tokens", "format": "json"}
 
     resp = client.get(url=config.wiki_api_base, params=params)
-    resp.raise_for_status()
     data = resp.json()
 
     return data["query"]["tokens"]["csrftoken"]

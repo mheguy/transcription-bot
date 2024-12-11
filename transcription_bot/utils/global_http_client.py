@@ -24,14 +24,14 @@ class HttpClient(requests.Session):
         client.headers.update(header)
         return client
 
-    def get(self, *args: Any, **kwargs: Any) -> requests.Response:
-        return self._request("GET", *args, **kwargs)
+    def get(self, *args: Any, raise_for_status: bool = True, **kwargs: Any) -> requests.Response:
+        return self._request("GET", *args, raise_for_status=raise_for_status, **kwargs)
 
-    def post(self, *args: Any, **kwargs: Any) -> requests.Response:
-        return self._request("POST", *args, **kwargs)
+    def post(self, *args: Any, raise_for_status: bool = True, **kwargs: Any) -> requests.Response:
+        return self._request("POST", *args, raise_for_status=raise_for_status, **kwargs)
 
-    def put(self, *args: Any, **kwargs: Any) -> requests.Response:
-        return self._request("PUT", *args, **kwargs)
+    def put(self, *args: Any, raise_for_status: bool = True, **kwargs: Any) -> requests.Response:
+        return self._request("PUT", *args, raise_for_status=raise_for_status, **kwargs)
 
     @retry(
         stop=stop_after_attempt(3),
@@ -39,9 +39,15 @@ class HttpClient(requests.Session):
         reraise=True,
         before_sleep=before_sleep_log(cast(logging.Logger, logger), logging.DEBUG),
     )
-    def _request(self, *args: Any, **kwargs: Any) -> requests.Response:
+    def _request(self, *args: Any, raise_for_status: bool, **kwargs: Any) -> requests.Response:
         timeout = kwargs.pop("timeout", _HTTP_TIMEOUT)
-        return self.request(*args, **kwargs, timeout=timeout)
+
+        response = self.request(*args, **kwargs, timeout=timeout)
+
+        if raise_for_status:
+            response.raise_for_status()
+
+        return response
 
 
 http_client = HttpClient()
