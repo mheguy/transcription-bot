@@ -1319,21 +1319,26 @@ def _create_science_or_fiction_metadata(
     all_guesses_incorrect = all(correct_answer != guess for guess in guessed_items)
     if all_guesses_incorrect:
         result_data.sweep = "y"
+        return result_data
 
     # All rogues guessed right
     all_guesses_correct = all(correct_answer == guess for guess in guessed_items)
     if all_guesses_correct:
         result_data.swept = "y"
-
-    # At least one Rogue guessed wrong, but not all.
-    if not all_guesses_correct and not all_guesses_incorrect:
-        result_data.win = "y"
+        return result_data
 
     # All items were guessed at least once.
     all_items_guessed = guessed_items == {item.number for item in items}
     if all_items_guessed:
         result_data.clever = "y"
+        return result_data
 
+    # At least one Rogue guessed wrong, but not all.
+    if not all_guesses_correct and not all_guesses_incorrect:
+        result_data.win = "y"
+        return result_data
+
+    logger.error("SoF results did not fit into a category.")
     return result_data
 
 
