@@ -25,17 +25,17 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "coverage",
-    "import-linter",
-    "pyright",
-    "pytest",
-    "pytest-icdiff",
-    "pytest-cov",
-    "pytest-randomly",
-    "pytest-socket",
-    "ruff",
+    "coverage>=7",
+    "import-linter>=2",
+    "pyright>=1",
+    "pytest>=8",
+    "pytest-icdiff>=0.9",
+    "pytest-cov>=6",
+    "pytest-randomly>=3",
+    "pytest-socket>=0.7",
+    "ruff>=0.8",
 ]
-scripts = ["flask", "pydub"]
+scripts = ["flask>=3", "pydub>=0.25"]
 
 [build-system]
 requires = ["hatchling"]
@@ -215,7 +215,7 @@ runtime-evaluated-base-classes = [
 runtime-evaluated-decorators = ["pydantic.dataclasses.dataclass"]
 
 [tool.ruff.lint.flake8-implicit-str-concat]
-
+allow-multiline = false
 
 [tool.ruff.lint.isort]
 known-first-party = ["transcription_bot"]
@@ -225,7 +225,7 @@ split-on-trailing-comma = false
 # Rules for notebooks:
 "*.ipynb" = ["PLE1142", "PLR2004", "S101", "S311"]
 # Rules for tests:
-"tests/**" = [
+"{tests/**,testing_*.py}" = [
     "ANN201",
     "ANN401",
     "D10",

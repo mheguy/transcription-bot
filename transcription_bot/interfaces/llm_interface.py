@@ -64,19 +64,19 @@ def get_segment_start_from_llm(
     )
     system_prompt = (
         "You are a helpful assistant designed to output JSON."
-        "The user will provide you with a section of transcript"
-        "from an episode of The Skeptic's Guide to the Universe."
-        "The diarization is a best-effort and may contain errors, "
-        "indicating the incorrect speaker."
-        "The user will also ask you to identify the start time of a segment."
-        "Your objective is to provide the time when the transition occurs."
-        "The transitions are usually performed by Steve."
-        'You must reply with a json object like this: {"start_time": 123.45}'
-        "If you cannot identify the transition, provide null as the start time."
-        "You shoould provide the start of the transition."
-        "Ex. If the transcript is:"
-        "'All right, well, let's go on with our interview. We are joined now by Forrest Valkai.'"
-        "You should return the timestamp for the beginning of 'All right, well, let's go on with our interview.'"
+        + "The user will provide you with a section of transcript"
+        + "from an episode of The Skeptic's Guide to the Universe."
+        + "The diarization is a best-effort and may contain errors, "
+        + "indicating the incorrect speaker."
+        + "The user will also ask you to identify the start time of a segment."
+        + "Your objective is to provide the time when the transition occurs."
+        + "The transitions are usually performed by Steve."
+        + 'You must reply with a json object like this: {"start_time": 123.45}'
+        + "If you cannot identify the transition, provide null as the start time."
+        + "You shoould provide the start of the transition."
+        + "Ex. If the transcript is:"
+        + "'All right, well, let's go on with our interview. We are joined now by Forrest Valkai.'"
+        + "You should return the timestamp for the beginning of 'All right, well, let's go on with our interview.'"
     )
 
     transcript_blob = f"transcript:\n\n````{json.dumps(transcript)}````"

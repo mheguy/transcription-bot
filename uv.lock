@@ -882,19 +882,19 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "coverage" },
-    { name = "import-linter" },
-    { name = "pyright" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-icdiff" },
-    { name = "pytest-randomly" },
-    { name = "pytest-socket" },
-    { name = "ruff" },
+    { name = "coverage", specifier = ">=7" },
+    { name = "import-linter", specifier = ">=2" },
+    { name = "pyright", specifier = ">=1" },
+    { name = "pytest", specifier = ">=8" },
+    { name = "pytest-cov", specifier = ">=6" },
+    { name = "pytest-icdiff", specifier = ">=0.9" },
+    { name = "pytest-randomly", specifier = ">=3" },
+    { name = "pytest-socket", specifier = ">=0.7" },
+    { name = "ruff", specifier = ">=0.8" },
 ]
 scripts = [
-    { name = "flask" },
-    { name = "pydub" },
+    { name = "flask", specifier = ">=3" },
+    { name = "pydub", specifier = ">=0.25" },
 ]
 
 [[package]]

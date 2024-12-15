@@ -141,7 +141,7 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment, NonNewsSegmentMixin):
     def llm_prompt(self) -> str:
         return (
             "Please identify the start of the 'dumbest thing of the week' segment."
-            f"This segment is about: {self.topic}"
+            + f"This segment is about: {self.topic}"
         )
 
     @property
@@ -898,7 +898,7 @@ class WhatsTheWordSegment(FromLyricsSegment, NonNewsSegmentMixin):
     def llm_prompt(self) -> str:
         return (
             "Please find the start of the 'what's the word' segment."
-            "This is typically introduced by Steve asking Cara for the word."
+            + "This is typically introduced by Steve asking Cara for the word."
         )
 
     @property
