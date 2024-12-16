@@ -3,9 +3,6 @@
 from enum import Enum
 from typing import TypedDict
 
-DiarizedTranscript = list["DiarizedTranscriptChunk"]
-RawTranscript = list["TranscriptSegment"]
-
 
 class EpisodeStatus(Enum):
     """Possible statuses of an episode transcript."""
@@ -55,3 +52,7 @@ class RecognizedPhrase(TypedDict):
     offsetInTicks: float
     durationInTicks: float
     nBest: list[PhraseInfo]
+
+
+DiarizedTranscript = list[DiarizedTranscriptChunk]
+RawTranscript = list[TranscriptSegment]
