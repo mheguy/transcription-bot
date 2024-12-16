@@ -32,4 +32,27 @@ class DiarizedTranscriptChunk(TypedDict):
     speaker: str
 
 
+class TranscriptSegment(TypedDict):
+    """Segment of a transcript."""
+
+    start: float
+    end: float
+    text: str
+
+
+class PhraseInfo(TypedDict):
+    """Information about a phrase."""
+
+    display: str
+
+
+class RecognizedPhrase(TypedDict):
+    """Information about a recognized phrase."""
+
+    offsetInTicks: float
+    durationInTicks: float
+    nBest: list[PhraseInfo]
+
+
 DiarizedTranscript = list[DiarizedTranscriptChunk]
+RawTranscript = list[TranscriptSegment]
