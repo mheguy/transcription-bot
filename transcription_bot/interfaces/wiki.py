@@ -1,5 +1,7 @@
+import logging
 from functools import cache
 from http.client import NOT_FOUND
+from typing import cast
 
 from loguru import logger
 from mwparserfromhell.nodes import Template
@@ -7,6 +9,7 @@ from mwparserfromhell.nodes.extras.parameter import Parameter
 from mwparserfromhell.utils import parse_anything as parse_wiki
 from mwparserfromhell.wikicode import Wikicode
 from requests import RequestException, Session
+from tenacity import before_sleep_log, retry, stop_after_attempt, wait_fixed
 
 from transcription_bot.models.data_models import SguListEntry
 from transcription_bot.utils.config import config
@@ -46,6 +49,12 @@ def log_into_wiki(client: HttpClient) -> str:
     return _get_csrf_token(client)
 
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_fixed(2),
+    reraise=True,
+    before_sleep=before_sleep_log(cast(logging.Logger, logger), logging.DEBUG),
+)
 def save_wiki_page(
     client: Session,
     page_title: str,
