@@ -7,8 +7,6 @@ from typing import Any, Concatenate, ParamSpec, Protocol, TypeVar, cast
 
 from loguru import logger
 
-from transcription_bot.utils.config import config
-
 P = ParamSpec("P")
 R = TypeVar("R")
 T = TypeVar("T", bound="HasEpisodeNumber")
@@ -83,19 +81,15 @@ def get_cache_dir(func: Callable[..., Any]) -> Path:
     """Get the cache directory for the given function."""
     function_dir = _CACHE_FOLDER / func.__module__ / func.__name__
 
-    if config.local_mode:
-        _TEMP_DATA_FOLDER.mkdir(exist_ok=True)
-        _CACHE_FOLDER.mkdir(exist_ok=True)
-        function_dir.mkdir(parents=True, exist_ok=True)
+    _TEMP_DATA_FOLDER.mkdir(exist_ok=True)
+    _CACHE_FOLDER.mkdir(exist_ok=True)
+    function_dir.mkdir(parents=True, exist_ok=True)
 
     return function_dir
 
 
 def save_cache(file: Path, data: Any) -> None:
     """Save data to the cache file."""
-    if not config.local_mode:
-        return
-
     try:
         file.write_text(json.dumps(data))
     except (TypeError, OverflowError):
