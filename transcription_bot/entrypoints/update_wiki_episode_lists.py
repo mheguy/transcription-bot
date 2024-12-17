@@ -48,7 +48,7 @@ def main(episode_numbers: set[int]) -> None:
     if not episode_numbers:
         logger.info("Getting recently modified episode wiki pages...")
         episode_numbers = get_recently_modified_episode_numbers(http_client)
-        logger.info(f"Found {len(episode_numbers)} modified episode pages")
+        logger.info(f"Found {len(episode_numbers)} modified episode pages: {episode_numbers}")
 
     if not episode_numbers:
         logger.info("No modified episode pages found. Exiting.")
