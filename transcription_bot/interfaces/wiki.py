@@ -1,7 +1,6 @@
 import logging
 from functools import cache
 from http.client import NOT_FOUND
-from typing import cast
 
 from loguru import logger
 from mwparserfromhell.nodes import Template
@@ -53,7 +52,7 @@ def log_into_wiki(client: HttpClient) -> str:
     stop=stop_after_attempt(3),
     wait=wait_fixed(2),
     reraise=True,
-    before_sleep=before_sleep_log(cast(logging.Logger, logger), logging.DEBUG),
+    before_sleep=before_sleep_log(logging.getLogger(), logging.WARNING),
 )
 def save_wiki_page(
     client: Session,

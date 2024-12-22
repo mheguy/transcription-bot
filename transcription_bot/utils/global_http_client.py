@@ -1,8 +1,7 @@
 import logging
-from typing import Any, cast
+from typing import Any
 
 import requests
-from loguru import logger
 from tenacity import before_sleep_log, retry, stop_after_attempt, wait_fixed
 
 __all__ = ["http_client"]
@@ -37,7 +36,7 @@ class HttpClient(requests.Session):
         stop=stop_after_attempt(3),
         wait=wait_fixed(2),
         reraise=True,
-        before_sleep=before_sleep_log(cast(logging.Logger, logger), logging.DEBUG),
+        before_sleep=before_sleep_log(logging.getLogger(), logging.WARNING),
     )
     def _request(self, *args: Any, raise_for_status: bool, **kwargs: Any) -> requests.Response:
         timeout = kwargs.pop("timeout", _HTTP_TIMEOUT)
