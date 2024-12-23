@@ -10,6 +10,7 @@ from loguru import logger
 from requests import Session
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import ConnectTimeout, ReadTimeout, RequestException
+from sentry_sdk.integrations.loguru import LoggingLevels, LoguruIntegration
 
 from transcription_bot.utils.caching import cache_for_url
 from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, ConfigProto
@@ -137,5 +138,16 @@ def run_main_safely(func: Callable[..., None], *args: Any, **kwargs: Any) -> Non
 def setup_tracing(config: ConfigProto) -> None:
     """Set up tracing."""
     if not config.local_mode:
-        sentry_sdk.init(dsn=config.sentry_dsn, environment="production", enable_tracing=True)
+        sentry_loguru = LoguruIntegration(
+            level=LoggingLevels.DEBUG.value,
+            event_level=LoggingLevels.WARNING.value,
+        )
+
+        sentry_sdk.init(
+            dsn=config.sentry_dsn,
+            environment="production",
+            traces_sample_rate=1.0,
+            profiles_sample_rate=1.0,
+            integrations=[sentry_loguru],
+        )
         cronitor.api_key = config.cronitor_api_key
