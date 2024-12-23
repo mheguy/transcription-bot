@@ -83,7 +83,7 @@ def add_transcript_to_segments(
             logger.error(f"Segment {segment} has no transcript")
         else:
             logger.debug(
-                f"Segment {segment.__class__.__name__}: {len(segment.transcript)} transcript chunks, {segment.duration:1f} minutes"
+                f"Segment {segment.__class__.__name__}: {len(segment.transcript)} transcript chunks, {segment.duration:.1f} minutes"
             )
 
     return segments
