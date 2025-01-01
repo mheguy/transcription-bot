@@ -7,7 +7,7 @@ from mwparserfromhell.nodes import Template
 from mwparserfromhell.nodes.extras.parameter import Parameter
 from mwparserfromhell.utils import parse_anything as parse_wiki
 from mwparserfromhell.wikicode import Wikicode
-from requests import RequestException, Session
+from requests import RequestException
 from tenacity import before_sleep_log, retry, stop_after_attempt, wait_fixed
 
 from transcription_bot.models.data_models import SguListEntry
@@ -23,7 +23,7 @@ def episode_has_wiki_page(client: HttpClient, episode_number: int) -> bool:
     """Check if an episode has a wiki page.
 
     Args:
-        client (Session): The HTTP client session.
+        client (HttpClient): The HTTP client.
         episode_number (int): The episode number.
 
     Returns:
@@ -39,7 +39,6 @@ def episode_has_wiki_page(client: HttpClient, episode_number: int) -> bool:
     return True
 
 
-@cache
 def log_into_wiki(client: HttpClient) -> str:
     """Perform a login to the wiki and return the csrf token."""
     login_token = _get_login_token(client)
@@ -55,7 +54,7 @@ def log_into_wiki(client: HttpClient) -> str:
     before_sleep=before_sleep_log(logging.getLogger(), logging.WARNING),
 )
 def save_wiki_page(
-    client: Session,
+    client: HttpClient,
     page_title: str,
     page_text: str,
     *,
@@ -89,7 +88,7 @@ def save_wiki_page(
 
 
 def create_or_update_podcast_page(
-    client: Session,
+    client: HttpClient,
     episode_number: int,
     wiki_page: str,
     *,
@@ -99,7 +98,7 @@ def create_or_update_podcast_page(
     save_wiki_page(client, f"{_EPISODE_PAGE_PREFIX}{episode_number}", wiki_page, allow_page_editing=allow_page_editing)
 
 
-def update_episode_list(client: Session, year: int, page_text: str) -> None:
+def update_episode_list(client: HttpClient, year: int, page_text: str) -> None:
     """Update an episode list."""
     save_wiki_page(client, f"{_EPISODE_LIST_PAGE_PREFIX}{year}", page_text, allow_page_editing=True)
 
@@ -166,7 +165,7 @@ def get_wiki_page(page_title: str) -> Wikicode:
     return parse_wiki(text)
 
 
-def find_image_upload(client: Session, episode_number: str) -> str:
+def find_image_upload(client: HttpClient, episode_number: str) -> str:
     """Find an image uploaded to the wiki."""
     params = {"action": "query", "list": "allimages", "aiprefix": episode_number, "format": "json"}
     response = client.get(config.wiki_api_base, params=params)
@@ -176,7 +175,7 @@ def find_image_upload(client: Session, episode_number: str) -> str:
     return files[0]["name"] if files else ""
 
 
-def upload_image_to_wiki(client: Session, image_url: str, episode_number: int) -> str:
+def upload_image_to_wiki(client: HttpClient, image_url: str, episode_number: int) -> str:
     """Upload an image to the wiki."""
     csrf_token = log_into_wiki(client)
     image_response = client.get(image_url)
@@ -203,7 +202,7 @@ def upload_image_to_wiki(client: Session, image_url: str, episode_number: int) -
 
 # endregion
 # region private functions
-def _get_login_token(client: Session) -> str:
+def _get_login_token(client: HttpClient) -> str:
     params = {"action": "query", "meta": "tokens", "type": "login", "format": "json"}
 
     resp = client.get(url=config.wiki_api_base, params=params)
@@ -212,7 +211,7 @@ def _get_login_token(client: Session) -> str:
     return data["query"]["tokens"]["logintoken"]
 
 
-def _send_credentials(client: Session, login_token: str) -> None:
+def _send_credentials(client: HttpClient, login_token: str) -> None:
     payload = {
         "action": "login",
         "lgname": config.wiki_username,
@@ -227,7 +226,7 @@ def _send_credentials(client: Session, login_token: str) -> None:
         raise ValueError(f"Login failed: {resp.json()}")
 
 
-def _get_csrf_token(client: Session) -> str:
+def _get_csrf_token(client: HttpClient) -> str:
     params = {"action": "query", "meta": "tokens", "format": "json"}
 
     resp = client.get(url=config.wiki_api_base, params=params)
