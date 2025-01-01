@@ -3,7 +3,6 @@ from io import BytesIO
 from loguru import logger
 from mutagen.id3 import ID3
 from mutagen.id3._frames import TXXX, USLT
-from requests import Session
 
 from transcription_bot.interfaces.wiki import find_image_upload, upload_image_to_wiki
 from transcription_bot.models.data_models import EpisodeImage, PodcastRssEntry
@@ -11,10 +10,11 @@ from transcription_bot.models.episode_data import EpisodeRawData
 from transcription_bot.parsers.show_notes import get_episode_image_url
 from transcription_bot.utils.caching import cache_for_episode
 from transcription_bot.utils.exceptions import NoLyricsTagError
+from transcription_bot.utils.global_http_client import HttpClient
 from transcription_bot.utils.helpers import download_file
 
 
-def gather_raw_data(rss_entry: PodcastRssEntry, client: Session) -> EpisodeRawData:
+def gather_raw_data(rss_entry: PodcastRssEntry, client: HttpClient) -> EpisodeRawData:
     """Gather raw data for a podcast episode."""
     logger.info("Getting show data...")
     mp3 = get_audio_file(rss_entry, client)
@@ -52,14 +52,14 @@ def get_lyrics_from_mp3(_rss_entry: PodcastRssEntry, raw_bytes: bytes) -> str:
 
 
 @cache_for_episode
-def get_audio_file(rss_entry: PodcastRssEntry, client: Session) -> bytes:
+def get_audio_file(rss_entry: PodcastRssEntry, client: HttpClient) -> bytes:
     """Retrieve the audio file for a podcast episode."""
     logger.info("Downloading episode mp3...")
     return download_file(rss_entry.download_url, client)
 
 
 @cache_for_episode
-def get_show_notes(rss_entry: PodcastRssEntry, client: Session) -> bytes:
+def get_show_notes(rss_entry: PodcastRssEntry, client: HttpClient) -> bytes:
     """Get the show notes from the website."""
     logger.info("Downloading show notes...")
     resp = client.get(rss_entry.episode_url)
@@ -68,7 +68,7 @@ def get_show_notes(rss_entry: PodcastRssEntry, client: Session) -> bytes:
 
 
 @cache_for_episode
-def get_image_data(rss_entry: PodcastRssEntry, show_notes: bytes, client: Session) -> EpisodeImage:
+def get_image_data(rss_entry: PodcastRssEntry, show_notes: bytes, client: HttpClient) -> EpisodeImage:
     """Get the image data from the show notes."""
     logger.debug("Getting image data...")
     url = get_episode_image_url(show_notes)
