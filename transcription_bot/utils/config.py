@@ -13,21 +13,13 @@ CONFIG_FILE = DATA_FOLDER / "config.toml"
 
 # Episodes that will raise exceptions when processed
 UNPROCESSABLE_EPISODES = {
-    # No lyrics - these episodes do not have embedded lyrics
+    # No lyrics - episodes 1-208 do not have embedded lyrics
     *range(1, 208 + 1),
-    277,
-    625,
-    652,
-    666,
-    688,
-    741,
-    744,
-    812,
-    862,
     # Episodes that we cannot process
     300,  # Missing news item text
     320,  # News item #3 has unexpected line break
     502,  # News items contains a non-standard item
+    875,  # Issue with news items identified as SOF
 }
 
 

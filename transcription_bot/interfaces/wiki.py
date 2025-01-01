@@ -159,6 +159,9 @@ def get_wiki_page(page_title: str) -> Wikicode:
     req = http_client.get(config.wiki_api_base, headers=headers, params=params)
     json = req.json()
 
+    if json["query"]["pages"][0].get("missing"):
+        raise ValueError(f"Page does not exist in wiki: {page_title}")
+
     revision = json["query"]["pages"][0]["revisions"][0]
     text = revision["slots"]["main"]["content"]
 
