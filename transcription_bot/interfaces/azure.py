@@ -104,8 +104,13 @@ def _convert_raw_transcription(raw_transcription: dict[str, Any]) -> RawTranscri
             {
                 "start": start,
                 "end": end,
-                "text": best_guess[0]["display"],
+                "text": _perform_low_level_text_corrections(best_guess[0]["display"]),
             }
         )
 
     return transcription
+
+
+def _perform_low_level_text_corrections(text: str) -> str:
+    """Perform any low level text corrections."""
+    return text.replace("Kara", "Cara")
