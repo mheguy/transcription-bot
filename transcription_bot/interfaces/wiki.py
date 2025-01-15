@@ -1,5 +1,5 @@
 import logging
-from functools import cache
+from dataclasses import dataclass, field
 from http.client import NOT_FOUND
 
 from loguru import logger
@@ -8,60 +8,42 @@ from mwparserfromhell.nodes.extras.parameter import Parameter
 from mwparserfromhell.utils import parse_anything as parse_wiki
 from mwparserfromhell.wikicode import Wikicode
 from requests import RequestException
-from tenacity import before_sleep_log, retry, stop_after_attempt, wait_fixed
+from tenacity import RetryCallState, before_sleep_log, retry, stop_after_attempt, wait_fixed
 
 from transcription_bot.models.data_models import SguListEntry
+from transcription_bot.utils.caching import cache_for_str_arg
 from transcription_bot.utils.config import config
 from transcription_bot.utils.global_http_client import HttpClient, http_client
 
-_EPISODE_PAGE_PREFIX = "SGU_Episode_"
-_EPISODE_LIST_PAGE_PREFIX = "Template:EpisodeList"
+EPISODE_PAGE_PREFIX = "SGU_Episode_"
+EPISODE_LIST_PAGE_PREFIX = "Template:EpisodeList"
+_BASE_ACTION_PARAMS = {"action": "query", "meta": "tokens", "format": "json"}
+_LOGIN_ACTION_PARAMS = {"type": "login", **_BASE_ACTION_PARAMS}
 
 
+# region Module state
+@dataclass
+class _WikiClient:
+    csrf_token: str | None = None
+    cache: dict[str, Wikicode] = field(default_factory=dict)
+    http_client: HttpClient = http_client
+
+
+_wiki_client = _WikiClient()
+
+
+# endregion
 # region public functions
-def episode_has_wiki_page(client: HttpClient, episode_number: int) -> bool:
-    """Check if an episode has a wiki page.
-
-    Args:
-        client (HttpClient): The HTTP client.
-        episode_number (int): The episode number.
-
-    Returns:
-        bool: True if the episode has a wiki page, False otherwise.
-    """
-    resp = client.get(config.wiki_episode_url_base + str(episode_number), raise_for_status=False)
-
-    if resp.status_code == NOT_FOUND:
-        return False
-
-    resp.raise_for_status()
-
-    return True
-
-
-def log_into_wiki(client: HttpClient) -> str:
-    """Perform a login to the wiki and return the csrf token."""
-    login_token = _get_login_token(client)
-    _send_credentials(client, login_token)
-
-    return _get_csrf_token(client)
-
-
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_fixed(2),
     reraise=True,
+    after=lambda state: _force_login(state),
     before_sleep=before_sleep_log(logging.getLogger(), logging.WARNING),
 )
-def save_wiki_page(
-    client: HttpClient,
-    page_title: str,
-    page_text: str,
-    *,
-    allow_page_editing: bool,
-) -> None:
+def save_wiki_page(page_title: str, page_text: str, *, allow_page_editing: bool) -> None:
     """Create a wiki page."""
-    csrf_token = log_into_wiki(client)
+    csrf_token = get_csrf_token()
 
     payload = {
         "action": "edit",
@@ -78,7 +60,7 @@ def save_wiki_page(
     if allow_page_editing:
         payload.pop("createonly")
 
-    resp = client.post(config.wiki_api_base, data=payload)
+    resp = _wiki_client.http_client.post(config.wiki_api_base, data=payload)
     data = resp.json()
 
     if "error" in data:
@@ -87,30 +69,57 @@ def save_wiki_page(
     logger.debug(data)
 
 
-def create_or_update_podcast_page(
-    client: HttpClient,
-    episode_number: int,
-    wiki_page: str,
-    *,
-    allow_page_editing: bool,
-) -> None:
-    """Create or update a podcast page."""
-    save_wiki_page(client, f"{_EPISODE_PAGE_PREFIX}{episode_number}", wiki_page, allow_page_editing=allow_page_editing)
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_fixed(2),
+    reraise=True,
+    after=lambda state: _force_login(state),
+    before_sleep=before_sleep_log(logging.getLogger(), logging.WARNING),
+)
+def upload_image_to_wiki(image_url: str, episode_number: int) -> str:
+    """Upload an image to the wiki."""
+    image_response = _wiki_client.http_client.get(image_url)
+    image_data = image_response.content
+
+    filename = f"{episode_number}.{image_url.split('.')[-1]}"
+
+    upload_params = {
+        "action": "upload",
+        "filename": filename,
+        "format": "json",
+        "token": get_csrf_token(),
+    }
+    files = {"file": (filename, image_data)}
+
+    upload_response = _wiki_client.http_client.post(config.wiki_api_base, data=upload_params, files=files)
+
+    upload_data = upload_response.json()
+    if "error" in upload_data:
+        raise RequestException(f"Error uploading image: {upload_data['error']['info']}")
+
+    return filename
 
 
-def update_episode_list(client: HttpClient, year: int, page_text: str) -> None:
-    """Update an episode list."""
-    save_wiki_page(client, f"{_EPISODE_LIST_PAGE_PREFIX}{year}", page_text, allow_page_editing=True)
+def episode_has_wiki_page(episode_number: int) -> bool:
+    """Check if an episode has a wiki page."""
+    resp = _wiki_client.http_client.get(config.wiki_episode_url_base + str(episode_number), raise_for_status=False)
+
+    if resp.status_code == NOT_FOUND:
+        return False
+
+    resp.raise_for_status()
+
+    return True
 
 
 def get_episode_wiki_page(episode_number: int) -> Wikicode:
     """Retrieve the wiki page with the episode number."""
-    return get_wiki_page(f"{_EPISODE_PAGE_PREFIX}{episode_number}")
+    return get_wiki_page(f"{EPISODE_PAGE_PREFIX}{episode_number}")
 
 
 def get_episode_list_wiki_page(year: int) -> Wikicode:
     """Retrieve the wiki page with the episode number."""
-    episode_list = get_wiki_page(f"{_EPISODE_LIST_PAGE_PREFIX}{year}")
+    episode_list = get_wiki_page(f"{EPISODE_LIST_PAGE_PREFIX}{year}")
     if not episode_list:
         raise ValueError(f"Could not find episode list for year {year}")
 
@@ -139,7 +148,7 @@ def get_episode_template_from_list(episode_list_page: Wikicode, episode_number: 
     return None
 
 
-@cache
+@cache_for_str_arg
 def get_wiki_page(page_title: str) -> Wikicode:
     """Retrieve the wiki page with the given name."""
     logger.debug(f"Retrieving wiki page: {page_title}")
@@ -156,7 +165,7 @@ def get_wiki_page(page_title: str) -> Wikicode:
     }
     headers = {"User-Agent": "transcription-bot/1.0"}
 
-    req = http_client.get(config.wiki_api_base, headers=headers, params=params)
+    req = _wiki_client.http_client.get(config.wiki_api_base, headers=headers, params=params)
     json = req.json()
 
     if json["query"]["pages"][0].get("missing"):
@@ -168,53 +177,41 @@ def get_wiki_page(page_title: str) -> Wikicode:
     return parse_wiki(text)
 
 
-def find_image_upload(client: HttpClient, episode_number: str) -> str:
+def find_image_upload(episode_number: str) -> str:
     """Find an image uploaded to the wiki."""
     params = {"action": "query", "list": "allimages", "aiprefix": episode_number, "format": "json"}
-    response = client.get(config.wiki_api_base, params=params)
+    response = _wiki_client.http_client.get(config.wiki_api_base, params=params)
     data = response.json()
 
     files = data.get("query", {}).get("allimages", [])
     return files[0]["name"] if files else ""
 
 
-def upload_image_to_wiki(client: HttpClient, image_url: str, episode_number: int) -> str:
-    """Upload an image to the wiki."""
-    csrf_token = log_into_wiki(client)
-    image_response = client.get(image_url)
-    image_data = image_response.content
+def get_csrf_token() -> str:
+    """Perform a login to the wiki and return the csrf token."""
+    if _wiki_client.csrf_token:
+        return _wiki_client.csrf_token
 
-    filename = f"{episode_number}.{image_url.split('.')[-1]}"
+    login_token = _get_login_token()
+    _send_credentials(login_token)
 
-    upload_params = {
-        "action": "upload",
-        "filename": filename,
-        "format": "json",
-        "token": csrf_token,
-    }
-    files = {"file": (filename, image_data)}
-
-    upload_response = client.post(config.wiki_api_base, data=upload_params, files=files)
-
-    upload_data = upload_response.json()
-    if "error" in upload_data:
-        raise RequestException(f"Error uploading image: {upload_data['error']['info']}")
-
-    return filename
+    csrf_token = _get_csrf_token()
+    _wiki_client.csrf_token = csrf_token
+    return csrf_token
 
 
 # endregion
 # region private functions
-def _get_login_token(client: HttpClient) -> str:
-    params = {"action": "query", "meta": "tokens", "type": "login", "format": "json"}
+def _get_login_token() -> str:
+    params = _LOGIN_ACTION_PARAMS
 
-    resp = client.get(url=config.wiki_api_base, params=params)
+    resp = _wiki_client.http_client.get(url=config.wiki_api_base, params=params)
     data = resp.json()
 
     return data["query"]["tokens"]["logintoken"]
 
 
-def _send_credentials(client: HttpClient, login_token: str) -> None:
+def _send_credentials(login_token: str) -> None:
     payload = {
         "action": "login",
         "lgname": config.wiki_username,
@@ -223,19 +220,24 @@ def _send_credentials(client: HttpClient, login_token: str) -> None:
         "format": "json",
     }
 
-    resp = client.post(config.wiki_api_base, data=payload)
+    resp = _wiki_client.http_client.post(config.wiki_api_base, data=payload)
 
     if resp.json()["login"]["result"] != "Success":
         raise ValueError(f"Login failed: {resp.json()}")
 
 
-def _get_csrf_token(client: HttpClient) -> str:
-    params = {"action": "query", "meta": "tokens", "format": "json"}
+def _get_csrf_token() -> str:
+    params = _BASE_ACTION_PARAMS
 
-    resp = client.get(url=config.wiki_api_base, params=params)
+    resp = _wiki_client.http_client.get(url=config.wiki_api_base, params=params)
     data = resp.json()
 
     return data["query"]["tokens"]["csrftoken"]
+
+
+def _force_login(_: RetryCallState) -> None:
+    logger.warning("Clearing csrf token due to failed login...")
+    _wiki_client.csrf_token = None
 
 
 # endregion

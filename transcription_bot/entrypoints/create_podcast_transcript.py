@@ -12,7 +12,7 @@ from transcription_bot.handlers.episode_data_handler import create_episode_data
 from transcription_bot.handlers.episode_raw_data_handler import gather_raw_data
 from transcription_bot.handlers.episode_segment_handler import extract_episode_segments_from_episode_raw_data
 from transcription_bot.handlers.transcription_handler import get_transcript
-from transcription_bot.interfaces.wiki import create_or_update_podcast_page, episode_has_wiki_page
+from transcription_bot.interfaces.wiki import EPISODE_PAGE_PREFIX, episode_has_wiki_page, save_wiki_page
 from transcription_bot.parsers.rss_feed import get_podcast_rss_entries
 from transcription_bot.serializers.wiki import create_podcast_wiki_page
 from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, config
@@ -47,7 +47,7 @@ def main(*, selected_episode: int) -> None:
         return
 
     logger.info("Checking for wiki page...")
-    if episode_has_wiki_page(http_client, podcast_rss_entry.episode_number) and not allow_page_editing:
+    if episode_has_wiki_page(podcast_rss_entry.episode_number) and not allow_page_editing:
         logger.info("Episode has a wiki page. Stopping.")
         return
 
@@ -65,9 +65,8 @@ def main(*, selected_episode: int) -> None:
     wiki_page = create_podcast_wiki_page(episode_data)
 
     logger.info("Creating (or updating) wiki page...")
-    create_or_update_podcast_page(
-        http_client,
-        episode_raw_data.rss_entry.episode_number,
+    save_wiki_page(
+        f"{EPISODE_PAGE_PREFIX}{episode_raw_data.rss_entry.episode_number}",
         wiki_page,
         allow_page_editing=allow_page_editing,
     )
