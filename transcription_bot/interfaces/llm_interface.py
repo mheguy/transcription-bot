@@ -12,7 +12,7 @@ from openai.types.chat.chat_completion_content_part_param import ChatCompletionC
 from transcription_bot.models.data_models import PodcastRssEntry
 from transcription_bot.models.episode_segments import BaseSegment, ScienceOrFictionLlmData
 from transcription_bot.models.simple_models import DiarizedTranscript
-from transcription_bot.utils.caching import cache_for_episode, cache_for_url, get_cache_dir, load_cache, save_cache
+from transcription_bot.utils.caching import cache_for_episode, cache_for_str_arg, get_cache_dir, load_cache, save_cache
 from transcription_bot.utils.config import config
 
 P = ParamSpec("P")
@@ -101,7 +101,7 @@ def get_segment_start_from_llm(
     return response_json.get("start_time")
 
 
-@cache_for_url
+@cache_for_str_arg
 def get_image_caption_from_llm(image_url: str) -> str:
     """Ask an LLM to write an image caption."""
     logger.debug("Getting image caption...")

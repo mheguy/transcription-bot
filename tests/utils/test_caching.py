@@ -40,7 +40,7 @@ def test_cache_url_title(tmp_path: Path):
 
     with patch("transcription_bot.utils.caching._CACHE_FOLDER", tmp_path):
 
-        @caching.cache_for_url
+        @caching.cache_for_str_arg
         def get_title(url: str) -> str:
             return get_title_mock(url)
 

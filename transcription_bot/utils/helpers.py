@@ -12,7 +12,7 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import ConnectTimeout, ReadTimeout, RequestException
 from sentry_sdk.integrations.loguru import LoggingLevels, LoguruIntegration
 
-from transcription_bot.utils.caching import cache_for_url
+from transcription_bot.utils.caching import cache_for_str_arg
 from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, ConfigProto
 from transcription_bot.utils.global_http_client import http_client
 
@@ -49,7 +49,7 @@ def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str 
     return results[0]
 
 
-@cache_for_url
+@cache_for_str_arg
 def get_article_title(url: str) -> str | None:
     """Get the title of an article from its URL."""
     url = url.replace("http://", "https://")
@@ -108,7 +108,7 @@ def get_first_segment_of_type(segments: "GenericSegmentList", segment_type: type
     return None
 
 
-@cache_for_url
+@cache_for_str_arg
 def resolve_url_redirects(url: str) -> str:
     """Resolve URL redirects."""
     try:
