@@ -5,7 +5,7 @@ from transcription_bot.utils.helpers import get_first_segment_of_type
 from transcription_bot.utils.templating import get_template
 
 
-def create_podcast_wiki_page(episode_data: EpisodeData) -> str:
+def create_podcast_wiki_page(episode_data: EpisodeData, issues: str) -> str:
     """Creates a wiki page for a podcast episode.
 
     This function gathers all the necessary data for the episode, merges the data into segments,
@@ -46,4 +46,5 @@ def create_podcast_wiki_page(episode_data: EpisodeData) -> str:
         is_rebecca_present=("rebecca" in rogues and "y") or "",
         is_perry_present=("perry" in rogues and "y") or "",
         forum_link="",
+        issues=issues,
     )

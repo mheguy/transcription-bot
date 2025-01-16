@@ -15,6 +15,7 @@ from pydantic.dataclasses import dataclass
 from transcription_bot.models.simple_models import DiarizedTranscript
 from transcription_bot.utils.exceptions import StringMatchError
 from transcription_bot.utils.helpers import are_strings_in_string, find_single_element, get_article_title, string_is_url
+from transcription_bot.utils.issue_tracking import report_issue
 from transcription_bot.utils.templating import get_template
 
 SPECIAL_SUMMARY_PATTERNS = [
@@ -23,6 +24,16 @@ SPECIAL_SUMMARY_PATTERNS = [
     "live from",
     "live recording",
 ]
+
+MISSING_FICTION_ITEM_IN_SCIENCE_OR_FICTION_MESSAGE = """
+Unfortunately, this episode did not have a 'fiction' item listed in the show notes on the website.
+Consequently, the Science of Fiction data needs to be manually corrected.
+
+I first saw this issue in episode 1018 and I contacted info@theskepticsguide.com.
+They did not respond, which was disappointing as it is an issue that should be fixed on their end.
+Rather than have the bot generate no transcript at all, instead I added this message in the hopes that the human editor
+will see this and fix it. If you're reading this: please contact the podcast creators to ask them to fix this issue.
+"""
 
 
 # region Base classes
@@ -122,8 +133,6 @@ class FromLyricsSegment(BaseSegment, ABC):
 
 # endregion
 # region Concrete classes (alpha-sorted, News and SoF in their own regions)
-
-
 @dataclass(kw_only=True)
 class DumbestThingOfTheWeekSegment(FromLyricsSegment, NonNewsSegmentMixin):
     topic: str
@@ -1301,10 +1310,15 @@ def _create_science_or_fiction_metadata(
         raise ValueError("Segment has no metadata")
 
     fiction_item = next((item for item in items if item.sof_result.lower() == "fiction"), None)
-    if fiction_item is None:
-        raise ValueError("No 'fiction' item found.")
 
-    correct_answer = fiction_item.number
+    if fiction_item:
+        correct_answer = fiction_item.number
+    else:
+        correct_answer = 0
+        report_issue(
+            "No 'fiction' item found for Science or Fiction segment. This means the results will be invalid. Please fix manually."
+        )
+
     guessed_items = set(llm_data.rogue_answers)
     item_map = {item.number: item for item in items}
 

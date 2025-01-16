@@ -8,6 +8,11 @@ And the Better Jinja extension in VSCode supports them, so that's what I'm using
 ((* block / statement *)) - default is {% %}
 ((( variable ))) - default is {{ }}
 #))
+((* if issues *))
+<!-- Issues encountered when processing episode:
+((( issues )))
+-->
+((* endif *))
 {{transcription-bot}}
 {{Editing required
 |proofreading = y
