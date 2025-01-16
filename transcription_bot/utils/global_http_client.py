@@ -6,16 +6,14 @@ from tenacity import before_sleep_log, retry, stop_after_attempt, wait_fixed
 
 __all__ = ["http_client"]
 
-CUSTOM_USER_AGENT = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"
-}
+_CUSTOM_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0"}
 _HTTP_TIMEOUT = 15
 
 
 class HttpClient(requests.Session):
     def __init__(self):
         super().__init__()
-        self.headers.update(CUSTOM_USER_AGENT)
+        self.headers.update(_CUSTOM_HEADERS)
 
     @staticmethod
     def with_auth_header(header: dict[str, str]) -> "HttpClient":
