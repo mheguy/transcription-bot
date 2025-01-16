@@ -127,6 +127,7 @@ enableTypeIgnoreComments = true
 deprecateTypingAliases = true
 enableReachabilityAnalysis = true
 typeCheckingMode = "strict"
+reportImplicitOverride = "information"
 reportUnknownArgumentType = "none"
 reportUnknownLambdaType = "none"
 reportUnknownMemberType = "none"

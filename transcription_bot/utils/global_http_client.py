@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, override
 
 import requests
 from tenacity import before_sleep_log, retry, stop_after_attempt, wait_fixed
@@ -23,12 +23,15 @@ class HttpClient(requests.Session):
         client.headers.update(header)
         return client
 
+    @override
     def get(self, *args: Any, raise_for_status: bool = True, **kwargs: Any) -> requests.Response:
         return self._request("GET", *args, raise_for_status=raise_for_status, **kwargs)
 
+    @override
     def post(self, *args: Any, raise_for_status: bool = True, **kwargs: Any) -> requests.Response:
         return self._request("POST", *args, raise_for_status=raise_for_status, **kwargs)
 
+    @override
     def put(self, *args: Any, raise_for_status: bool = True, **kwargs: Any) -> requests.Response:
         return self._request("PUT", *args, raise_for_status=raise_for_status, **kwargs)
 
