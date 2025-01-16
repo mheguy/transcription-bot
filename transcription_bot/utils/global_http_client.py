@@ -39,7 +39,7 @@ class HttpClient(requests.Session):
         stop=stop_after_attempt(3),
         wait=wait_fixed(2),
         reraise=True,
-        before_sleep=before_sleep_log(logging.getLogger(), logging.WARNING),
+        before_sleep=before_sleep_log(logging.getLogger(), logging.INFO),
     )
     def _request(self, *args: Any, raise_for_status: bool, **kwargs: Any) -> requests.Response:
         timeout = kwargs.pop("timeout", _HTTP_TIMEOUT)
