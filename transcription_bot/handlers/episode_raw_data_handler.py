@@ -22,7 +22,7 @@ def gather_raw_data(rss_entry: PodcastRssEntry, client: HttpClient) -> EpisodeRa
     lyrics = get_lyrics_from_mp3(rss_entry, mp3)
     show_notes = get_show_notes(rss_entry, client)
 
-    image = get_image_data(rss_entry, show_notes, client)
+    image = get_image_data(rss_entry, show_notes)
 
     return EpisodeRawData(rss_entry, lyrics, show_notes, image)
 
@@ -68,15 +68,15 @@ def get_show_notes(rss_entry: PodcastRssEntry, client: HttpClient) -> bytes:
 
 
 @cache_for_episode
-def get_image_data(rss_entry: PodcastRssEntry, show_notes: bytes, client: HttpClient) -> EpisodeImage:
+def get_image_data(rss_entry: PodcastRssEntry, show_notes: bytes) -> EpisodeImage:
     """Get the image data from the show notes."""
     logger.debug("Getting image data...")
     url = get_episode_image_url(show_notes)
     episode_number = rss_entry.episode_number
 
-    episode_icon_name = find_image_upload(client, str(episode_number))
+    episode_icon_name = find_image_upload(str(episode_number))
     if not episode_icon_name:
         logger.debug("Uploading image for episode...")
-        episode_icon_name = upload_image_to_wiki(client, url, episode_number)
+        episode_icon_name = upload_image_to_wiki(url, episode_number)
 
     return EpisodeImage(url, episode_icon_name)

@@ -612,6 +612,7 @@ class QuickieSegment(FromLyricsSegment, NonNewsSegmentMixin):
     def match_string(lowercase_text: str) -> bool:
         return lowercase_text.startswith("quickie with")
 
+    @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
         for chunk in transcript:
             if are_strings_in_string(["quickie", "with"], chunk["text"].lower()):

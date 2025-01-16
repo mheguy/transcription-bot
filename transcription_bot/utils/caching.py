@@ -24,9 +24,7 @@ class HasEpisodeNumber(Protocol):
     episode_number: int
 
 
-def cache_for_episode(
-    func: Callable[Concatenate[T, P], R],
-) -> Callable[Concatenate[T, P], R]:
+def cache_for_episode(func: Callable[Concatenate[T, P], R]) -> Callable[Concatenate[T, P], R]:
     """Cache the result of the decorated function to a file.
 
     Requires the first positional argument be a PodcastEpisode.
@@ -49,13 +47,13 @@ def cache_for_episode(
     return wrapper
 
 
-def cache_for_url(func: Callable[Concatenate[Url, P], R]) -> Callable[Concatenate[Url, P], R]:
-    """Provide caching for title page lookups."""
+def cache_for_str_arg(func: Callable[Concatenate[Url, P], R]) -> Callable[Concatenate[Url, P], R]:
+    """Provide caching for any function that takes a string as the first pos arg."""
 
     @functools.wraps(func)
     def wrapper(url: Url, *args: P.args, **kwargs: P.kwargs) -> R:
         function_dir = get_cache_dir(func)
-        cache_filepath = function_dir / "urls.json_or_pkl"
+        cache_filepath = function_dir / "str_arg_cache.json_or_pkl"
 
         url_cache: UrlCache[R] = {}
         if cache_filepath.exists():

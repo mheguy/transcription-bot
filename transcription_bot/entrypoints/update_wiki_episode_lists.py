@@ -12,11 +12,12 @@ from mwparserfromhell.wikicode import Wikicode
 from transcription_bot.handlers.episode_raw_data_handler import gather_raw_data
 from transcription_bot.handlers.episode_segment_handler import extract_episode_segments_from_episode_raw_data
 from transcription_bot.interfaces.wiki import (
+    EPISODE_LIST_PAGE_PREFIX,
     get_episode_entry_from_list,
     get_episode_list_wiki_page,
     get_episode_template_from_list,
     get_episode_wiki_page,
-    update_episode_list,
+    save_wiki_page,
 )
 from transcription_bot.models.data_models import PodcastRssEntry, SguListEntry
 from transcription_bot.models.episode_segments import (
@@ -76,7 +77,7 @@ def main(episode_numbers: set[int]) -> None:
             logger.error(f"Cannot process episode {episode_number} due to missing lyrics tag.")
 
     for year, episode_list in episode_lists.items():
-        update_episode_list(http_client, year, str(episode_list))
+        save_wiki_page(f"{EPISODE_LIST_PAGE_PREFIX}{year}", str(episode_list), allow_page_editing=True)
 
 
 def process_episode(episode_rss_entry: PodcastRssEntry, episode_list_page: Wikicode) -> None:
