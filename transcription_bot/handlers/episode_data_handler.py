@@ -15,6 +15,7 @@ from transcription_bot.models.episode_segments import (
     TranscribedSegments,
 )
 from transcription_bot.models.simple_models import DiarizedTranscript
+from transcription_bot.utils.issue_tracking import report_issue
 
 _THIRTY_MINUTES = 30 * 60
 
@@ -66,6 +67,9 @@ def add_transcript_to_segments(
             if not right_segment.start_time:
                 logger.info(f"No start time found for segment: {right_segment}")
                 logger.warning(f"Segment will not get any transcript: {left_segment}")
+                report_issue(
+                    f"No start time found for segment: {right_segment}.\n\nThis means this segment will have no transcript: {left_segment}"
+                )
                 continue
 
         if right_segment.start_time:
