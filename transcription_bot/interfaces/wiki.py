@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from http.client import NOT_FOUND
 
 from loguru import logger
@@ -25,7 +25,6 @@ _LOGIN_ACTION_PARAMS = {"type": "login", **_BASE_ACTION_PARAMS}
 @dataclass
 class _WikiClient:
     csrf_token: str | None = None
-    cache: dict[str, Wikicode] = field(default_factory=dict)
     http_client: HttpClient = http_client
 
 

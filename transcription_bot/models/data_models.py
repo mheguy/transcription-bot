@@ -147,7 +147,6 @@ class PodcastRssEntry:
     """Basic information about a podcast episode."""
 
     episode_number: int
-    official_title: str
     summary: str
     raw_download_url: str
     episode_url: str
