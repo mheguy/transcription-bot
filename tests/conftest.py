@@ -38,7 +38,6 @@ def mock_image() -> EpisodeImage:
 def mock_podcast_rss_entry() -> PodcastRssEntry:
     return PodcastRssEntry(
         episode_number=0,
-        official_title="fake_official_title",
         summary="fake_summary",
         raw_download_url="fake_raw_download_url",
         episode_url="fake_episode_url",

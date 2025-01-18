@@ -25,7 +25,7 @@ SPECIAL_SUMMARY_PATTERNS = [
     "live recording",
 ]
 
-MISSING_FICTION_ITEM_IN_SCIENCE_OR_FICTION_MESSAGE = """
+_MISSING_FICTION_ITEM_IN_SCIENCE_OR_FICTION_MESSAGE = """
 Unfortunately, this episode did not have a 'fiction' item listed in the show notes on the website.
 Consequently, the Science of Fiction data needs to be manually corrected.
 
@@ -1083,9 +1083,6 @@ class RogueGuess:
     name: str
     answer: ScienceOrFictionItem
 
-    def correct(self) -> bool:
-        return self.answer.sof_result == "fiction"
-
 
 @dataclass(kw_only=True)
 class ScienceOrFictionMetadata:
@@ -1315,9 +1312,7 @@ def _create_science_or_fiction_metadata(
         correct_answer = fiction_item.number
     else:
         correct_answer = 0
-        report_issue(
-            "No 'fiction' item found for Science or Fiction segment. This means the results will be invalid. Please fix manually."
-        )
+        report_issue(_MISSING_FICTION_ITEM_IN_SCIENCE_OR_FICTION_MESSAGE)
 
     guessed_items = set(llm_data.rogue_answers)
     item_map = {item.number: item for item in items}

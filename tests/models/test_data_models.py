@@ -14,6 +14,4 @@ def test_create_episode_image():
 
 
 def test_create_podcast_rss_entry():
-    data_models.PodcastRssEntry(
-        0, "fake_title", "fake_summary", "fake_download_url", "fake_episode_url", date(2000, 1, 1)
-    )
+    data_models.PodcastRssEntry(0, "fake_summary", "fake_download_url", "fake_episode_url", date(2000, 1, 1))

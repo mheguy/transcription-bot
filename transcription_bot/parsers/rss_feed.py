@@ -23,7 +23,7 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
 
         # Skip episodes that don't have a number.
         if episode_number <= 0:
-            logger.debug(f"Skipping episode due to number: {entry["title"]}")
+            logger.debug(f"Skipping episode due to number: {entry['title']}")
             continue
 
         raw_download_url = entry["links"][0]["href"]
@@ -39,7 +39,6 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
         rss_entries.append(
             PodcastRssEntry(
                 episode_number=int(entry["link"].split("/")[-1]),
-                official_title=entry["title"],
                 summary=entry["summary"],
                 raw_download_url=raw_download_url,
                 episode_url=entry["link"],
