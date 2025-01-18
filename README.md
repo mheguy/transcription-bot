@@ -100,7 +100,7 @@ This tool helps maintain the episode lists within <https://www.sgutranscripts.or
 
 ### What It Does
 
-Every 24 hours it gets the most recent changes to the wiki.
+On a schedule, it gets the most recent changes to the wiki.
 For each modified episode page it:
 
 - ensures the episode is present in the appropriate year's page
