@@ -21,6 +21,7 @@ azure_service_region = ""
 pyannote_token = ""
 pyannote_identify_endpoint = "https://api.pyannote.ai/v1/identify"
 pyannote_voiceprint_endpoint = "https://api.pyannote.ai/v1/voiceprint"
+pyannote_jobs_endpoint = "https://api.pyannote.ai/v1/jobs"
 
 # Local server
 ngrok_token = ""
