@@ -95,10 +95,10 @@ type = "layers"
 containers = ["transcription_bot.utils"]
 exhaustive = true
 layers = [
-    "helpers | templating",                      # Helpers
-    "caching | webhook_server | issue_tracking", # Low level services
-    "config : global_http_client",               # Low level objects & config
-    "exceptions",                                # Custom exceptions
+    "helpers | templating",        # Helpers
+    "caching | issue_tracking",    # Low level services
+    "config : global_http_client", # Low level objects & config
+    "exceptions",                  # Custom exceptions
 ]
 
 [[tool.importlinter.contracts]] # Entrypoint independence
