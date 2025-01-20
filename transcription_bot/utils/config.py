@@ -74,6 +74,7 @@ class ConfigProto(Protocol):
     pyannote_token: str
     pyannote_identify_endpoint: str
     pyannote_voiceprint_endpoint: str
+    pyannote_jobs_endpoint: str
 
     # Local server
     ngrok_token: str
