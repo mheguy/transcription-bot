@@ -4,7 +4,6 @@ from typing import Any, override
 
 import requests
 import tls_client
-from loguru import logger
 from tenacity import before_sleep_log, retry, stop_after_attempt, wait_fixed
 from tls_client.exceptions import TLSClientExeption
 
@@ -66,8 +65,7 @@ class HttpClient(requests.Session):
 
         response = self.request(*args, **kwargs, timeout=timeout)
 
-        if raise_for_status and not response.ok:
-            logger.exception(f"Request failed: {response}")
+        if raise_for_status:
             response.raise_for_status()
 
         return response
