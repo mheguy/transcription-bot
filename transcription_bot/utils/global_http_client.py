@@ -73,6 +73,9 @@ class HttpClient(requests.Session):
 
 def get_with_evasion(*args: Any, raise_for_status: bool, **kwargs: Any) -> requests.Response | None:
     """Get a webpage while simulating a browser."""
+    if "timeout" in kwargs:
+        kwargs.pop("timeout")
+
     try:
         resp = tls_client.Session().execute_request("GET", *args, **kwargs)
     except TLSClientExeption:

@@ -10,7 +10,7 @@ from transcription_bot.utils.caching import cache_for_episode
 from transcription_bot.utils.config import VOICEPRINT_FILE, config
 from transcription_bot.utils.global_http_client import http_client
 
-_AUTH_HEADER = {"Ocp-Apim-Subscription-Key": config.azure_subscription_key}
+_AUTH_HEADER = {"Authorization": f"Bearer {config.pyannote_token}", "Content-Type": "application/json"}
 
 _HTTP_TIMEOUT = 30
 
@@ -32,11 +32,10 @@ def send_diarization_request(rss_entry: PodcastRssEntry) -> str:
     """Send a diarization request to pyannote."""
     logger.info("Sending diarization request...")
 
-    headers = {"Authorization": f"Bearer {config.pyannote_token}", "Content-Type": "application/json"}
     data = {"url": rss_entry.download_url, "voiceprints": get_voiceprints()}
 
     logger.debug(f"Request data: {data}")
-    response = _session.post(config.pyannote_identify_endpoint, headers=headers, json=data)
+    response = _session.post(config.pyannote_identify_endpoint, json=data)
     logger.debug(f"Request sent. Response: {response}")
 
     return response.json()["jobId"]
