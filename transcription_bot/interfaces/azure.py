@@ -30,6 +30,7 @@ _TRANSCRIPTIONS_ENDPOINT = f"{_API_BASE_URL}/speechtotext/transcriptions"
 _TICKS_PER_SECONDS = 10_000_000
 
 _session = http_client.with_auth_header(_AUTH_HEADER)
+del http_client
 
 
 @cache_for_episode

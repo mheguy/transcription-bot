@@ -18,10 +18,22 @@ def get_diarized_transcript(rss_entry: PodcastRssEntry) -> DiarizedTranscript:
         transcription_future = executor.submit(create_transcription, rss_entry)
         diarization_future = executor.submit(create_diarization, rss_entry)
 
-        transcription = transcription_future.result()
-        diarization = diarization_future.result()
+        exceptions = []
+        try:
+            transcription = transcription_future.result()
+        except Exception as e:  # noqa: BLE001
+            exceptions.append(e)
 
-    return merge_transcript_and_diarization(transcription, diarization)
+        try:
+            diarization = diarization_future.result()
+        except Exception as e:  # noqa: BLE001
+            exceptions.append(e)
+
+        if exceptions:
+            logger.exception(f"One or more exceptions occurred: {exceptions}")
+            raise exceptions[0]
+
+    return merge_transcript_and_diarization(transcription, diarization)  # pyright: ignore[reportPossiblyUnboundVariable]
 
 
 def merge_transcript_and_diarization(transcription: RawTranscript, diarization: "pd.DataFrame") -> DiarizedTranscript:
