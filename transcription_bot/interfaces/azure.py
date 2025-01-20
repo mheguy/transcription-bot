@@ -41,7 +41,7 @@ def send_transcription_request(rss_entry: PodcastRssEntry) -> str:
         "properties": _TRANSCRIPTION_CONFIG,
         "locale": _LOCALE,
         "displayName": f"SGU Episode {rss_entry.episode_number}",
-        "customProperties": {"episode_number": rss_entry.episode_number},
+        "customProperties": {"episode_number": str(rss_entry.episode_number)},
     }
 
     resp = _session.post(
