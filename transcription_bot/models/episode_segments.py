@@ -692,18 +692,12 @@ class QuoteSegment(FromLyricsSegment):
     def from_lyrics(text: str) -> "QuoteSegment":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
         lines += [""] * (3 - len(lines))
-        _segment_name, quote, attribution, *extra = lines
+        _segment_name, *quote_parts, attribution = lines
 
-        if extra:
-            logger.warning(f"Unexpected extra lines in quote segment (which will be added to the quote): {extra}")
-
-        for ex in extra:
-            quote += f" {ex}"
-
-        if not quote:
+        if not quote_parts:
             logger.warning("Unable to extract quote attribution from lyrics.")
 
-        return QuoteSegment(quote=quote, attribution=attribution)
+        return QuoteSegment(quote=" ".join(quote_parts), attribution=attribution)
 
 
 @dataclass(kw_only=True)
