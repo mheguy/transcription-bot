@@ -55,7 +55,7 @@ def get_article_title(url: str) -> str | None:
     url = url.replace("http://", "https://")
 
     try:
-        resp = http_client.get(url)
+        resp = http_client.get(url, raise_for_status=False)
     except (ValueError, ConnectTimeout, ReadTimeout, RequestsConnectionError) as e:
         logger.warning(f"{type(e).__name__} error for {url}")
         return None
