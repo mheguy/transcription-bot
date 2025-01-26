@@ -235,7 +235,7 @@ def _get_csrf_token() -> str:
 
 
 def _force_login(_: RetryCallState) -> None:
-    logger.warning("Clearing csrf token due to failed login...")
+    logger.info("Clearing csrf token due to failed login...")
     _wiki_client.csrf_token = None
 
 
