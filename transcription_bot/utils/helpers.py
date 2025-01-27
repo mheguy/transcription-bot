@@ -11,10 +11,11 @@ from requests import Session
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import ConnectTimeout, ReadTimeout, RequestException
 from sentry_sdk.integrations.loguru import LoggingLevels, LoguruIntegration
+from tls_client.exceptions import TLSClientExeption
 
 from transcription_bot.utils.caching import cache_for_str_arg
 from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, ConfigProto
-from transcription_bot.utils.global_http_client import http_client
+from transcription_bot.utils.global_http_client import get_with_evasion, http_client
 
 if TYPE_CHECKING:
     from transcription_bot.models.episode_segments import BaseSegment, GenericSegmentList
@@ -53,15 +54,21 @@ def find_single_element(soup: "BeautifulSoup | Tag", name: str, class_name: str 
 def get_article_title(url: str) -> str | None:
     """Get the title of an article from its URL."""
     url = url.replace("http://", "https://")
+    resp = None
 
     try:
         resp = http_client.get(url, raise_for_status=False)
     except (ValueError, ConnectTimeout, ReadTimeout, RequestsConnectionError) as e:
         logger.warning(f"{type(e).__name__} error for {url}")
-        return None
     except RequestException as e:
         logger.exception(f"{type(e).__name__} error fetching article title at {url} : {e}")
-        return None
+
+    if resp is None or not resp.ok:
+        try:
+            resp = get_with_evasion(url)
+        except TLSClientExeption:
+            logger.warning(f"Got TLS exception for url {url}")
+            return None
 
     if not resp.ok:
         logger.warning(f"Error fetching article title: {url} : {resp.status_code}")

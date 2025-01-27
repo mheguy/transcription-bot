@@ -5,7 +5,6 @@ from typing import Any, override
 import requests
 import tls_client
 from tenacity import before_sleep_log, retry, stop_after_attempt, wait_fixed
-from tls_client.exceptions import TLSClientExeption
 
 __all__ = ["http_client"]
 
@@ -38,13 +37,7 @@ class HttpClient(requests.Session):
 
     @override
     def get(self, *args: Any, raise_for_status: bool = True, **kwargs: Any) -> requests.Response:
-        try:
-            return self._request("GET", *args, raise_for_status=raise_for_status, **kwargs)
-        except Exception:
-            if resp := get_with_evasion(*args, raise_for_status=raise_for_status, **kwargs):
-                return resp
-
-            raise
+        return self._request("GET", *args, raise_for_status=raise_for_status, **kwargs)
 
     @override
     def post(self, *args: Any, raise_for_status: bool = True, **kwargs: Any) -> requests.Response:
@@ -71,26 +64,17 @@ class HttpClient(requests.Session):
         return response
 
 
-def get_with_evasion(*args: Any, raise_for_status: bool, **kwargs: Any) -> requests.Response | None:
+def get_with_evasion(url: str) -> requests.Response:
     """Get a webpage while simulating a browser."""
-    if "timeout" in kwargs:
-        kwargs.pop("timeout")
-
-    try:
-        resp = tls_client.Session().execute_request("GET", *args, **kwargs)
-    except TLSClientExeption:
-        return None
+    resp = tls_client.Session().execute_request("GET", url)
 
     requests_resp = requests.Response()
     requests_resp.status_code = resp.status_code or 400
 
-    if raise_for_status and not requests_resp.ok:
-        return None
-
-    if not isinstance(resp.content, bytes):
-        return None
-
-    requests_resp.raw = MockRawResponse(resp.content)
+    if isinstance(resp.content, bytes):
+        requests_resp.raw = MockRawResponse(resp.content)
+    else:
+        requests_resp.raw = MockRawResponse(None)
 
     return requests_resp
 
