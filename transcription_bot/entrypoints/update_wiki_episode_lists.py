@@ -150,7 +150,7 @@ def create_or_update_episode_entry(episode_list: Wikicode, expected_entry: SguLi
 
         previous_episode_template = get_episode_template_from_list(episode_list, previous_episode_number)
         if previous_episode_template is None:
-            raise ValueError("Trying to create entry, but previous episode not found.")
+            raise ValueError(f"Trying to create entry, but previous episode ({previous_episode_number}) not found.")
 
         template = Template(SguListEntry.identifier)
 
