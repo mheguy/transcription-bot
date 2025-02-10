@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from functools import cache
 from http.client import NOT_FOUND
 
 from loguru import logger
@@ -11,7 +12,6 @@ from requests import RequestException
 from tenacity import RetryCallState, before_sleep_log, retry, stop_after_attempt, wait_fixed
 
 from transcription_bot.models.data_models import SguListEntry
-from transcription_bot.utils.caching import cache_for_str_arg
 from transcription_bot.utils.config import config
 from transcription_bot.utils.global_http_client import HttpClient, http_client
 
@@ -147,7 +147,7 @@ def get_episode_template_from_list(episode_list_page: Wikicode, episode_number: 
     return None
 
 
-@cache_for_str_arg
+@cache
 def get_wiki_page(page_title: str) -> Wikicode:
     """Retrieve the wiki page with the given name."""
     logger.debug(f"Retrieving wiki page: {page_title}")
