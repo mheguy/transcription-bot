@@ -64,7 +64,7 @@ def main(episode_numbers: set[int]) -> None:
     episode_years = {episode_number: rss_map[episode_number].year for episode_number in good_episode_numbers}
     episode_lists = {year: get_episode_list_wiki_page(year) for year in set(episode_years.values())}
 
-    for episode_number in good_episode_numbers:
+    for episode_number in sorted(good_episode_numbers):
         logger.info(f"Processing episode #{episode_number}")
 
         episode_rss_entry = rss_map[episode_number]
@@ -156,6 +156,7 @@ def create_or_update_episode_entry(episode_list: Wikicode, expected_entry: SguLi
 
         # We use insert_before to be higher on the list (later episodes first)
         episode_list.insert_before(previous_episode_template, template)
+        episode_list.insert_before(previous_episode_template, "\n|-\n")
 
     expected_entry.update_template(template)
 
@@ -191,5 +192,5 @@ def get_interviewee(episode_number: int, segments: list[BaseSegment]) -> str:
 
 
 if __name__ == "__main__":
-    _episodes_to_process = set()
+    _episodes_to_process = {1017, 1018, 1019, 1020, 1021}
     run_main_safely(main, _episodes_to_process)
