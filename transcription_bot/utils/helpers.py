@@ -147,7 +147,7 @@ def setup_tracing(config: ConfigProto) -> None:
     if not config.local_mode:
         sentry_loguru = LoguruIntegration(
             level=LoggingLevels.DEBUG.value,
-            event_level=LoggingLevels.WARNING.value,
+            event_level=LoggingLevels.ERROR.value,
         )
 
         sentry_sdk.init(
