@@ -180,9 +180,9 @@ class DumbestThingOfTheWeekSegment(FromLyricsSegment, NonNewsSegmentMixin):
 
     @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
-        for segment in transcript:
-            if are_strings_in_string(["dumb", "thing", "of", "the", "week"], segment["text"].lower()):
-                return segment["start"]
+        for chunk in transcript:
+            if are_strings_in_string(["dumb", "thing", "of", "the", "week"], chunk["text"].lower()):
+                return chunk["start"]
 
         return None
 
@@ -232,9 +232,9 @@ class EmailSegment(FromLyricsSegment, FromShowNotesSegment):
 
     @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
-        for segment in transcript:
-            if "mail" in segment["text"].lower() and segment["speaker"] == "Steve":
-                return segment["start"]
+        for chunk in transcript:
+            if "mail" in chunk["text"].lower() and chunk["speaker"] == "Steve":
+                return chunk["start"]
 
         return None
 
@@ -512,9 +512,9 @@ class NoisySegment(FromLyricsSegment, FromShowNotesSegment):
 
     @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
-        for segment in transcript:
-            if are_strings_in_string(["who", "that", "noisy"], segment["text"].lower()):
-                return segment["start"]
+        for chunk in transcript:
+            if are_strings_in_string(["who", "that", "noisy"], chunk["text"].lower()):
+                return chunk["start"]
 
         return None
 
@@ -680,10 +680,10 @@ class QuoteSegment(FromLyricsSegment):
 
     @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
-        for segment in transcript:
-            text = segment["text"].lower()
-            if "quote" in text and segment["speaker"] == "Steve":
-                return segment["start"]
+        for chunk in transcript:
+            text = chunk["text"].lower()
+            if "quote" in text and chunk["speaker"] == "Steve":
+                return chunk["start"]
 
         return None
 
@@ -1150,9 +1150,9 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
 
     @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
-        for segment in transcript:
-            if "time for science or fiction" in segment["text"].lower():
-                return segment["start"]
+        for chunk in transcript:
+            if "time for science or fiction" in chunk["text"].lower():
+                return chunk["start"]
 
         return None
 
