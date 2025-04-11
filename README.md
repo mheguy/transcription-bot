@@ -1,11 +1,12 @@
 # transcription-bot
 
+This is a fan creation and is not endorsed, associated with, or supported by SGU Productions, LLC.<br>
+
 ![Transcript creation](https://cronitor.io/badges/2CcGJX/production/TepOa29Ms8vPgIhqhWnOkh3SQic.svg)
 
 ![Wiki maintainance](https://cronitor.io/badges/8PyGO2/production/rt1gMVYWjLdKlQR6znQGl6RYUvA.svg)
 
-This has transformed into a small monorepo as I wanted to add some wiki maintenance tasks to the bot.<br>
-All tools are a fan creation and are neither endorsed by nor associated with the creators of the podcast.<br>
+This repo was originally only for transcription generation but has transformed into a small monorepo as I added some wiki maintenance features.<br>
 
 ## create_podcast_transcript
 
