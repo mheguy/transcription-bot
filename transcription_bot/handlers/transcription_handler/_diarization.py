@@ -19,6 +19,7 @@ _session = http_client.with_auth_header(_AUTH_HEADER)
 del http_client
 
 
+@cache_for_episode
 def create_diarization(rss_entry: PodcastRssEntry) -> pd.DataFrame:
     job_id = send_diarization_request(rss_entry)
     job_url = f"{config.pyannote_jobs_endpoint}/{job_id}"

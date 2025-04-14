@@ -30,7 +30,7 @@ def get_diarized_transcript(rss_entry: PodcastRssEntry) -> DiarizedTranscript:
             exceptions.append(e)
 
         if exceptions:
-            logger.exception(f"One or more exceptions occurred: {exceptions}")
+            logger.exception(f"One or more exceptions occurred while trying to get diarized transcript: {exceptions}")
             raise exceptions[0]
 
     return merge_transcript_and_diarization(transcription, diarization)  # pyright: ignore[reportPossiblyUnboundVariable]
