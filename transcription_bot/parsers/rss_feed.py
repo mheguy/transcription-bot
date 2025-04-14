@@ -1,7 +1,9 @@
 import re
 from datetime import datetime
+from typing import cast
 
 import feedparser
+from feedparser.util import FeedParserDict
 from loguru import logger
 from requests import Session
 
@@ -19,14 +21,17 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
 
     rss_entries: list[PodcastRssEntry] = []
     for entry in raw_feed_entries:
-        episode_number = int(entry["link"].split("/")[-1])
+        entry = cast("FeedParserDict", entry)
+        link = cast("str", entry["link"])
+
+        episode_number = int(link.split("/")[-1])
 
         # Skip episodes that don't have a number.
         if episode_number <= 0:
             logger.debug(f"Skipping episode due to number: {entry['title']}")
             continue
 
-        raw_download_url = entry["links"][0]["href"]
+        raw_download_url = cast("str", entry["links"][0]["href"])
 
         filename: str = raw_download_url.split("/")[-1].lower()
         date_string = filename.replace("skepticast", "").replace(".mp3", "")
@@ -38,10 +43,10 @@ def get_podcast_rss_entries(client: Session) -> list[PodcastRssEntry]:
 
         rss_entries.append(
             PodcastRssEntry(
-                episode_number=int(entry["link"].split("/")[-1]),
-                summary=entry["summary"],
+                episode_number=int(link.split("/")[-1]),
+                summary=cast("str", entry["summary"]),
                 raw_download_url=raw_download_url,
-                episode_url=entry["link"],
+                episode_url=link,
                 date=time.date(),
             )
         )
@@ -56,7 +61,7 @@ def get_recently_modified_episode_numbers(client: Session) -> set[int]:
     episode_numbers: list[int] = []
 
     for rss_entry in feedparser.parse(response.text)["entries"]:
-        match = re.match(EPISODE_PATTERN, rss_entry["title"])
+        match = re.match(EPISODE_PATTERN, cast("str", rss_entry["title"]))
         if not match:
             continue
 

@@ -114,7 +114,7 @@ config = Dynaconf(
     ],
 )
 
-config = cast(ConfigProto, config)
+config = cast("ConfigProto", config)
 
 config.validators.register(
     *_prod_only_validators,
