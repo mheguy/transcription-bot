@@ -63,7 +63,7 @@ def cache_for_str_arg(func: Callable[Concatenate[Url, P], R]) -> Callable[Concat
 
         if title is not _sentinel:
             logger.debug(f"Using url cache for: {url}")
-            return cast(R, title)
+            return cast("R", title)
 
         result = func(url, *args, **kwargs)
 

@@ -64,7 +64,7 @@ def _extract_raw_segment_data(post_element: Tag) -> list[list["Tag"]]:
     if any(not isinstance(h3_tag, Tag) for h3_tag in h3_tags):
         raise TypeError("Got an unexpected type in h3 tags")
 
-    h3_tags = cast(ResultSet[Tag], h3_tags)
+    h3_tags = cast("ResultSet[Tag]", h3_tags)
 
     raw_segments: list[list[Tag]] = []
     for h3_tag in h3_tags:

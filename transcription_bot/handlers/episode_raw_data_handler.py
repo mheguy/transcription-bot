@@ -2,7 +2,7 @@ from io import BytesIO
 
 from loguru import logger
 from mutagen.id3 import ID3
-from mutagen.id3._frames import TXXX, USLT
+from mutagen.id3._frames import TXXX, USLT  # pyright: ignore[reportPrivateImportUsage]
 
 from transcription_bot.interfaces.wiki import find_image_upload, upload_image_to_wiki
 from transcription_bot.models.data_models import EpisodeImage, PodcastRssEntry

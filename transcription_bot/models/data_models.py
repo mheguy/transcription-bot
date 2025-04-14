@@ -95,7 +95,7 @@ class SguListEntry:
         """Get a param value from a template, or return None if it doesn't exist."""
         result = template.get(key, None)
 
-        if result is None:
+        if result is None:  # pyright: ignore[reportUnnecessaryComparison]
             return None
 
         value = result.value
@@ -110,7 +110,7 @@ class SguListEntry:
         else:
             return None
 
-        return result.value.strip()
+        return value.strip()
 
     @staticmethod
     def _get_optional_params_from_template(template: Template) -> dict[str, str]:
