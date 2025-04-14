@@ -19,6 +19,7 @@ _session = http_client.with_auth_header(_AUTH_HEADER)
 del http_client
 
 
+@cache_for_episode
 def create_diarization(rss_entry: PodcastRssEntry) -> pd.DataFrame:
     job_id = send_diarization_request(rss_entry)
     job_url = f"{config.pyannote_jobs_endpoint}/{job_id}"
@@ -58,11 +59,11 @@ def wait_for_diarization_completion(diarization_url: str) -> Any:
         status = resp_object["status"]
 
         if status == "succeeded":
-            logger.info("Transcription complete.")
+            logger.info("Diarization complete.")
             break
 
         if status == "failed":
-            raise RuntimeError(f"Transcription failed. {resp_object}")
+            raise RuntimeError(f"Diarization failed. {resp_object}")
 
         logger.info(f"Waiting 1 minute, status: {status}")
         time.sleep(60)

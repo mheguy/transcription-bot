@@ -5,6 +5,7 @@ from loguru import logger
 from transcription_bot.interfaces.azure import get_transcription_results, send_transcription_request
 from transcription_bot.models.data_models import PodcastRssEntry
 from transcription_bot.models.simple_models import RawTranscript
+from transcription_bot.utils.caching import cache_for_episode
 from transcription_bot.utils.config import config
 from transcription_bot.utils.global_http_client import http_client
 
@@ -16,6 +17,7 @@ _HTTP_TIMEOUT = 30
 _session = http_client.with_auth_header(_AUTH_HEADER)
 
 
+@cache_for_episode
 def create_transcription(rss_entry: PodcastRssEntry) -> RawTranscript:
     """Send a transcription request."""
     transcription_url = send_transcription_request(rss_entry)
