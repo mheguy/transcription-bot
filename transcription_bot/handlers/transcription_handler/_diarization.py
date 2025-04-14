@@ -58,11 +58,11 @@ def wait_for_diarization_completion(diarization_url: str) -> Any:
         status = resp_object["status"]
 
         if status == "succeeded":
-            logger.info("Transcription complete.")
+            logger.info("Diarization complete.")
             break
 
         if status == "failed":
-            raise RuntimeError(f"Transcription failed. {resp_object}")
+            raise RuntimeError(f"Diarization failed. {resp_object}")
 
         logger.info(f"Waiting 1 minute, status: {status}")
         time.sleep(60)
