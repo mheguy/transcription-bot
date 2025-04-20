@@ -55,6 +55,8 @@ def main(episode_numbers: set[int]) -> None:
         logger.info("No modified episode pages found. Exiting.")
         return
 
+    logger.info(f"Episode numbers to process: {episode_numbers}")
+
     good_episode_numbers = filter_bad_episodes(episode_numbers)
 
     logger.info("Getting episodes from podcast RSS feed...")
@@ -192,5 +194,5 @@ def get_interviewee(episode_number: int, segments: list[BaseSegment]) -> str:
 
 
 if __name__ == "__main__":
-    _episodes_to_process = {1017, 1018, 1019, 1020, 1021}
+    _episodes_to_process = set()
     run_main_safely(main, _episodes_to_process)
