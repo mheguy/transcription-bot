@@ -13,6 +13,16 @@ from transcription_bot.utils.exceptions import StringMatchError
 from transcription_bot.utils.helpers import find_single_element, get_article_title
 from transcription_bot.utils.issue_tracking import report_issue
 
+_MISSING_FICTION_ITEM_IN_SCIENCE_OR_FICTION_MESSAGE = """
+Unfortunately, this episode did not have a 'fiction' item listed in the show notes on the website.
+Consequently, the Science of Fiction data needs to be manually corrected.
+
+I first saw this issue in episode 1018 and I contacted info@theskepticsguide.com.
+They did not respond, which was disappointing as it is an issue that should be fixed on their end.
+Rather than have the bot generate no transcript at all, instead I added this message in the hopes that the human editor
+will see this and fix it. If you're reading this: please contact the podcast creators to ask them to fix this issue.
+"""
+
 
 @dataclass(kw_only=True)
 class ScienceOrFictionItem:
@@ -25,6 +35,18 @@ class ScienceOrFictionItem:
 
     article_title: str | None
     article_publication: str | None
+
+    @staticmethod
+    def get_unknown_fiction_item() -> "ScienceOrFictionItem":
+        """Return an unknown fiction item."""
+        return ScienceOrFictionItem(
+            number=0,
+            name="Unknown science or fiction item",
+            article_url=None,
+            sof_result="unknown",
+            article_title=None,
+            article_publication=None,
+        )
 
 
 @dataclass
@@ -70,17 +92,6 @@ class ScienceOrFictionLlmData:
     reveal_timestamps: list[float]  # TODO: Use this to split up the segment
 
 
-_MISSING_FICTION_ITEM_IN_SCIENCE_OR_FICTION_MESSAGE = """
-Unfortunately, this episode did not have a 'fiction' item listed in the show notes on the website.
-Consequently, the Science of Fiction data needs to be manually corrected.
-
-I first saw this issue in episode 1018 and I contacted info@theskepticsguide.com.
-They did not respond, which was disappointing as it is an issue that should be fixed on their end.
-Rather than have the bot generate no transcript at all, instead I added this message in the hopes that the human editor
-will see this and fix it. If you're reading this: please contact the podcast creators to ask them to fix this issue.
-"""
-
-
 def _create_science_or_fiction_metadata(
     llm_data: ScienceOrFictionLlmData | None, items: list[ScienceOrFictionItem]
 ) -> ScienceOrFictionMetadata:
@@ -102,7 +113,12 @@ def _create_science_or_fiction_metadata(
 
     rogues: list[RogueGuess] = []
     for num, (rogue_name, answer_num) in enumerate(rogue_answer_map.items(), start=1):
-        rogues.append(RogueGuess(num=num, name=rogue_name, answer=item_map[answer_num]))
+        rogue_answer = item_map.get(answer_num)
+        if not rogue_answer:
+            logger.error(f"Rogue {rogue_name} guessed an invalid item number: {answer_num}")
+            rogue_answer = ScienceOrFictionItem.get_unknown_fiction_item()
+
+        rogues.append(RogueGuess(num=num, name=rogue_name, answer=rogue_answer))
 
     result_data = ScienceOrFictionMetadata(rogues=rogues, host=llm_data.host)
 
