@@ -1,3 +1,4 @@
+from transcription_bot.models.episode_segments import news, science_or_fiction, simple_segments
 from transcription_bot.models.episode_segments.base import (
     FromLyricsSegment,
     FromShowNotesSegment,
@@ -5,8 +6,11 @@ from transcription_bot.models.episode_segments.base import (
 )
 
 _PARSER_SEGMENT_TYPES = (FromLyricsSegment, FromSummaryTextSegment, FromShowNotesSegment)
-segment_types = [
-    value
-    for value in globals().values()
-    if isinstance(value, type) and issubclass(value, _PARSER_SEGMENT_TYPES) and value not in _PARSER_SEGMENT_TYPES
-]
+
+# Dynamically populate segment_types with all classes in the modules that extend _PARSER_SEGMENT_TYPES
+segment_types = []
+for module in (news, science_or_fiction, simple_segments):
+    for name in dir(module):
+        obj = getattr(module, name)
+        if isinstance(obj, type) and issubclass(obj, _PARSER_SEGMENT_TYPES) and obj not in _PARSER_SEGMENT_TYPES:
+            segment_types.append(obj)

@@ -165,5 +165,5 @@ def get_sof_metadata_from_llm(
 
     final_response = response.choices[0].message.parsed
 
-    logger.debug("LLM response: %s", final_response)
+    logger.debug(f"LLM response: {final_response}")
     return final_response
