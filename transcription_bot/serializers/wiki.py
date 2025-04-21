@@ -4,10 +4,11 @@ from transcription_bot.models.episode_segments.base import BaseSegment
 from transcription_bot.models.episode_segments.simple_segments import QuoteSegment
 from transcription_bot.models.simple_models import DiarizedTranscript
 from transcription_bot.utils.helpers import format_time, get_first_segment_of_type
+from transcription_bot.utils.issue_tracking import get_issue_text
 from transcription_bot.utils.templating import get_template
 
 
-def create_podcast_wiki_page(episode_data: EpisodeData, issues: str) -> str:
+def create_podcast_wiki_page(episode_data: EpisodeData) -> str:
     """Creates a wiki page for a podcast episode.
 
     This function gathers all the necessary data for the episode, merges the data into segments,
@@ -48,7 +49,7 @@ def create_podcast_wiki_page(episode_data: EpisodeData, issues: str) -> str:
         is_rebecca_present=("rebecca" in rogues and "y") or "",
         is_perry_present=("perry" in rogues and "y") or "",
         forum_link="",
-        issues=issues,
+        issues=get_issue_text(),
     )
 
 

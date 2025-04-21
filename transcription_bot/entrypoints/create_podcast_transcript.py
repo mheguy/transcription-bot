@@ -18,7 +18,6 @@ from transcription_bot.serializers.wiki import create_podcast_wiki_page
 from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, config
 from transcription_bot.utils.global_http_client import http_client
 from transcription_bot.utils.helpers import run_main_safely, setup_tracing
-from transcription_bot.utils.issue_tracking import get_issue_text
 
 setup_tracing(config)
 
@@ -63,7 +62,7 @@ def main(*, selected_episode: int) -> None:
     episode_data = create_episode_data(episode_raw_data, transcript, episode_segments)
 
     logger.info("Converting episode data to wiki markdown...")
-    wiki_page = create_podcast_wiki_page(episode_data, get_issue_text())
+    wiki_page = create_podcast_wiki_page(episode_data)
 
     logger.info("Creating (or updating) wiki page...")
     save_wiki_page(
