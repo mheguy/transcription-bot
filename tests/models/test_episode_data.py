@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 from transcription_bot.models import episode_data
 from transcription_bot.models.data_models import EpisodeImage
-from transcription_bot.models.episode_segments import TranscribedSegments
+from transcription_bot.models.episode_segments.type_hints import TranscribedSegments
 
 
 def test_create_episode_raw_data(podcast_rss_entry: episode_data.PodcastRssEntry, image: EpisodeImage):

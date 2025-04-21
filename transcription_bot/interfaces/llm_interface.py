@@ -10,7 +10,8 @@ from openai import OpenAI
 from openai.types.chat.chat_completion_content_part_param import ChatCompletionContentPartParam
 
 from transcription_bot.models.data_models import PodcastRssEntry
-from transcription_bot.models.episode_segments import BaseSegment, ScienceOrFictionLlmData
+from transcription_bot.models.episode_segments.base import BaseSegment
+from transcription_bot.models.episode_segments.science_or_fiction import ScienceOrFictionLlmData
 from transcription_bot.models.simple_models import DiarizedTranscript
 from transcription_bot.utils.caching import cache_for_episode, cache_for_str_arg, get_cache_dir, load_cache, save_cache
 from transcription_bot.utils.config import config
@@ -162,4 +163,7 @@ def get_sof_metadata_from_llm(
     if not response.choices[0].message.parsed:
         raise ValueError("LLM did not return a response.", response)
 
-    return response.choices[0].message.parsed
+    final_response = response.choices[0].message.parsed
+
+    logger.debug("LLM response: %s", final_response)
+    return final_response

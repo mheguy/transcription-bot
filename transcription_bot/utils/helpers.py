@@ -18,7 +18,8 @@ from transcription_bot.utils.config import UNPROCESSABLE_EPISODES, ConfigProto
 from transcription_bot.utils.global_http_client import get_with_evasion, http_client
 
 if TYPE_CHECKING:
-    from transcription_bot.models.episode_segments import BaseSegment, GenericSegmentList
+    from transcription_bot.models.episode_segments.base import BaseSegment
+    from transcription_bot.models.episode_segments.type_hints import GenericSegmentList
 
 T = TypeVar("T", bound="BaseSegment")
 
@@ -158,3 +159,20 @@ def setup_tracing(config: ConfigProto) -> None:
             integrations=[sentry_loguru],
         )
         cronitor.api_key = config.cronitor_api_key
+
+
+def format_time(time: float | None) -> str:
+    """Format a float time to h:mm:ss or mm:ss if < 1 hour."""
+    if not time:
+        return "???"
+
+    hour_count = int(time) // 3600
+
+    hour = ""
+    if hour_count:
+        hour = f"{hour_count}:"
+
+    minutes = f"{int(time) // 60 % 60:02d}:"
+    seconds = f"{int(time) % 60:02d}"
+
+    return f"{hour}{minutes}{seconds}"

@@ -6,14 +6,12 @@ from openai.types.chat.chat_completion_content_part_param import ChatCompletionC
 from transcription_bot.interfaces.llm_interface import get_segment_start_from_llm, get_sof_metadata_from_llm
 from transcription_bot.models.data_models import PodcastRssEntry
 from transcription_bot.models.episode_data import EpisodeData, EpisodeRawData
-from transcription_bot.models.episode_segments import (
-    IntroSegment,
-    OutroSegment,
-    RawSegments,
+from transcription_bot.models.episode_segments.science_or_fiction import (
     ScienceOrFictionLlmData,
     ScienceOrFictionSegment,
-    TranscribedSegments,
 )
+from transcription_bot.models.episode_segments.simple_segments import IntroSegment, OutroSegment
+from transcription_bot.models.episode_segments.type_hints import RawSegments, TranscribedSegments
 from transcription_bot.models.simple_models import DiarizedTranscript
 from transcription_bot.utils.issue_tracking import report_issue
 

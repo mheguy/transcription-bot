@@ -2,13 +2,10 @@ from typing import cast
 
 from bs4 import BeautifulSoup, ResultSet, Tag
 
-from transcription_bot.models.episode_segments import (
-    BaseSegment,
-    FromShowNotesSegment,
-    RawSegments,
-    UnknownSegment,
-    segment_types,
-)
+from transcription_bot.models.episode_segments import segment_types
+from transcription_bot.models.episode_segments.base import BaseSegment, FromShowNotesSegment
+from transcription_bot.models.episode_segments.simple_segments import UnknownSegment
+from transcription_bot.models.episode_segments.type_hints import RawSegments
 from transcription_bot.utils.helpers import find_single_element
 
 PODCAST_HEADER_TAG_TYPE = "section"

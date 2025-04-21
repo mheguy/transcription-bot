@@ -20,12 +20,9 @@ from transcription_bot.interfaces.wiki import (
     save_wiki_page,
 )
 from transcription_bot.models.data_models import PodcastRssEntry, SguListEntry
-from transcription_bot.models.episode_segments import (
-    BaseSegment,
-    InterviewSegment,
-    NonNewsSegmentMixin,
-    ScienceOrFictionSegment,
-)
+from transcription_bot.models.episode_segments.base import BaseSegment, NonNewsSegmentMixin
+from transcription_bot.models.episode_segments.science_or_fiction import ScienceOrFictionSegment
+from transcription_bot.models.episode_segments.simple_segments import InterviewSegment
 from transcription_bot.models.simple_models import EpisodeStatus
 from transcription_bot.parsers.rss_feed import get_podcast_rss_entries, get_recently_modified_episode_numbers
 from transcription_bot.utils.config import config
