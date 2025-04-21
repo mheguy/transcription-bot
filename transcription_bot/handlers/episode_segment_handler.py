@@ -1,5 +1,3 @@
-from loguru import logger
-
 from transcription_bot.models.episode_data import EpisodeRawData
 from transcription_bot.models.episode_segments.news import NewsMetaSegment
 from transcription_bot.models.episode_segments.science_or_fiction import ScienceOrFictionSegment
@@ -9,6 +7,7 @@ from transcription_bot.parsers.lyrics import parse_lyrics
 from transcription_bot.parsers.show_notes import parse_show_notes
 from transcription_bot.parsers.summary_text import parse_summary_text
 from transcription_bot.utils.helpers import get_first_segment_of_type
+from transcription_bot.utils.issue_tracking import report_issue
 
 
 def merge_segments(
@@ -49,7 +48,7 @@ def _find_duplicate_segments(*segment_collections: RawSegments) -> None:
 
         for segment in segment_collection:
             if segment in seen:
-                logger.error(f"Found duplicate segment: {segment}")
+                report_issue(f"Duplicate segment found: {segment.__class__.__name__}")
 
 
 def _flatten_news(lyric_segments: RawSegments) -> RawSegments:

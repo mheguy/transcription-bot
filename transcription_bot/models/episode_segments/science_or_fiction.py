@@ -3,7 +3,6 @@ from typing import Any, override
 from urllib.parse import urlparse
 
 from bs4 import Tag
-from loguru import logger
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
@@ -115,7 +114,7 @@ def _create_science_or_fiction_metadata(
     for num, (rogue_name, answer_num) in enumerate(rogue_answer_map.items(), start=1):
         rogue_answer = item_map.get(answer_num)
         if not rogue_answer:
-            logger.error(f"Rogue {rogue_name} guessed an invalid item number: {answer_num}")
+            report_issue(f"Rogue {rogue_name} guessed an invalid item number in Science or Fiction: {answer_num}")
             rogue_answer = ScienceOrFictionItem.get_unknown_fiction_item()
 
         rogues.append(RogueGuess(num=num, name=rogue_name, answer=rogue_answer))
@@ -145,7 +144,7 @@ def _create_science_or_fiction_metadata(
         result_data.win = "y"
         return result_data
 
-    logger.error("SoF results did not fit into a category.")
+    report_issue("SoF results did not fit into a category (ex. sweep, clever).")
     return result_data
 
 
