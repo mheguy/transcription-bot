@@ -170,7 +170,7 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
     @property
     @override
     def wiki_anchor_tag(self) -> str:
-        return "theme"
+        return "sof"
 
     @override
     def get_template_values(self) -> dict[str, Any]:
