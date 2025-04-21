@@ -5,13 +5,13 @@ import pytest
 from transcription_bot.handlers import episode_data_handler
 from transcription_bot.models.data_models import EpisodeImage, PodcastRssEntry
 from transcription_bot.models.episode_data import EpisodeRawData
-from transcription_bot.models.episode_segments import (
+from transcription_bot.models.episode_segments.simple_segments import (
     ForgottenSuperheroesOfScienceSegment,
     IntroSegment,
     OutroSegment,
     QuickieSegment,
-    RawSegments,
 )
+from transcription_bot.models.episode_segments.type_hints import RawSegments
 from transcription_bot.models.simple_models import DiarizedTranscript
 
 HOST_LINE_1 = "Welcome to the show"

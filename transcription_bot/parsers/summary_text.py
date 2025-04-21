@@ -1,10 +1,6 @@
-from transcription_bot.models.episode_segments import (
-    SPECIAL_SUMMARY_PATTERNS,
-    BaseSegment,
-    FromSummaryTextSegment,
-    RawSegments,
-    segment_types,
-)
+from transcription_bot.models.episode_segments import segment_types
+from transcription_bot.models.episode_segments.base import BaseSegment, FromSummaryTextSegment
+from transcription_bot.models.episode_segments.type_hints import RawSegments
 
 
 def parse_summary_text(summary: str) -> RawSegments:
@@ -31,6 +27,14 @@ def _create_segment_from_summary_text(text: str) -> "BaseSegment|None":
         return None
 
     return None
+
+
+SPECIAL_SUMMARY_PATTERNS = [
+    "guest rogue",
+    "special guest",
+    "live from",
+    "live recording",
+]
 
 
 def _is_special_summary_text(text: str) -> bool:

@@ -1,12 +1,9 @@
 import re
 
-from transcription_bot.models.episode_segments import (
-    BaseSegment,
-    FromLyricsSegment,
-    RawSegments,
-    UnknownSegment,
-    segment_types,
-)
+from transcription_bot.models.episode_segments import segment_types
+from transcription_bot.models.episode_segments.base import BaseSegment, FromLyricsSegment
+from transcription_bot.models.episode_segments.simple_segments import UnknownSegment
+from transcription_bot.models.episode_segments.type_hints import RawSegments
 
 
 def parse_lyrics(lyrics: str) -> RawSegments:

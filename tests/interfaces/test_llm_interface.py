@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from transcription_bot.interfaces import llm_interface
-from transcription_bot.models.episode_segments import BaseSegment
+from transcription_bot.models.episode_segments.base import BaseSegment
 from transcription_bot.models.simple_models import DiarizedTranscript
 
 TEST_LLM_RESULT = 42.0

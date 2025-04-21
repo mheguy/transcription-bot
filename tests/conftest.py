@@ -5,7 +5,8 @@ import pytest
 
 from transcription_bot.models.data_models import EpisodeImage, PodcastRssEntry
 from transcription_bot.models.episode_data import EpisodeRawData
-from transcription_bot.models.episode_segments import BaseSegment, TranscribedSegments
+from transcription_bot.models.episode_segments.base import BaseSegment
+from transcription_bot.models.episode_segments.type_hints import TranscribedSegments
 from transcription_bot.models.simple_models import DiarizedTranscript
 from transcription_bot.utils.config import CONFIG_FILE, config
 

@@ -1,7 +1,9 @@
 from transcription_bot.interfaces.llm_interface import get_image_caption_from_llm
 from transcription_bot.models.episode_data import EpisodeData
-from transcription_bot.models.episode_segments import QuoteSegment
-from transcription_bot.utils.helpers import get_first_segment_of_type
+from transcription_bot.models.episode_segments.base import BaseSegment
+from transcription_bot.models.episode_segments.simple_segments import QuoteSegment
+from transcription_bot.models.simple_models import DiarizedTranscript
+from transcription_bot.utils.helpers import format_time, get_first_segment_of_type
 from transcription_bot.utils.templating import get_template
 
 
@@ -12,7 +14,7 @@ def create_podcast_wiki_page(episode_data: EpisodeData, issues: str) -> str:
     and converts the segments into wiki page content.
     """
     episode_raw_data = episode_data.raw_data
-    segment_text = "\n".join(s.to_wiki() for s in episode_data.segments)
+    segment_text = "\n".join(convert_segment_to_wiki(s) for s in episode_data.segments)
 
     rogues = {s["speaker"].lower() for s in episode_data.transcript}
 
@@ -48,3 +50,60 @@ def create_podcast_wiki_page(episode_data: EpisodeData, issues: str) -> str:
         forum_link="",
         issues=issues,
     )
+
+
+def convert_segment_to_wiki(segment: BaseSegment) -> str:
+    """Get the wiki text / section header for the segment."""
+    template = get_template(segment.template_name)
+    template_values = segment.get_template_values()
+    return template.render(
+        wiki_anchor=segment.wiki_anchor_tag,
+        start_time=format_time(segment.start_time),
+        transcript=format_transcript_for_wiki(segment.transcript),
+        **template_values,
+    )
+
+
+def format_transcript_for_wiki(transcript: DiarizedTranscript) -> str:
+    """Format the transcript for the wiki."""
+    transcript = _trim_whitespace(transcript)
+    transcript = _join_speaker_transcription_chunks(transcript)
+    _abbreviate_speakers(transcript)
+
+    text_chunks = [f"'''{ts_chunk['speaker']}:''' {ts_chunk['text']}" for ts_chunk in transcript]
+
+    return "\n\n".join(text_chunks)
+
+
+def _abbreviate_speakers(transcript: DiarizedTranscript) -> None:
+    for chunk in transcript:
+        if chunk["speaker"] == "Voice-over":
+            continue
+
+        if "SPEAKER_" in chunk["speaker"]:
+            name = "US#" + chunk["speaker"].split("_")[1]
+            chunk["speaker"] = name
+        else:
+            chunk["speaker"] = chunk["speaker"][0]
+
+
+def _trim_whitespace(transcript: DiarizedTranscript) -> DiarizedTranscript:
+    for chunk in transcript:
+        chunk["text"] = chunk["text"].strip()
+
+    return transcript
+
+
+def _join_speaker_transcription_chunks(transcript: DiarizedTranscript) -> DiarizedTranscript:
+    current_speaker = None
+
+    speaker_chunks: DiarizedTranscript = []
+    for chunk in transcript:
+        if chunk["speaker"] != current_speaker:
+            speaker_chunks.append(chunk)
+            current_speaker = chunk["speaker"]
+        else:
+            speaker_chunks[-1]["text"] += " " + chunk["text"]
+            speaker_chunks[-1]["end"] = chunk["end"]
+
+    return speaker_chunks

@@ -3,7 +3,7 @@
 from pydantic.dataclasses import dataclass
 
 from transcription_bot.models.data_models import EpisodeImage, PodcastRssEntry
-from transcription_bot.models.episode_segments import TranscribedSegments
+from transcription_bot.models.episode_segments.type_hints import TranscribedSegments
 from transcription_bot.models.simple_models import DiarizedTranscript
 
 

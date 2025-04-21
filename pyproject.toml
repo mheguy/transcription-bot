@@ -135,9 +135,6 @@ reportUnknownMemberType = "none"
 reportUnknownVariableType = "none"
 reportUnnecessaryTypeIgnoreComment = "information"
 
-[tool.pytest]
-ignore-glob = [".venv"]
-
 [tool.pytest.ini_options]
 addopts = ["--strict-markers", "--disable-socket"]
 markers = []
@@ -245,10 +242,7 @@ split-on-trailing-comma = false
 "__init__.py" = ["D10"]
 # Project-specific rules:
 # Each segment type does not need its own docstring.
-"episode_segments.py" = [
-    "D101",
-    "D102", # public methods (this can be disabled if we can transition to py3.12 and use the override decorator)
-]
+"**/models/episode_segments/**.py" = ["D101"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
