@@ -54,18 +54,23 @@ def send_transcription_request(rss_entry: PodcastRssEntry) -> str:
     return transcription_url
 
 
-def get_all_transcriptions(url: str | None = None) -> list[dict[str, Any]]:
-    """Get all transcriptions. Url is only required for pagination."""
-    if not url:
-        url = f"{_TRANSCRIPTIONS_ENDPOINT}?{urlencode(_API_VERSION_PARAM)}"
+def get_all_transcriptions() -> list[dict[str, Any]]:
+    """Get all transcriptions from Azure."""
 
-    resp = _session.get(url, timeout=_HTTP_TIMEOUT).json()
-    transcriptions: list[Any] = resp["values"]
+    # The inner function allows us to omit the URL parameter from the outer function.
+    def recursive_transcription_getter(url: str | None = None) -> list[dict[str, Any]]:
+        if not url:
+            url = f"{_TRANSCRIPTIONS_ENDPOINT}?{urlencode(_API_VERSION_PARAM)}"
 
-    if "@nextLink" in resp:
-        transcriptions.extend(get_all_transcriptions(resp["@nextLink"]))
+        resp = _session.get(url, timeout=_HTTP_TIMEOUT).json()
+        transcriptions: list[Any] = resp["values"]
 
-    return transcriptions
+        if "@nextLink" in resp:
+            transcriptions.extend(recursive_transcription_getter(resp["@nextLink"]))
+
+        return transcriptions
+
+    return recursive_transcription_getter()
 
 
 def get_transcription_results(files_url: str) -> RawTranscript:
