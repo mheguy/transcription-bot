@@ -65,7 +65,7 @@ def wait_for_diarization_completion(diarization_url: str) -> Any:
         if status == "failed":
             raise RuntimeError(f"Diarization failed. {resp_object}")
 
-        logger.info(f"Waiting 1 minute, status: {status}")
+        logger.info(f"Waiting 1 minute for diarization. Current status: {status}")
         time.sleep(60)
 
     return resp_object

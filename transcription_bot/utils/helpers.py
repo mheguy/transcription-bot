@@ -144,7 +144,7 @@ def run_main_safely(func: Callable[..., None], *args: Any, **kwargs: Any) -> Non
 
 
 def setup_tracing(config: ConfigProto) -> None:
-    """Set up tracing."""
+    """Set up tracing for Sentry and Cronitor."""
     if not config.local_mode:
         sentry_loguru = LoguruIntegration(
             level=LoggingLevels.DEBUG.value,

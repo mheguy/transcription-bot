@@ -41,7 +41,7 @@ def wait_for_transcription_completion(transcription_url: str) -> str:
         if status == "Failed":
             raise RuntimeError(f"Transcription failed. {resp_object}")
 
-        logger.info(f"Waiting 1 minute, status: {status}")
+        logger.info(f"Waiting 1 minute for transcription. Current status: {status}")
         time.sleep(60)
 
     return resp_object["links"]["files"]
