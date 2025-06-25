@@ -1,5 +1,6 @@
 import time
 from collections.abc import Callable
+from functools import cache
 from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urlparse
 
@@ -116,7 +117,7 @@ def get_first_segment_of_type(segments: "GenericSegmentList", segment_type: type
     return None
 
 
-@cache_for_str_arg
+@cache
 def resolve_url_redirects(url: str) -> str:
     """Resolve URL redirects."""
     try:
