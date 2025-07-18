@@ -1,7 +1,7 @@
 import time
 from collections.abc import Callable
 from functools import cache
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 import cronitor
@@ -21,8 +21,6 @@ from transcription_bot.utils.global_http_client import get_with_evasion, http_cl
 if TYPE_CHECKING:
     from transcription_bot.models.episode_segments.base import BaseSegment
     from transcription_bot.models.episode_segments.type_hints import GenericSegmentList
-
-T = TypeVar("T", bound="BaseSegment")
 
 
 def are_strings_in_string(strings: list[str], string: str) -> bool:
@@ -108,7 +106,7 @@ def filter_bad_episodes(episode_numbers: set[int]) -> list[int]:
     return sorted(good_episodes)
 
 
-def get_first_segment_of_type(segments: "GenericSegmentList", segment_type: type[T]) -> "T | None":
+def get_first_segment_of_type[T: "BaseSegment"](segments: "GenericSegmentList", segment_type: type[T]) -> "T | None":
     """Get the first segment of a given type from a list of segments."""
     for segment in segments:
         if isinstance(segment, segment_type):

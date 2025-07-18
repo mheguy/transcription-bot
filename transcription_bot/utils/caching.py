@@ -3,15 +3,11 @@ import json
 import pickle
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Concatenate, ParamSpec, Protocol, TypeVar, cast
+from typing import Any, Concatenate, Protocol, cast
 
 from loguru import logger
 
-P = ParamSpec("P")
-R = TypeVar("R")
-T = TypeVar("T", bound="HasEpisodeNumber")
 Url = str
-UrlCache = dict[Url, R]
 _sentinel = object()
 
 _TEMP_DATA_FOLDER = Path("data/").resolve()
@@ -24,7 +20,9 @@ class HasEpisodeNumber(Protocol):
     episode_number: int
 
 
-def cache_for_episode(func: Callable[Concatenate[T, P], R]) -> Callable[Concatenate[T, P], R]:
+def cache_for_episode[T: "HasEpisodeNumber", **P, R](
+    func: Callable[Concatenate[T, P], R],
+) -> Callable[Concatenate[T, P], R]:
     """Cache the result of the decorated function to a file.
 
     Requires the first positional argument be a PodcastEpisode.
@@ -47,7 +45,7 @@ def cache_for_episode(func: Callable[Concatenate[T, P], R]) -> Callable[Concaten
     return wrapper
 
 
-def cache_for_str_arg(func: Callable[Concatenate[Url, P], R]) -> Callable[Concatenate[Url, P], R]:
+def cache_for_str_arg[**P, R](func: Callable[Concatenate[Url, P], R]) -> Callable[Concatenate[Url, P], R]:
     """Provide caching for any function that takes a string as the first pos arg."""
 
     @functools.wraps(func)
@@ -55,7 +53,7 @@ def cache_for_str_arg(func: Callable[Concatenate[Url, P], R]) -> Callable[Concat
         function_dir = get_cache_dir(func)
         cache_filepath = function_dir / "str_arg_cache.json_or_pkl"
 
-        url_cache: UrlCache[R] = {}
+        url_cache: dict[Url, R] = {}
         if cache_filepath.exists():
             url_cache = load_cache(cache_filepath)
 

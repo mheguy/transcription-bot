@@ -4,8 +4,7 @@ from functools import cache
 from http.client import NOT_FOUND
 
 from loguru import logger
-from mwparserfromhell.nodes import Template
-from mwparserfromhell.nodes.extras.parameter import Parameter
+from mwparserfromhell.nodes.template import Template
 from mwparserfromhell.utils import parse_anything as parse_wiki
 from mwparserfromhell.wikicode import Wikicode
 from requests import RequestException
@@ -139,7 +138,7 @@ def get_episode_template_from_list(episode_list_page: Wikicode, episode_number: 
     templates: list[Template] = episode_list_page.filter_templates()
     for template in templates:
         if template.name.matches(SguListEntry.identifier) and template.has("episode"):
-            param: Parameter = template.get("episode")
+            param = template.get("episode")
 
             if param.value.strip_code().strip() == str(episode_number):
                 return template
