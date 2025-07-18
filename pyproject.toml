@@ -37,7 +37,7 @@ dev = [
     "pytest-socket>=0.7",
     "ruff>=0.8",
 ]
-scripts = ["flask>=3", "ngrok>=1.4.0", "pydub>=0.25"]
+scripts = ["flask>=3", "ngrok<1.5.0", "pydub>=0.25"]
 
 [build-system]
 requires = ["hatchling"]
@@ -69,7 +69,7 @@ exclude_also = [
 extend_exclude = ["create_pyannote_voiceprint\\.py"]
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["pyarrow"] # Used by pandas
+DEP002 = ["pyarrow"]        # Used by pandas
 DEP004 = ["flask", "ngrok"] # Used only in dev scripts
 
 [tool.importlinter]
