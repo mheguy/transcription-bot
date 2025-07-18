@@ -5,7 +5,7 @@ description = ""
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "beautifulsoup4<4.13",
+    "beautifulsoup4<4.14",
     "cronitor>=4.7.1",
     "dynaconf>=3.2.6",
     "feedparser>=6.0.11",
