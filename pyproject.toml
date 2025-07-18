@@ -69,8 +69,8 @@ exclude_also = [
 extend_exclude = ["create_pyannote_voiceprint\\.py"]
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["pyarrow"]
-DEP004 = ["flask", "ngrok"]
+DEP002 = ["pyarrow"] # Used by pandas
+DEP004 = ["flask", "ngrok"] # Used only in dev scripts
 
 [tool.importlinter]
 root_package = "transcription_bot"
