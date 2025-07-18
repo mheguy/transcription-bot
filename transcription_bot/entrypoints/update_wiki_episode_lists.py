@@ -5,7 +5,7 @@ Check the most recently updated episode pages and update the episode list to mat
 
 import cronitor
 from loguru import logger
-from mutagen.id3._util import ID3NoHeaderError  # pyright: ignore[reportPrivateImportUsage]
+from mutagen.id3._util import ID3NoHeaderError
 from mwparserfromhell.nodes.template import Template
 from mwparserfromhell.wikicode import Wikicode
 

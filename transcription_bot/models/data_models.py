@@ -95,7 +95,7 @@ class SguListEntry:
         """Get a param value from a template, or return None if it doesn't exist."""
         result = template.get(key, None)
 
-        if result is None:  # pyright: ignore[reportUnnecessaryComparison]
+        if result is None:
             return None
 
         value = result.value
