@@ -51,11 +51,16 @@ def main(*, selected_episode: int) -> None:
         logger.info("Episode has a wiki page. Stopping.")
         return
 
-    logger.debug("Gathering all data...")
-    episode_raw_data = gather_raw_data(podcast_rss_entry, http_client)
+    logger.debug("Getting transcript...")
     transcript = get_transcript(podcast_rss_entry)
+    if transcript is None:
+        logger.info("Transcription not available. Stopping.")
+        return
 
-    logger.debug("Converting data to segments...")
+    logger.debug("Gathering raw data...")
+    episode_raw_data = gather_raw_data(podcast_rss_entry, http_client)
+
+    logger.debug("Converting raw data to segments...")
     episode_segments = extract_episode_segments_from_episode_raw_data(episode_raw_data)
 
     logger.info("Merging transcript into episode segments...")

@@ -1,39 +1,27 @@
-import concurrent.futures
-
 import numpy as np
 import pandas as pd
 from loguru import logger
 
-from transcription_bot.handlers.transcription_handler._diarization import create_diarization
-from transcription_bot.handlers.transcription_handler._transcription import RawTranscript, create_transcription
+from transcription_bot.interfaces.azure import get_transcription
+from transcription_bot.interfaces.pyannote import create_diarization
 from transcription_bot.models.data_models import PodcastRssEntry
-from transcription_bot.models.simple_models import DiarizedTranscript, DiarizedTranscriptChunk
+from transcription_bot.models.simple_models import DiarizedTranscript, DiarizedTranscriptChunk, RawTranscript
 
 
-def get_diarized_transcript(rss_entry: PodcastRssEntry) -> DiarizedTranscript:
+def get_diarized_transcript(rss_entry: PodcastRssEntry) -> DiarizedTranscript | None:
     """Create a transcript with the audio and podcast information."""
     logger.info("Getting diarized transcript...")
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        transcription_future = executor.submit(create_transcription, rss_entry)
-        diarization_future = executor.submit(create_diarization, rss_entry)
+    transcription = get_transcription(rss_entry)
+    diarization = create_diarization(rss_entry)
 
-        exceptions = []
-        try:
-            transcription = transcription_future.result()
-        except Exception as e:  # noqa: BLE001
-            exceptions.append(e)
+    if transcription is None:
+        return None
 
-        try:
-            diarization = diarization_future.result()
-        except Exception as e:  # noqa: BLE001
-            exceptions.append(e)
+    if diarization is None:
+        return None
 
-        if exceptions:
-            logger.exception(f"One or more exceptions occurred while trying to get diarized transcript: {exceptions}")
-            raise exceptions[0]
-
-    return merge_transcript_and_diarization(transcription, diarization)  # pyright: ignore[reportPossiblyUnboundVariable]
+    return merge_transcript_and_diarization(transcription, diarization)
 
 
 def merge_transcript_and_diarization(transcription: RawTranscript, diarization: "pd.DataFrame") -> DiarizedTranscript:

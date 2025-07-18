@@ -8,6 +8,7 @@ from transcription_bot.models.data_models import PodcastRssEntry
 from transcription_bot.models.simple_models import RawTranscript, RecognizedPhrase
 from transcription_bot.utils.caching import cache_for_episode
 from transcription_bot.utils.config import config
+from transcription_bot.utils.exceptions import TranscriptionServiceError
 from transcription_bot.utils.global_http_client import http_client
 from transcription_bot.utils.helpers import download_file
 
@@ -34,24 +35,10 @@ del http_client
 
 
 @cache_for_episode
-def send_transcription_request(rss_entry: PodcastRssEntry) -> str:
-    """Send a transcription request."""
-    payload = {
-        "contentUrls": [rss_entry.download_url],
-        "properties": _TRANSCRIPTION_CONFIG,
-        "locale": _LOCALE,
-        "displayName": f"SGU Episode {rss_entry.episode_number}",
-        "customProperties": {"episode_number": str(rss_entry.episode_number)},
-    }
-
-    resp = _session.post(
-        f"{_TRANSCRIPTIONS_ENDPOINT}:submit", params=_API_VERSION_PARAM, json=payload, timeout=_HTTP_TIMEOUT
-    )
-
-    transcription_url: str = resp.json()["self"]
-
-    logger.info(f"Created new transcription with url: {transcription_url}")
-    return transcription_url
+def get_transcription(rss_entry: PodcastRssEntry) -> RawTranscript | None:
+    """Get a transcription for an episode (creating if necessary)."""
+    transcription_url = _send_transcription_request(rss_entry)
+    return _get_transcription_results(transcription_url)
 
 
 def get_all_transcriptions() -> list[dict[str, Any]]:
@@ -73,8 +60,44 @@ def get_all_transcriptions() -> list[dict[str, Any]]:
     return recursive_transcription_getter()
 
 
-def get_transcription_results(files_url: str) -> RawTranscript:
+@cache_for_episode
+def _send_transcription_request(rss_entry: PodcastRssEntry) -> str:
+    """Send a transcription request."""
+    payload = {
+        "contentUrls": [rss_entry.download_url],
+        "properties": _TRANSCRIPTION_CONFIG,
+        "locale": _LOCALE,
+        "displayName": f"SGU Episode {rss_entry.episode_number}",
+        "customProperties": {"episode_number": str(rss_entry.episode_number)},
+    }
+
+    resp = _session.post(
+        f"{_TRANSCRIPTIONS_ENDPOINT}:submit", params=_API_VERSION_PARAM, json=payload, timeout=_HTTP_TIMEOUT
+    )
+
+    transcription_url: str = resp.json()["self"]
+
+    logger.info(f"Created new transcription with url: {transcription_url}")
+    return transcription_url
+
+
+def _get_transcription_results(transcription_url: str) -> RawTranscript | None:
     """Get the transcription results."""
+    resp = _session.get(transcription_url, timeout=_HTTP_TIMEOUT)
+
+    resp_object = resp.json()
+
+    match resp_object["status"]:
+        case "Failed":
+            raise TranscriptionServiceError(f"Transcription failed. {resp_object}")
+        case "Succeeded":
+            logger.info("Transcription complete.")
+        case _:
+            logger.info("Transcription incomplete.")
+            return None
+
+    files_url = resp_object["links"]["files"]
+
     resp = _session.get(files_url, timeout=_HTTP_TIMEOUT)
 
     content = resp.json()
