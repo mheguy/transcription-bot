@@ -54,6 +54,9 @@ jobs:
       - name: Validate structure
         run: uv run lint-imports
 
+      - name: Validate dependencies
+        run: uv run deptry .
+
       - name: Run pyright
         run: uv run pyright
 
