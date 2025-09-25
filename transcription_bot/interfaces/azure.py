@@ -34,6 +34,7 @@ _session = http_client.with_auth_header(_AUTH_HEADER)
 del http_client
 
 
+@cache_for_episode(should_cache=lambda x: x is not None)
 def get_transcription(rss_entry: PodcastRssEntry) -> RawTranscript | None:
     """Get a transcription for an episode (creating if necessary)."""
     transcription_url = _send_transcription_request(rss_entry)

@@ -18,6 +18,7 @@ _session = http_client.with_auth_header(_AUTH_HEADER)
 del http_client
 
 
+@cache_for_episode(should_cache=lambda x: x is not None)
 def create_diarization(rss_entry: PodcastRssEntry) -> pd.DataFrame | None:
     """Create a diarization DataFrame for the given podcast episode."""
     job_id = _send_diarization_request(rss_entry)
