@@ -1,6 +1,4 @@
-from typing import cast
-
-from bs4 import BeautifulSoup, ResultSet, Tag
+from bs4 import BeautifulSoup, Tag
 
 from transcription_bot.models.episode_segments import segment_types
 from transcription_bot.models.episode_segments.base import BaseSegment, FromShowNotesSegment
@@ -16,7 +14,7 @@ PODCAST_MAIN_CLASS_NAME = "podcast-main"
 
 def get_episode_image_url(show_notes: bytes) -> str:
     """Extract the episode image URL from the show notes."""
-    soup = BeautifulSoup(show_notes, "html.parser")
+    soup = BeautifulSoup(show_notes.decode(), "html.parser")
 
     header = find_single_element(soup, PODCAST_HEADER_TAG_TYPE, PODCAST_HEADER_CLASS_NAME)
 
@@ -30,7 +28,7 @@ def get_episode_image_url(show_notes: bytes) -> str:
 
 def parse_show_notes(show_notes: bytes) -> RawSegments:
     """Parse the show notes HTML and return a list of segments."""
-    soup = BeautifulSoup(show_notes, "html.parser")
+    soup = BeautifulSoup(show_notes.decode(), "html.parser")
 
     post = find_single_element(soup, PODCAST_MAIN_TAG_TYPE, PODCAST_MAIN_CLASS_NAME)
     raw_segment_data = _extract_raw_segment_data(post)
@@ -60,8 +58,6 @@ def _extract_raw_segment_data(post_element: Tag) -> list[list["Tag"]]:
 
     if any(not isinstance(h3_tag, Tag) for h3_tag in h3_tags):
         raise TypeError("Got an unexpected type in h3 tags")
-
-    h3_tags = cast("ResultSet[Tag]", h3_tags)
 
     raw_segments: list[list[Tag]] = []
     for h3_tag in h3_tags:
