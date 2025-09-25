@@ -3,9 +3,7 @@ from pathlib import Path
 
 SWITCH_TEMPLATE = "\n|EEE= {{#switch:{{{2}}}\n\t|episodebox = {{Episode|MMM|DDD|YYYY}} |boxdate = {{month|MMM}} {{date|DDD}} YYYY|download = {{DownloadLink|YYYY-MMM-DDD}} |}}"
 START_OF_SWITCH = "{{#switch:{{{1}}}"
-
 END_OF_SWITCH = "|}}"
-
 
 BOTTOM = """
 <noinclude>
