@@ -96,7 +96,7 @@ def _trim_whitespace(transcript: DiarizedTranscript) -> DiarizedTranscript:
 
 
 def _join_speaker_transcription_chunks(transcript: DiarizedTranscript) -> DiarizedTranscript:
-    current_speaker = None
+    current_speaker: str | None = None
 
     speaker_chunks: DiarizedTranscript = []
     for chunk in transcript:
