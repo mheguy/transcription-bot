@@ -186,7 +186,7 @@ class ScienceOrFictionSegment(FromLyricsSegment, FromShowNotesSegment):
     @override
     @staticmethod
     def match_string(lowercase_text: str) -> bool:
-        return "science or fiction" in lowercase_text
+        return lowercase_text.startswith("science or fiction")
 
     @override
     def get_start_time(self, transcript: DiarizedTranscript) -> float | None:
