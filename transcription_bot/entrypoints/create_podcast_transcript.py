@@ -39,6 +39,8 @@ def main(*, selected_episode: int) -> None:
     else:
         allow_page_editing = False
         podcast_rss_entry = rss_entries[0]
+        if not episode_has_wiki_page(podcast_rss_entry.episode_number - 1):
+            logger.error(f"Wiki page for episode #{podcast_rss_entry.episode_number - 1} is missing.")
 
     logger.info(f"Selected episode #{podcast_rss_entry.episode_number}")
 
