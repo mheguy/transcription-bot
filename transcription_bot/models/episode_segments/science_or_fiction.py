@@ -13,13 +13,8 @@ from transcription_bot.utils.helpers import find_single_element, get_article_tit
 from transcription_bot.utils.issue_tracking import report_issue
 
 _MISSING_FICTION_ITEM_IN_SCIENCE_OR_FICTION_MESSAGE = """
-Unfortunately, this episode did not have a 'fiction' item listed in the show notes on the website.
-Consequently, the Science of Fiction data needs to be manually corrected.
-
-I first saw this issue in episode 1018 and I contacted info@theskepticsguide.com.
-They did not respond, which was disappointing as it is an issue that should be fixed on their end.
-Rather than have the bot generate no transcript at all, instead I added this message in the hopes that the human editor
-will see this and fix it. If you're reading this: please contact the podcast creators to ask them to fix this issue.
+There was an error when transcription-bot was processing Science or Fiction in this episode.
+As a consequence, the data was not filled out.
 """
 
 
