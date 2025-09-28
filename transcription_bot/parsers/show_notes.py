@@ -38,7 +38,7 @@ def parse_show_notes(show_notes: bytes) -> RawSegments:
 
 def _create_segments(segment_data: list["Tag"]) -> "BaseSegment|None":
     text = segment_data[0].text
-    lower_text = text.lower()
+    lower_text = text.lower().strip()
 
     found_match = False
     for segment_class in segment_types:
