@@ -3,11 +3,14 @@ import json
 import pickle
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Concatenate, Protocol, cast
+from typing import Any, Concatenate, ParamSpec, Protocol, TypeVar, cast
 
 from loguru import logger
 
 Url = str
+P = ParamSpec("P")
+T = TypeVar("T", bound="HasEpisodeNumber")
+R = TypeVar("R")
 _sentinel = object()
 
 _TEMP_DATA_FOLDER = Path("data/").resolve()
@@ -20,29 +23,57 @@ class HasEpisodeNumber(Protocol):
     episode_number: int
 
 
-def cache_for_episode[T: "HasEpisodeNumber", **P, R](
-    func: Callable[Concatenate[T, P], R],
-) -> Callable[Concatenate[T, P], R]:
+def cache_for_episode(
+    func: Callable[Concatenate[T, P], R] | None = None,
+    *,
+    should_cache: Callable[[R], bool] = lambda _: True,
+) -> Callable[..., Any]:
     """Cache the result of the decorated function to a file.
 
-    Requires the first positional argument be a PodcastEpisode.
+    Can be used as either a bare decorator:
+
+        @cache_for_episode
+        def fn(ep): ...
+
+    Or with a keyword `should_cache` that decides whether a function's return
+    value should be saved to cache:
+
+        @cache_for_episode(should_cache=lambda result: bool(result))
+        def fn(ep): ...
+
+    The `should_cache` callable accepts the function's return value and returns
+    a bool indicating whether that value should be saved to cache.
+
+    The decorated function's first positional argument must expose an `episode_number`.
     """
 
-    @functools.wraps(func)
-    def wrapper(rss_entry: T, *args: P.args, **kwargs: P.kwargs) -> R:
-        function_dir = get_cache_dir(func)
-        cache_filepath = function_dir / f"{rss_entry.episode_number}.json_or_pkl"
+    def _decorate(func: Callable[Concatenate[T, P], R]) -> Callable[Concatenate[T, P], R]:
+        @functools.wraps(func)
+        def wrapper(rss_entry: T, *args: P.args, **kwargs: P.kwargs) -> R:
+            function_dir = get_cache_dir(func)
+            cache_filepath = function_dir / f"{rss_entry.episode_number}.json_or_pkl"
 
-        if cache_filepath.exists():
-            logger.info(f"Using cache for func: {func.__name__}, ep: {rss_entry.episode_number}")
-            return load_cache(cache_filepath)
+            if cache_filepath.exists():
+                logger.info(f"Using cache for func: {func.__name__}, ep: {rss_entry.episode_number}")
+                return load_cache(cache_filepath)
 
-        result = func(rss_entry, *args, **kwargs)
+            result = func(rss_entry, *args, **kwargs)
 
-        save_cache(cache_filepath, result)
-        return result
+            if should_cache(result):
+                logger.debug(f"Caching result for func: {func.__name__}, ep: {rss_entry.episode_number}")
+                save_cache(cache_filepath, result)
+            else:
+                logger.debug(f"Not caching result for func: {func.__name__}, ep: {rss_entry.episode_number}")
 
-    return wrapper
+            return result
+
+        return wrapper
+
+    # Support both usages: @cache_for_episode and @cache_for_episode(should_cache=...)
+    if func is None:
+        return _decorate
+
+    return _decorate(func)
 
 
 def cache_for_str_arg[**P, R](func: Callable[Concatenate[Url, P], R]) -> Callable[Concatenate[Url, P], R]:
