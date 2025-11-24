@@ -6,7 +6,7 @@ from collections.abc import Callable, Iterable
 from typing import ParamSpec, TypeVar
 
 from loguru import logger
-from openai import OpenAI
+from openai import BadRequestError, OpenAI
 from openai.types.chat.chat_completion_content_part_param import ChatCompletionContentPartParam
 
 from transcription_bot.models.data_models import PodcastRssEntry
@@ -111,18 +111,23 @@ def get_image_caption_from_llm(image_url: str) -> str:
     client = OpenAI(
         organization=config.openai_organization, project=config.openai_project, api_key=config.openai_api_key
     )
-    response = client.chat.completions.create(
-        model=config.llm_model,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": user_prompt},
-                    {"type": "image_url", "image_url": {"url": image_url}},
-                ],
-            }
-        ],
-    )
+
+    try:
+        response = client.chat.completions.create(
+            model=config.llm_model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_prompt},
+                        {"type": "image_url", "image_url": {"url": image_url}},
+                    ],
+                }
+            ],
+        )
+    except BadRequestError:
+        logger.error(f"Failed request to OpenAI for {image_url}")
+        return "Unable to acquire caption for image from OpenAI."
 
     if not response.choices[0].message.content:
         raise ValueError("LLM did not return a response.")
