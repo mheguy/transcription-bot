@@ -468,20 +468,20 @@ wheels = [
 
 [[package]]
 name = "ngrok"
-version = "1.5.1"
+version = "1.6.0"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a6/9f/03b512118b442830d3847df6d9da87f76c91e028eb6b0b96a7c636bad1b6/ngrok-1.5.1-cp310-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:167828a97cfb71942665bc7c156f566045061c73be52f4b3d24403a4e24a03c0", size = 7193447, upload-time = "2025-08-05T22:02:13.032Z" },
-    { url = "https://files.pythonhosted.org/packages/b1/b0/31e473900855b721b4f58fbe4da274582aa5831d5ee2555aea7024e2edab/ngrok-1.5.1-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:ffdb9fa30aa78fca17ee95e3fae565fe8d79c62ae3bd260dcba2d541aa76b1f2", size = 3731792, upload-time = "2025-08-05T22:00:20.385Z" },
-    { url = "https://files.pythonhosted.org/packages/cc/75/c1f96413bfa12283f520ed37789b2e35e6152099ad2f706f279301ea3fb6/ngrok-1.5.1-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:28202e448267bf19d8f9f50f07a67fef91e390294c43c8dbd919f5fc1ab9fc9b", size = 3480094, upload-time = "2025-08-05T22:00:10.957Z" },
-    { url = "https://files.pythonhosted.org/packages/cc/51/243f9ba16f0e8e7e8780d66abead44b6363b26ad3619026ce02d92c60ee0/ngrok-1.5.1-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:caca325e330e578a85bdde1e27044c45d5c4028adf4dbab0fb2d87971175e630", size = 5547596, upload-time = "2025-08-05T22:02:05.093Z" },
-    { url = "https://files.pythonhosted.org/packages/23/71/ad4d2252a87e14bf5aca7ef55b6adf9a0922373192b02e0ccf287efb1b3c/ngrok-1.5.1-cp310-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:affade8cd54661ec6cd41e121ba6791276841248e63b18eb0c5f7daf6f5a71f8", size = 4481126, upload-time = "2025-08-05T22:02:27.754Z" },
-    { url = "https://files.pythonhosted.org/packages/d7/80/6b56186a3b5364e82edfbd326714d027cd6429ba5f8e16dff034026477a5/ngrok-1.5.1-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ac544a66b2946cc335cb46e8fdff17d9ae1dce314705f69929952eabfd75be00", size = 3822615, upload-time = "2025-08-05T22:01:38.802Z" },
-    { url = "https://files.pythonhosted.org/packages/e2/40/75e5af6c9b6c41c69f246a0e289731d889f46c974f4bcce29af5cfa6b36e/ngrok-1.5.1-cp310-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:cb7a27fceae3924d68b114f82c24a640528225a6d83a3ce5e7a13116cd9d627c", size = 3586660, upload-time = "2025-08-05T22:05:13.805Z" },
-    { url = "https://files.pythonhosted.org/packages/ec/ab/79ebdf235d52fdb9d0d8d92889e73dbb1781676355bf4c96b376415895b1/ngrok-1.5.1-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:0f04b43cbc92a027d63e64e1afca43d8b3ec063c9d2c9cdee3a7f32df7c6386a", size = 3917708, upload-time = "2025-08-05T22:06:24.702Z" },
-    { url = "https://files.pythonhosted.org/packages/d0/a9/7c72770fafdfa849ad2ca57be60456d9b6ceb9f31eb71cb9e72044a84e60/ngrok-1.5.1-cp310-abi3-win32.whl", hash = "sha256:1118e5e3762084024e620afc5da1e99721e1897ec132ba90d3d2bec9d801d298", size = 3218534, upload-time = "2025-08-05T22:01:57.553Z" },
-    { url = "https://files.pythonhosted.org/packages/6c/2c/a0220d7d5df100a97f8b46e1a84fcedac658232d6dd329e3fee5220b09e5/ngrok-1.5.1-cp310-abi3-win_amd64.whl", hash = "sha256:6fa5da328ce57fd5e50d1f8fec685f936bf4315e08e147d0fd91fd5dafa5cac7", size = 3791822, upload-time = "2025-08-05T22:01:33.721Z" },
-    { url = "https://files.pythonhosted.org/packages/7e/d9/526d71e71cb274c74c204fcb07980f5236fa649dd6db36594ae176225adb/ngrok-1.5.1-cp310-abi3-win_arm64.whl", hash = "sha256:e24eadd6e3914e664f01bd964311c0892e59eda271d8e4bbcac7aa46fcb2587b", size = 3488917, upload-time = "2025-08-05T22:02:13.559Z" },
+    { url = "https://files.pythonhosted.org/packages/57/58/f75dc9761abbaebb43c79f606d433ca83540c9be1c7549080a0741620338/ngrok-1.6.0-cp310-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:0b6c4779bdefaeb5e58b9ea2618e5e1e4521ff0dabb788b103ffc8b262cfcab4", size = 7167655, upload-time = "2025-11-18T22:37:10.733Z" },
+    { url = "https://files.pythonhosted.org/packages/6b/50/475260ceda16c3d2d4905c792205cf9cec740709487537b7ef3504fe3724/ngrok-1.6.0-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:6ca623681402bbf60e312ab0343f7742740830e005dd99c79818611bff062982", size = 3723564, upload-time = "2025-11-18T22:35:05.253Z" },
+    { url = "https://files.pythonhosted.org/packages/19/79/0862df07b6d14c589d41f9e3ebdc61d10d98cecadd4b8b60991c915e63d1/ngrok-1.6.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:53fac6c539971bd1346823dbcd53579b6600027cd8d4a27c92dea761f4753bed", size = 3459058, upload-time = "2025-11-18T22:36:02.004Z" },
+    { url = "https://files.pythonhosted.org/packages/2b/59/5f243aa260265bee420c40cfc3f9dc3fe3434b2898872a1883ab709fd910/ngrok-1.6.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a48de799d464fd158713b63da5d581d415f0f182c1b8d5945f7abd2fa91f2b75", size = 5582618, upload-time = "2025-11-18T22:37:07.374Z" },
+    { url = "https://files.pythonhosted.org/packages/35/a7/2ddee2488fa8bd00fa7346fa171d44fdbc1af19fc5f450b1db52a1a1ae49/ngrok-1.6.0-cp310-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:2ccc521201f7d65a565aa70d7babc21630df9583cf97a6d4404028519dd0851b", size = 4500819, upload-time = "2025-11-18T22:37:51.329Z" },
+    { url = "https://files.pythonhosted.org/packages/24/5a/0c40eff63eb8a22503289b2d8430901fb945c0fcc774442cc8e8bb95461f/ngrok-1.6.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:eebdde36e49117f47d3741fb7fc5d511aa77dee2d52ad25ad99cce5f0b43b145", size = 3792523, upload-time = "2025-11-18T22:37:38.745Z" },
+    { url = "https://files.pythonhosted.org/packages/29/fc/fa28f6b8727ddd995fe74be88362cc68f99884f0060b62ff8a127e00b8a4/ngrok-1.6.0-cp310-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:dcc5ea2b11c128b65e80721c86990261420003edf4da00229d46086887d77126", size = 3600231, upload-time = "2025-11-18T22:40:04.33Z" },
+    { url = "https://files.pythonhosted.org/packages/ea/f8/5e76b57b8f2cae4e18dc29854c0262a590c1f239b8754e6d670288822478/ngrok-1.6.0-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:06bdb09073a36a5e7de73bf6659e09a00b2062e250b4a0abc2d80214d5a9368f", size = 3895674, upload-time = "2025-11-18T22:41:22.869Z" },
+    { url = "https://files.pythonhosted.org/packages/91/a9/9a5a4077a17fc1bc2dd8085f7ca69a3ae2c40d6a270232049205c1635dff/ngrok-1.6.0-cp310-abi3-win32.whl", hash = "sha256:df5a6650d250efd5d76058a7e4297b077c5f953bddc6b010138a076edacf4a0c", size = 3197299, upload-time = "2025-11-18T22:37:42.684Z" },
+    { url = "https://files.pythonhosted.org/packages/e5/4c/c088aba88b35f55070fb1ffe9dc847122e3814175288509c923724a1363f/ngrok-1.6.0-cp310-abi3-win_amd64.whl", hash = "sha256:3832f07228a93ed75f21c3021b7861012df9c84c409a75285de7f849c9de2bed", size = 3787020, upload-time = "2025-11-18T22:36:46.185Z" },
+    { url = "https://files.pythonhosted.org/packages/94/76/b5cbc1d89c8ec530019e39c009da9c9e9d69ba70b5aecced8413a98dadf6/ngrok-1.6.0-cp310-abi3-win_arm64.whl", hash = "sha256:eddcacc9144765d012c236854befe40e78fd17b612d51efd32ac440476a96131", size = 3468837, upload-time = "2025-11-18T22:37:37.896Z" },
 ]
 
 [[package]]
@@ -678,15 +678,15 @@ wheels = [
 
 [[package]]
 name = "pyright"
-version = "1.1.405"
+version = "1.1.407"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "nodeenv" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fb/6c/ba4bbee22e76af700ea593a1d8701e3225080956753bee9750dcc25e2649/pyright-1.1.405.tar.gz", hash = "sha256:5c2a30e1037af27eb463a1cc0b9f6d65fec48478ccf092c1ac28385a15c55763", size = 4068319, upload-time = "2025-09-04T03:37:06.776Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a6/1b/0aa08ee42948b61745ac5b5b5ccaec4669e8884b53d31c8ec20b2fcd6b6f/pyright-1.1.407.tar.gz", hash = "sha256:099674dba5c10489832d4a4b2d302636152a9a42d317986c38474c76fe562262", size = 4122872, upload-time = "2025-10-24T23:17:15.145Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d5/1a/524f832e1ff1962a22a1accc775ca7b143ba2e9f5924bb6749dce566784a/pyright-1.1.405-py3-none-any.whl", hash = "sha256:a2cb13700b5508ce8e5d4546034cb7ea4aedb60215c6c33f56cec7f53996035a", size = 5905038, upload-time = "2025-09-04T03:37:04.913Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/93/b69052907d032b00c40cb656d21438ec00b3a471733de137a3f65a49a0a0/pyright-1.1.407-py3-none-any.whl", hash = "sha256:6dd419f54fcc13f03b52285796d65e639786373f433e243f8b94cf93a7444d21", size = 5997008, upload-time = "2025-10-24T23:17:13.159Z" },
 ]
 
 [[package]]
@@ -1021,7 +1021,7 @@ dev = [
 ]
 scripts = [
     { name = "flask", specifier = ">=3" },
-    { name = "ngrok", specifier = "<1.6.0" },
+    { name = "ngrok", specifier = "<1.7.0" },
     { name = "pydub", specifier = ">=0.25" },
 ]
 
