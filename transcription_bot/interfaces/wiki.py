@@ -18,6 +18,7 @@ EPISODE_PAGE_PREFIX = "SGU_Episode_"
 EPISODE_LIST_PAGE_PREFIX = "Template:EpisodeList"
 _BASE_ACTION_PARAMS = {"action": "query", "meta": "tokens", "format": "json"}
 _LOGIN_ACTION_PARAMS = {"type": "login", **_BASE_ACTION_PARAMS}
+_MAX_IMAGE_SIZE = 2 * 1024 * 1024  # 2MB
 
 
 # region Module state
@@ -78,6 +79,9 @@ def upload_image_to_wiki(image_url: str, episode_number: int) -> str:
     """Upload an image to the wiki."""
     image_response = _wiki_client.http_client.get(image_url)
     image_data = image_response.content
+
+    if len(image_data) > _MAX_IMAGE_SIZE:
+        return "none"
 
     filename = f"{episode_number}.{image_url.split('.')[-1]}"
 
