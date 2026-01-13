@@ -26,7 +26,6 @@ from transcription_bot.models.episode_segments.simple_segments import InterviewS
 from transcription_bot.models.simple_models import EpisodeStatus
 from transcription_bot.parsers.rss_feed import get_podcast_rss_entries, get_recently_modified_episode_numbers
 from transcription_bot.utils.config import config
-from transcription_bot.utils.exceptions import NoLyricsTagError
 from transcription_bot.utils.global_http_client import http_client
 from transcription_bot.utils.helpers import (
     filter_bad_episodes,
@@ -72,8 +71,6 @@ def main(episode_numbers: set[int]) -> None:
             process_episode(episode_rss_entry, episode_lists[episode_rss_entry.year])
         except ID3NoHeaderError:
             logger.error(f"Unable to process mp3 for episode {episode_number}")
-        except NoLyricsTagError:
-            logger.error(f"Cannot process episode {episode_number} due to missing lyrics tag.")
 
     for year, episode_list in episode_lists.items():
         save_wiki_page(f"{EPISODE_LIST_PAGE_PREFIX}{year}", str(episode_list), allow_page_editing=True)
