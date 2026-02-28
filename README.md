@@ -1,5 +1,9 @@
 # transcription-bot
 
+This project has been discontinued due to lack of interest from both the podcast producers.
+
+----
+
 This is a fan creation and is not endorsed, associated with, or supported by SGU Productions, LLC.<br>
 
 ![Transcript creation](https://cronitor.io/badges/2CcGJX/production/TepOa29Ms8vPgIhqhWnOkh3SQic.svg)
@@ -118,3 +122,4 @@ There are a number of required env vars to run the tool. `dotenv` is set up, so 
 See `.env.sample` for required env vars.<br>
 
 Ruff and Pyright should be used for linting, formatting, and type checking: `uv run ruff check ; uv run ruff format ; uv run pyright`
+
